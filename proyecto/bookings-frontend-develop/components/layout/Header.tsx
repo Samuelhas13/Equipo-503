@@ -8,6 +8,8 @@
 // - Añadir accesibilidad con roles ARIA (ej. role="banner").
 
 export default function Header() {
+    // Mejora: aceptar props para título y subtítulo dinámicos, en lugar de texto estático.
+    // Esto permitiría reutilizar el componente en otras secciones de la app.
     return (
       <header
         style={{
@@ -16,10 +18,12 @@ export default function Header() {
           padding: "20px 24px",
         }}
       >
+        {/* Usar clases CSS en lugar de estilos inline puede mejorar el mantenimiento y evitar duplicación. */}
         <h1 style={{ margin: 0, fontSize: "28px" }}>Bookings Admin</h1>
         <p style={{ margin: "6px 0 0", color: "#6b7280", fontSize: "14px" }}>
           Plataforma de gestión de reservas y cobros
         </p>
+        {/* Posible mejora: agregar un botón de acción o breadcrumb si el dashboard tiene navegación secundaria. */}
       </header>
     );
   }

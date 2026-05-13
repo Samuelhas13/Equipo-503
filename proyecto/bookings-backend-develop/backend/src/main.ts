@@ -6,8 +6,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Permitir peticiones desde el frontend durante el desarrollo local.
   app.enableCors({
-    origin: 'http://localhost:3001',
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
   });
 
   app.useGlobalPipes(

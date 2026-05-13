@@ -17,6 +17,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Posible mejora: extraer menuItems a datos externos o props para hacer el componente más reutilizable.
+// También se podría utilizar un tipo `MenuItem` para mayor robustez con TypeScript.
 const menuItems = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
@@ -26,6 +28,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  // Comentario: usePathname es apropiado para detectar la ruta activa, pero para rutas anidadas convendría usar `startsWith`.
 
   return (
     <aside className="admin-sidebar">
@@ -34,7 +37,7 @@ export default function Sidebar() {
         <p className="admin-sidebar__subtitle">Admin workspace</p>
       </div>
 
-      <nav className="admin-sidebar__nav">
+      <nav className="admin-sidebar__nav" aria-label="Main navigation">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
 
@@ -44,12 +47,14 @@ export default function Sidebar() {
               href={item.href}
               className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
             >
+              {/* Mejora: usar iconos SVG o componentes de íconos en lugar de caracteres Unicode para mayor consistencia visual. */}
               <span>{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
+      {/* Nota: sería conveniente añadir un estado de carga o placeholder si la navegación depende de datos asíncronos. */}
     </aside>
   );
 }

@@ -1,14 +1,16 @@
+/* Variables globales: buen uso de tokens para colores y radios. */
+/* Nota: algunas variables como --surface-2 y --primary-soft parecen definir valores útiles pero no se usan en este archivo. */
 :root {
   --bg: #f5f7fb;
   --surface: #ffffff;
-  --surface-2: #f8fafc; /* Revisar: variable declarada pero no usada en el archivo */
+  --surface-2: #f8fafc;
   --border: #e6ebf2;
   --border-strong: #d8e0ea;
   --text: #111827;
   --muted: #6b7280;
   --muted-2: #94a3b8;
   --primary: #0f172a;
-  --primary-soft: #eff3ff; /* Revisar: variable declarada pero no usada en el archivo */
+  --primary-soft: #eff3ff;
   --accent: #2563eb;
   --success-bg: #dcfce7;
   --success-text: #166534;
@@ -22,7 +24,6 @@
   --radius-md: 18px;
   --radius-lg: 24px;
   --sidebar-width: 248px;
-  /* Revisión: usar variables de sombra y radio en todos los componentes puede facilitar cambios globales */
 }
 
 * {
@@ -33,22 +34,22 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f5f7fb; /* Mejor usar var(--bg) para consistencia con las variables de color */
+  background: #f5f7fb; /* Mejor usar var(--bg) para consistencia con las variables definidas. */
   color: var(--text);
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: Inter, Arial, Helvetica, sans-serif; /* Verificar que Inter esté importada o disponible en el proyecto. */
 }
 
 a {
   color: inherit;
-  text-decoration: none; /* Cuidado: los enlaces pueden no distinguirse del texto normal */
+  text-decoration: none;
 }
 
 button,
 input,
 select {
   font: inherit;
+  /* Comentario: sería útil incluir textarea aquí también si se usan formularios largos. */
 }
-/* Considerar añadir textarea para que también herede la tipografía en formularios */
 
 body {
   min-height: 100vh;
@@ -59,6 +60,8 @@ body {
   min-height: 100vh;
 }
 
+
+/* Sidebar fija: cuidado con `height: 100vh` y `position: sticky`; en pantallas pequeñas puede causar problemas de overflow. */
 .admin-sidebar {
   width: var(--sidebar-width);
   background: rgba(255, 255, 255, 0.92);
@@ -67,7 +70,7 @@ body {
   padding: 24px 16px;
   position: sticky;
   top: 0;
-  height: 100vh; /* Revisar: height 100vh + sticky puede causar problemas de scroll en pantallas pequeñas */
+  height: 100vh;
 }
 
 .admin-sidebar__brand {
@@ -100,9 +103,9 @@ body {
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 14px;
-  color: #334155; /* Mejor usar variable de color para mantener consistencia */
+  color: #334155;
   background: transparent;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease; /* Usar `all` es práctico pero puede ser más costoso; preferir propiedades específicas para mejor rendimiento. */
 }
 
 .admin-sidebar__link:hover {
@@ -121,6 +124,7 @@ body {
   flex-direction: column;
 }
 
+/* En cabeceras con transparencia y blur, revisar contraste si aparece sobre fondos oscuros o imágenes. */
 .admin-header {
   display: flex;
   align-items: center;
@@ -147,12 +151,14 @@ body {
   font-size: 14px;
 }
 
+
 .admin-header__actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* El avatar utiliza colores directos; sería mejor usar variables para mantener consistencia de marca. */
 .admin-avatar {
   width: 42px;
   height: 42px;
@@ -190,12 +196,13 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+/* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
 .page-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(180deg, #ffffff, #fbfdff); /* Considerar variable para gamas de surface y degradados */
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
@@ -213,6 +220,7 @@ body {
   color: var(--muted);
 }
 
+/* Los botones no consideran un estado `disabled`; si se usan botones inactivos conviene definirlo aquí también. */
 .primary-btn {
   border: none;
   background: var(--primary);
@@ -233,8 +241,8 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
-/* Falta estilo :disabled para estos botones como el que ya existe en .danger-btn */
 
+/* El grid de KPIs se fija en 4 columnas; la media query de 1200px es útil, pero nuevos puntos de quiebre podrían mejorar la adaptación intermedia. */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -248,7 +256,6 @@ body {
   padding: 22px;
   box-shadow: var(--shadow-sm);
 }
-/* Revisar: el degradado usa colores directos; se puede unificar con variables para mantener consistencia cromática */
 
 .kpi-card__label {
   margin: 0;
@@ -297,7 +304,7 @@ body {
 }
 
 .panel-subtle-link {
-  color: #1d4ed8; /* Mejor usar var(--accent) para unificar el color de enlaces/acciones */
+  color: #1d4ed8;
   font-weight: 600;
   font-size: 14px;
   background: none;
@@ -305,6 +312,7 @@ body {
   cursor: pointer;
 }
 
+/* La tabla usa `border-collapse`, buen enfoque. Considerar un fondo suave o `th` sticky si la tabla es larga. */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -314,7 +322,6 @@ body {
   color: var(--muted);
   text-align: left;
 }
-/* Considerar añadir filas alternas o estados de foco para mejorar la legibilidad y accesibilidad */
 
 .data-table th {
   padding: 12px 0;
@@ -400,8 +407,8 @@ body {
   font-size: 14px;
   color: #334155;
 }
-/* Este elemento es interactivo; conviene asegurar semántica de botón y foco accesible */
 
+/* El grid de formularios usa 2 columnas; en formularios con muchos campos mejorar el diseño móvil/columnas podría ser necesario. */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -417,7 +424,6 @@ body {
   background: white;
   color: var(--text);
 }
-/* Considerar añadir un estilo de enfoque visible más fuerte para inputs y selects, no solo outline en focus-visible */
 
 .input--full {
   grid-column: 1 / -1;
@@ -499,6 +505,7 @@ body {
   }
 }
 
+/* Los puntos de quiebre son útiles pero el contenido intermedio puede necesitar ajustes adicionales. */
 @media (max-width: 920px) {
   .admin-shell {
     flex-direction: column;
@@ -509,7 +516,6 @@ body {
     height: auto;
     position: relative;
   }
-/* Nota: en móvil el sidebar deja de ser sticky, lo cual está bien, pero conviene probar comportamiento de header y nav juntos */
 
   .form-grid,
   .kpi-grid,
@@ -537,8 +543,8 @@ body {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
-/* Buena accesibilidad en foco, pero sería más consistente usar var(--accent) en lugar de color directo */
 
+/* El modal usa `backdrop-filter`, que no es compatible en navegadores antiguos; revisar soporte si la app apunta a clientes legacy. */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -549,7 +555,6 @@ body {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
 }
-/* Ojo: el modal usa z-index fijo; revisar que no entre en conflicto con otros overlay en la app */
 
 .modal-card {
   width: min(100%, 460px);
@@ -559,7 +564,6 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 28px;
 }
-/* Revisión: este borde y sombra directa podrían reemplazarse por variables de color y sombra para mantener coherencia con el resto */
 
 .modal-icon {
   width: 48px;
@@ -573,7 +577,6 @@ body {
   font-weight: 700;
   font-size: 1.25rem;
 }
-/* Nota: los colores del icono modal son específicos; considera variables de estado para error/alerta */
 
 .modal-title {
   margin: 0 0 10px;
@@ -609,7 +612,6 @@ body {
   cursor: pointer;
   transition: background 150ms ease, transform 150ms ease;
 }
-/* Buena interacción, pero podrías homogeneizar el mismo estilo de transición en todos los botones */
 
 .danger-btn:hover {
   background: #b91c1c;
