@@ -195,7 +195,6 @@ body {
   padding: 24px;
   box-shadow: var(--shadow-sm);
 }
-
 /* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
 .page-hero {
   display: flex;
