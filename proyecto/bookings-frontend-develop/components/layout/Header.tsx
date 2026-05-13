@@ -1,3 +1,12 @@
+// Componente Header: Renderiza el encabezado principal de la aplicación de administración.
+// Funcionalidad: Muestra un título estático "Bookings Admin" y una descripción de la plataforma.
+// Propósito: Proporciona una identidad visual y contextual en la parte superior de la interfaz.
+// Posibles mejoras:
+// - Aceptar props para título y subtítulo dinámicos (ej. props.title, props.subtitle).
+// - Integrar un menú de usuario o acciones rápidas (ej. notificaciones, perfil).
+// - Hacerlo responsive con estilos adaptativos para móviles.
+// - Añadir accesibilidad con roles ARIA (ej. role="banner").
+
 export default function Header() {
     return (
       <header

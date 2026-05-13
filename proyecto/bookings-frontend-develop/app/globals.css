@@ -1,14 +1,14 @@
 :root {
   --bg: #f5f7fb;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
+  --surface-2: #f8fafc; /* Revisar: variable declarada pero no usada en el archivo */
   --border: #e6ebf2;
   --border-strong: #d8e0ea;
   --text: #111827;
   --muted: #6b7280;
   --muted-2: #94a3b8;
   --primary: #0f172a;
-  --primary-soft: #eff3ff;
+  --primary-soft: #eff3ff; /* Revisar: variable declarada pero no usada en el archivo */
   --accent: #2563eb;
   --success-bg: #dcfce7;
   --success-text: #166534;
@@ -22,6 +22,7 @@
   --radius-md: 18px;
   --radius-lg: 24px;
   --sidebar-width: 248px;
+  /* Revisión: usar variables de sombra y radio en todos los componentes puede facilitar cambios globales */
 }
 
 * {
@@ -32,14 +33,14 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f5f7fb;
+  background: #f5f7fb; /* Mejor usar var(--bg) para consistencia con las variables de color */
   color: var(--text);
   font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: none; /* Cuidado: los enlaces pueden no distinguirse del texto normal */
 }
 
 button,
@@ -47,6 +48,7 @@ input,
 select {
   font: inherit;
 }
+/* Considerar añadir textarea para que también herede la tipografía en formularios */
 
 body {
   min-height: 100vh;
@@ -65,7 +67,7 @@ body {
   padding: 24px 16px;
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100vh; /* Revisar: height 100vh + sticky puede causar problemas de scroll en pantallas pequeñas */
 }
 
 .admin-sidebar__brand {
@@ -98,7 +100,7 @@ body {
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 14px;
-  color: #334155;
+  color: #334155; /* Mejor usar variable de color para mantener consistencia */
   background: transparent;
   transition: all 0.2s ease;
 }
@@ -193,7 +195,7 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: linear-gradient(180deg, #ffffff, #fbfdff); /* Considerar variable para gamas de surface y degradados */
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
@@ -231,6 +233,7 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+/* Falta estilo :disabled para estos botones como el que ya existe en .danger-btn */
 
 .kpi-grid {
   display: grid;
@@ -245,6 +248,7 @@ body {
   padding: 22px;
   box-shadow: var(--shadow-sm);
 }
+/* Revisar: el degradado usa colores directos; se puede unificar con variables para mantener consistencia cromática */
 
 .kpi-card__label {
   margin: 0;
@@ -293,7 +297,7 @@ body {
 }
 
 .panel-subtle-link {
-  color: #1d4ed8;
+  color: #1d4ed8; /* Mejor usar var(--accent) para unificar el color de enlaces/acciones */
   font-weight: 600;
   font-size: 14px;
   background: none;
@@ -310,6 +314,7 @@ body {
   color: var(--muted);
   text-align: left;
 }
+/* Considerar añadir filas alternas o estados de foco para mejorar la legibilidad y accesibilidad */
 
 .data-table th {
   padding: 12px 0;
@@ -395,6 +400,7 @@ body {
   font-size: 14px;
   color: #334155;
 }
+/* Este elemento es interactivo; conviene asegurar semántica de botón y foco accesible */
 
 .form-grid {
   display: grid;
@@ -411,6 +417,7 @@ body {
   background: white;
   color: var(--text);
 }
+/* Considerar añadir un estilo de enfoque visible más fuerte para inputs y selects, no solo outline en focus-visible */
 
 .input--full {
   grid-column: 1 / -1;
@@ -502,6 +509,7 @@ body {
     height: auto;
     position: relative;
   }
+/* Nota: en móvil el sidebar deja de ser sticky, lo cual está bien, pero conviene probar comportamiento de header y nav juntos */
 
   .form-grid,
   .kpi-grid,
@@ -529,6 +537,7 @@ body {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+/* Buena accesibilidad en foco, pero sería más consistente usar var(--accent) en lugar de color directo */
 
 .modal-backdrop {
   position: fixed;
@@ -540,6 +549,7 @@ body {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
 }
+/* Ojo: el modal usa z-index fijo; revisar que no entre en conflicto con otros overlay en la app */
 
 .modal-card {
   width: min(100%, 460px);
@@ -549,6 +559,7 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 28px;
 }
+/* Revisión: este borde y sombra directa podrían reemplazarse por variables de color y sombra para mantener coherencia con el resto */
 
 .modal-icon {
   width: 48px;
@@ -562,6 +573,7 @@ body {
   font-weight: 700;
   font-size: 1.25rem;
 }
+/* Nota: los colores del icono modal son específicos; considera variables de estado para error/alerta */
 
 .modal-title {
   margin: 0 0 10px;
@@ -597,6 +609,7 @@ body {
   cursor: pointer;
   transition: background 150ms ease, transform 150ms ease;
 }
+/* Buena interacción, pero podrías homogeneizar el mismo estilo de transición en todos los botones */
 
 .danger-btn:hover {
   background: #b91c1c;

@@ -1,3 +1,17 @@
+// Componente Sidebar: Renderiza la barra lateral de navegación para la aplicación de administración.
+// Funcionalidad:
+// - Muestra una marca (brand) con título y subtítulo.
+// - Renderiza una lista de enlaces de navegación basados en menuItems.
+// - Resalta el enlace activo comparando la ruta actual con item.href usando usePathname.
+// Propósito: Facilita la navegación entre secciones principales de la app (Dashboard, Bookings, etc.).
+// Posibles mejoras:
+// - Hacer menuItems configurable vía props para reutilización en diferentes contextos.
+// - Añadir soporte para submenús o agrupaciones de enlaces.
+// - Implementar animaciones de transición para el cambio de estado activo.
+// - Mejorar accesibilidad con navegación por teclado y roles ARIA (ej. role="navigation").
+// - Integrar permisos de usuario para mostrar/ocultar enlaces según roles.
+// - Añadir indicadores de notificaciones o badges en los enlaces (ej. número de bookings pendientes).
+
 "use client";
 
 import Link from "next/link";
