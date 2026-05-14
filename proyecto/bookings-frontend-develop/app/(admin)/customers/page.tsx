@@ -192,7 +192,7 @@ export default function CustomersPage() {
               </label>
             </div>
 
-            <button className="primary-btn" type="submit" disabled={isSaving}>
+            <button className="primary-btn margenes" type="submit" disabled={isSaving}>
               {isSaving ? "Guardando..." : "Guardar cliente"}
             </button>
           </form>
