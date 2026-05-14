@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 type PaymentStatus = "pending" | "paid";
 
 type Payment = {
@@ -88,6 +92,8 @@ function Badge({ status }: { status: PaymentStatus }) {
 }
 
 export default function PaymentsPage() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -96,11 +102,82 @@ export default function PaymentsPage() {
           <p>Seguimiento de cobros realizados y pendientes.</p>
         </div>
 
-        <button className="primary-btn" type="button">
-          Registrar cobro
+
+
+        <button className="primary-btn" 
+        type="button"
+        onClick = {() => setIsCreateOpen((prev) => !prev) }
+        >
+          {isCreateOpen ? "Cerrar formulario" : "Registrar cobro" }
         </button>
       </section>
 
+      {/* Formulario provisional para registrar un cobro.
+    De momento solo prepara la interfaz, ya que todavía no está conectado a la API. */}
+
+      {isCreateOpen && (
+  <section className="section-card">
+    <h3 className="panel-title">Registrar cobro</h3>
+
+    <form className="form-grid">
+      <label className="form-field">
+        Cliente
+        <input className="input" placeholder="Nombre del cliente" />
+      </label>
+
+      <label className="form-field">
+        Comercio
+        <input className="input" placeholder="Nombre del comercio" />
+      </label>
+
+      <label className="form-field">
+        Importe
+        <input className="input" placeholder="Ej: 28 €" />
+      </label>
+
+      <label className="form-field">
+        Método
+        <select className="input">
+          <option>Tarjeta</option>
+          <option>Bizum</option>
+          <option>Efectivo</option>
+          <option>Pendiente</option>
+        </select>
+      </label>
+
+      <label className="form-field">
+        Fecha
+        <input className="input" type="date" />
+      </label>
+
+      <label className="form-field">
+        Estado
+        <select className="input">
+          <option value="pending">Por cobrar</option>
+          <option value="paid">Pagado</option>
+        </select>
+      </label>
+
+      <div className="form-actions">
+        <button
+          className="secondary-btn"
+          type="button"
+          onClick={() => setIsCreateOpen(false)}
+        >
+          Cancelar
+        </button>
+
+        <button className="primary-btn" type="button">
+          Guardar cobro
+        </button>
+      </div>
+    </form>
+
+    <p style={{ color: "#6b7280", fontSize: 14 }}>
+      Formulario pendiente de conectar
+    </p>
+  </section>
+)}
       <section className="kpi-grid">
         <KpiCard
           title="Cobrado hoy"
