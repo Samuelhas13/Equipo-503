@@ -1,16 +1,35 @@
+/**
+ * AppModule es el módulo raíz de la aplicación.
+ * Combina todos los demás módulos (como AppointmentsModule) y configura módulos
+ * de terceros, incluyendo la configuración de variables de entorno y la base de datos (TypeORM).
+ */
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { CustomersModule } from './customers/customers.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'data/database.sqlite',
-      autoLoadEntities: true,
-      synchronize: true,
+    // ConfigModule: Carga variables de entorno (ej. del archivo .env) y las hace globales
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
-    AppointmentsModule,
+    
+    // TypeOrmModule.forRoot: Conecta la aplicación con la base de datos (SQLite en este caso)
+    TypeOrmModule.forRoot({
+      type: 'sqlite', // Motor de BD
+      database: process.env.DATABASE_URL || 'data/database.sqlite', // Ruta al archivo de la base de datos
+      autoLoadEntities: true, // Carga automáticamente todas las entidades decoradas con @Entity()
+      // synchronize: true crea o altera las tablas automáticamente en base a las entidades (Peligroso en producción real)
+      synchronize: process.env.NODE_ENV !== 'production',
+    }),
+
+    // Módulos de nuestra aplicación:
+    AppointmentsModule, // Contiene toda la lógica relacionada con Reservas
+    CustomersModule,    // Contiene toda la lógica relacionada con Clientes
+    PaymentsModule,     // Contiene toda la lógica relacionada con Cobros/Pagos
   ],
 })
 export class AppModule {}
