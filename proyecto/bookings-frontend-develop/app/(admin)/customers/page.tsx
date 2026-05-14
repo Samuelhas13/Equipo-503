@@ -149,7 +149,7 @@ export default function CustomersPage() {
               <label>
                 Nombre
                 <input
-                  className="input"
+                  className="input margenes"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Nombre completo"
@@ -160,7 +160,7 @@ export default function CustomersPage() {
               <label>
                 Teléfono
                 <input
-                  className="input"
+                  className="input margenes"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   placeholder="600 123 456"
@@ -171,7 +171,7 @@ export default function CustomersPage() {
               <label>
                 Email
                 <input
-                  className="input"
+                  className="input margenes"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
@@ -183,7 +183,7 @@ export default function CustomersPage() {
               <label>
                 Negocio
                 <input
-                  className="input"
+                  className="input margenes"
                   value={formData.business}
                   onChange={(e) => handleInputChange("business", e.target.value)}
                   placeholder="Peluquería Nova"
