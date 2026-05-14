@@ -1,3 +1,8 @@
+/**
+ * AppointmentsController.
+ * Expone los endpoints de la API REST para gestionar reservas.
+ * Delega la lógica de negocio al servicio AppointmentsService.
+ */
 import {
   Body,
   Controller,
@@ -7,15 +12,20 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { Appointment } from './appointment.entity';
 
 @ApiTags('appointments')
 @Controller('appointments')
@@ -23,25 +33,34 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Get()
-  @ApiOkResponse({ description: 'Listado de reservas' })
-  findAll() {
-    return this.appointmentsService.findAll();
+  @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.appointmentsService.findAll(pageNum, limitNum);
   }
 
   @Get(':id')
-  @ApiOkResponse({ description: 'Detalle de una reserva' })
+  @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
+  @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.findOne(id);
   }
 
   @Post()
-  @ApiCreatedResponse({ description: 'Reserva creada' })
+  @ApiCreatedResponse({ description: 'Reserva creada', type: Appointment })
+  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentsService.create(createAppointmentDto);
   }
 
   @Patch(':id')
-  @ApiOkResponse({ description: 'Reserva actualizada' })
+  @ApiOkResponse({ description: 'Reserva actualizada', type: Appointment })
+  @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
+  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -51,6 +70,7 @@ export class AppointmentsController {
 
   @Delete(':id')
   @ApiOkResponse({ description: 'Reserva eliminada' })
+  @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.remove(id);
   }
