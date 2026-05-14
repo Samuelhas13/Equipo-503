@@ -3,27 +3,33 @@
  * Define la tabla 'customer' en la base de datos usando TypeORM.
  * Representa a un cliente que realiza reservas en el sistema.
  */
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { Appointment } from '../appointments/appointment.entity';
 
 @Entity()
 export class Customer {
-  // Identificador único autoincremental
+  @ApiProperty({ example: 1, description: 'Identificador único del cliente' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  // Nombre completo del cliente
+  @ApiProperty({ example: 'Juan Pérez', description: 'Nombre completo' })
   @Column()
   name: string;
 
-  // Correo electrónico del cliente (único para evitar duplicados)
+  @ApiProperty({ example: 'juan@example.com', description: 'Correo electrónico' })
   @Column({ unique: true })
   email: string;
 
-  // Número de teléfono de contacto
+  @ApiProperty({ example: '+34 600 123 456', description: 'Teléfono de contacto' })
   @Column()
   phone: string;
 
-  // Fecha de registro creada automáticamente al insertar el registro
+  @ApiProperty({ example: '2026-05-14T08:00:00Z', description: 'Fecha de creación' })
   @CreateDateColumn()
   createdAt: Date;
+
+  @ApiProperty({ type: () => [Appointment], description: 'Reservas del cliente' })
+  @OneToMany(() => Appointment, (appointment) => appointment.customer)
+  appointments: Appointment[];
 }
