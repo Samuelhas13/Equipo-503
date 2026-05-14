@@ -32,4 +32,10 @@ export class Customer {
   @ApiProperty({ type: () => [Appointment], description: 'Reservas del cliente' })
   @OneToMany(() => Appointment, (appointment) => appointment.customer)
   appointments: Appointment[];
+
+  // --- RELACIÓN CON PAYMENT (1 a N) ---
+  // Un cliente puede tener múltiples pagos realizados
+  @ApiProperty({ type: () => [require('../payments/payment.entity').Payment], description: 'Pagos del cliente' })
+  @OneToMany(() => require('../payments/payment.entity').Payment, (payment: any) => payment.customer)
+  payments: any[];
 }
