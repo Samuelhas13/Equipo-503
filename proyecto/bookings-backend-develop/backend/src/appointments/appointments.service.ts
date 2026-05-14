@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/**
+ * AppointmentsService.
+ * Contiene la lógica de negocio para la gestión de reservas.
+ * Interactúa con la base de datos mediante el repositorio de TypeORM.
+ */
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Appointment } from './appointment.entity';
@@ -12,17 +17,34 @@ export class AppointmentsService {
     private readonly appointmentsRepository: Repository<Appointment>,
   ) {}
 
-  findAll() {
+  findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
     return this.appointmentsRepository.find({
       order: { date: 'ASC', time: 'ASC' },
+      skip,
+      take: limit,
     });
   }
 
-  findOne(id: number) {
-    return this.appointmentsRepository.findOneBy({ id });
+  async findOne(id: number) {
+    const appointment = await this.appointmentsRepository.findOneBy({ id });
+    if (!appointment) {
+      throw new NotFoundException(`No existe la reserva con id ${id}`);
+    }
+    return appointment;
   }
 
-  create(createAppointmentDto: CreateAppointmentDto) {
+  async create(createAppointmentDto: CreateAppointmentDto) {
+    const existing = await this.appointmentsRepository.findOneBy({
+      date: createAppointmentDto.date,
+      time: createAppointmentDto.time,
+      businessId: createAppointmentDto.businessId,
+    });
+
+    if (existing) {
+      throw new BadRequestException('Ya existe una reserva en esa fecha y hora para este negocio');
+    }
+
     const appointment = this.appointmentsRepository.create(createAppointmentDto);
     return this.appointmentsRepository.save(appointment);
   }
@@ -49,7 +71,7 @@ export class AppointmentsService {
       throw new NotFoundException(`No existe la reserva con id ${id}`);
     }
 
-    await this.appointmentsRepository.remove(appointment);
+    await this.appointmentsRepository.softRemove(appointment);
 
     return { message: `Reserva ${id} eliminada correctamente` };
   }
