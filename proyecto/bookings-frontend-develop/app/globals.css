@@ -217,19 +217,40 @@ body {
   border-radius: 22px;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
+  /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
+  /* gap añadido para separación consistente entre contenido y acciones */
+  gap: 16px;
+  /* MEJORA: Permite que el header se adapte mejor en pantallas pequeñas */
+  flex-wrap: wrap;
 }
+
+/* MEJORA APLICADA (18/05/2026): Contenedor para título y subtítulo */
+.admin-header__content {
+  flex: 1;
+  /* MEJORA: Permite que el contenedor crezca y ocupe el espacio disponible */
+  min-width: 0;
+  /* MEJORA: Evita que los hijos superen el contenedor */
+}
+
 /*Pone formato al título de la cabecera */
 .admin-header__title {
   margin: 0;
   font-size: 28px;
   line-height: 1.1;
   letter-spacing: -0.04em;
+  /* MEJORA APLICADA (18/05/2026): Font-weight agregado para mayor consistencia visual */
+  font-weight: 700;
+  /* MEJORA: Asegura que el título sea claramente visible como elemento principal */
 }
+
 /*Añade formato al subtítulo de la cabecera */
 .admin-header__subtitle {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 14px;
+  /* MEJORA APLICADA (18/05/2026): Line-height agregado para mejor legibilidad */
+  line-height: 1.4;
+  /* MEJORA: Mejora la legibilidad en pantallas pequeñas y facilita el escaneo visual */
 }
 
 /*Formato para las acciones en la cabecera */
@@ -237,6 +258,9 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* MEJORA APLICADA (18/05/2026): flex-shrink agregado para evitar compresión excesiva */
+  flex-shrink: 0;
+  /* MEJORA: Mantiene los botones/acciones a su tamaño natural en pantallas pequeñas */
 }
 
 /* El avatar utiliza colores directos; sería mejor usar variables para mantener consistencia de marca. */
