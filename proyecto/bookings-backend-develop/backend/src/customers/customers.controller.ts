@@ -6,8 +6,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { CustomersService } from './customers.service';
-import { CreateCustomerDto } from '../customers/dto/create-customer.dto';
-import { UpdateCustomerDto } from '../customers/dto/update-customer.dto';
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer } from './customer.entity';
 
 @ApiTags('customers') // Agrupa estos endpoints bajo la etiqueta 'customers' en la documentación Swagger

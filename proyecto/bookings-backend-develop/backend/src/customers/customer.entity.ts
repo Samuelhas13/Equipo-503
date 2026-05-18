@@ -25,6 +25,14 @@ export class Customer {
   @Column()
   phone: string;
 
+  @ApiProperty({ example: 'Peluquería Nova', description: 'Nombre del negocio del cliente' })
+  @Column({ nullable: true })
+  business: string;
+
+  @ApiProperty({ example: 'Hoy · 09:00', description: 'Próxima reserva del cliente', required: false })
+  @Column({ nullable: true })
+  nextBooking: string;
+
   @ApiProperty({ example: '2026-05-14T08:00:00Z', description: 'Fecha de creación' })
   @CreateDateColumn()
   createdAt: Date;

@@ -8,7 +8,6 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CustomersModule } from './customers/customers.module';
-import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -25,11 +24,8 @@ import { PaymentsModule } from './payments/payments.module';
       // synchronize: true crea o altera las tablas automáticamente en base a las entidades (Peligroso en producción real)
       synchronize: process.env.NODE_ENV !== 'production',
     }),
-
-    // Módulos de nuestra aplicación:
-    AppointmentsModule, // Contiene toda la lógica relacionada con Reservas
-    CustomersModule,    // Contiene toda la lógica relacionada con Clientes
-    PaymentsModule,     // Contiene toda la lógica relacionada con Cobros/Pagos
+    AppointmentsModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}

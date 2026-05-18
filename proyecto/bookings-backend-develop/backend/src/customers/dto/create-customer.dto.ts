@@ -4,7 +4,7 @@
  * Usa class-validator para asegurar que el email tenga el formato correcto, etc.
  */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCustomerDto {
   @ApiProperty({ example: 'Juan Pérez' })
@@ -20,4 +20,14 @@ export class CreateCustomerDto {
   @IsString()
   @IsNotEmpty({ message: 'El teléfono no puede estar vacío' })
   phone: string;
+
+  @ApiProperty({ example: 'Peluquería Nova' })
+  @IsString()
+  @IsNotEmpty({ message: 'El nombre del negocio no puede estar vacío' })
+  business: string;
+
+  @ApiProperty({ example: 'Hoy · 09:00', required: false })
+  @IsString()
+  @IsOptional()
+  nextBooking?: string;
 }
