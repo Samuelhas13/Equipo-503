@@ -286,6 +286,11 @@ body {
   flex-direction: column;
   gap: 24px;
 }
+/* Mejora aplicada: wrapper específico para la página de bookings */
+.booking-page {
+  width: 100%;
+  gap: 28px;
+}
 /*Forma para las tarjetas de superficie */
 .surface-card {
   background: var(--surface);
@@ -300,6 +305,13 @@ body {
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-sm);
+  /* MEJORA APLICADA: Aumenta el padding y el radio para secciones de formulario y tablas en /bookings */
+}
+.booking-form-card,
+.booking-table-card {
+  border-color: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  /* MEJORA APLICADA: Estilo distintivo para formularios y tablas en la página de bookings */
 }
 /* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
 .page-hero {
@@ -319,6 +331,11 @@ body {
   font-size: 30px;
   letter-spacing: -0.04em;
 }
+/* MEJORA APLICADA: Variantes de hero para páginas específicas como /bookings */
+.booking-hero {
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  border-color: rgba(59, 130, 246, 0.18);
+}
 /* Formato para el párrafo del hero y color */
 .page-hero p {
   margin: 8px 0 0;
@@ -328,13 +345,23 @@ body {
 /* Los botones no consideran un estado `disabled`; si se usan botones inactivos conviene definirlo aquí también. */
 .primary-btn {
   border: none;
-  background: var(--primary);
+  background: var(--accent);
   color: white;
   border-radius: 14px;
   padding: 12px 18px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
+  transition: background 0.2s ease, transform 0.15s ease;
+  /* MEJORA APLICADA: Transición suave para hover/active en botones primarios */
+}
+.primary-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  /* MEJORA APLICADA: Hover activo más visible para mayor accesibilidad de interacción */
+}
+.primary-btn:active {
+  transform: translateY(0);
 }
 /* botón secundario */
 .secondary-btn {
@@ -345,6 +372,13 @@ body {
   padding: 12px 18px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.secondary-btn:hover {
+  background: var(--surface-2);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: var(--accent);
+  /* MEJORA APLICADA: Estados hover para botones secundarios más sutiles y consistentes */
 }
 /* Estados disabled para botones */
 .primary-btn:disabled,
@@ -430,6 +464,10 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.06);
+  /* MEJORA APLICADA: Sombras suaves y borde redondeado para tabla de reservas */
 }
 /* Formato para el encabezado de la tabla */
 .data-table thead {
@@ -445,20 +483,24 @@ body {
 }
 /* Formato para las celdas del encabezado de la tabla */
 .data-table th {
-  padding: 12px 0;
+  padding: 16px 14px;
   font-size: 13px;
   font-weight: 600;
 }
 /* Formato para las celdas de la tabla */
 .data-table td {
-  padding: 16px 0;
+  padding: 18px 14px;
   border-top: 1px solid var(--border);
   font-size: 14px;
+}
+.data-table tbody tr:hover {
+  background: var(--surface-2);
+  /* MEJORA APLICADA: Hover para filas de tabla para mejor lectura e interacción */
 }
 /* Formato para las celdas de la tabla en la primera columna */
 .data-table td:first-child,
 .data-table th:first-child {
-  padding-left: 0;
+  padding-left: 18px;
 }
 /* Formato para las insignias */
 .badge {
@@ -519,6 +561,11 @@ body {
   gap: 10px;
   flex-wrap: wrap;
 }
+.table-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 /* Formato para las pastillas de filtro: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global. */
 .filter-pill {
   border: 1px solid var(--border);
@@ -527,7 +574,16 @@ body {
   padding: 10px 14px;
   font-size: 14px;
   color: var(--text);
-  /* APLICADO: Color cambiado a var(--text) para consistencia con la paleta de colores global */
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* APLICADO: Transición añadida para estados hover y activos */
+}
+.filter-pill--active {
+  background: var(--primary-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
+  /* MEJORA APLICADA: Estado activo visual más claro en filtros de reserva */
 }
 
 /* El grid de formularios usa 2 columnas; en formularios con muchos campos mejorar el diseño móvil/columnas podría ser necesario. */
@@ -540,17 +596,26 @@ body {
 .input,
 .select {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* MEJORA APLICADA: Transiciones suaves en campos de formulario */
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+  /* MEJORA APLICADA: Focus claro para mejorar accesibilidad en formularios */
 }
 /* Formato para los campos de entrada y select en estado focus: el color del borde se ajusta para mantener consistencia con la paleta de colores global. */
 .input--full {
   grid-column: 1 / -1;
 }
-/*  Formato para los campos de entrada y select en estado focus: el color del borde se ajusta para mantener consistencia con la paleta de colores global. */
+
 .message-row {
   display: flex;
   align-items: center;
@@ -560,13 +625,21 @@ body {
 .message-success {
   color: var(--success-text);
   font-size: 14px;
-  /* APLICADO: Color cambiado a var(--success-text) para consistencia con variables de estado */
+  background: rgba(220, 252, 231, 0.4);
+  border: 1px solid rgba(22, 101, 52, 0.16);
+  border-radius: 16px;
+  padding: 12px 16px;
+  /* APLICADO: Mensajes de éxito con fondo y borde suave para mejorar la legibilidad */
 }
 /* Formato para los mensajes de error: el color se ajusta para mantener consistencia con la paleta de errores global. */
 .message-error {
   color: var(--error);
   font-size: 14px;
-  /* APLICADO: Color cambiado a var(--error) para mantener consistencia con la paleta de errores */
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  border-radius: 16px;
+  padding: 12px 16px;
+  /* APLICADO: Mensajes de error con fondo suave para menor fatiga visual */
 }
 /* Formato para el grid de clientes: el número de columnas se ajusta para mejorar la adaptabilidad en pantallas intermedias. */
 .customer-grid {
