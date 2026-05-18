@@ -9,9 +9,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer } from './customer.entity';
 import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
+import { Payment } from 'src/payments/payment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer])], // Registra la entidad de base de datos
+  imports: [TypeOrmModule.forFeature([Customer, Payment])], // Registra la entidad de base de datos
   controllers: [CustomersController], // Registra las rutas
   providers: [CustomersService], // Registra la lógica de negocio
   exports: [CustomersService], // Lo exportamos por si en un futuro AppointmentsService requiere buscar información de clientes
