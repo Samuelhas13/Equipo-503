@@ -27,6 +27,23 @@
 //    - aria-hidden="true" en los iconos para evitar redundancia en accesibilidad
 // 6. onClick handler agregado con callback onNavigate para integración con estado global o analytics.
 // 7. Clases específicas agregadas (admin-sidebar__icon, admin-sidebar__label) para mejor control estilístico.
+//
+// MEJORAS DE INTERACTIVIDAD AGREGADAS (Hover y Estado Activo) - 18/05/2026:
+// 8. Efectos de hover mejorados:
+//    - Cambio de color de fondo a var(--surface-2) para indicar interactividad
+//    - Cambio de color de texto a var(--accent) para mayor contraste visual
+//    - Borde izquierdo de 3px que aparece en hover con color de acento
+//    - Transiciones suaves (0.2s) en background, color y border para feedback visual fluido
+// 9. Icono mejorado con animación:
+//    - Escala el icono a 110% (scale 1.1) en hover y estado activo para mayor énfasis
+//    - Transiciones suaves para transformación y color
+// 10. Etiqueta mejorada con cambios visuales:
+//     - Aumenta font-weight a 600 en hover y estado activo para mayor contraste
+//     - Ajusta letter-spacing para mejor legibilidad en estados interactivos
+// 11. Estado activo altamente destacado:
+//     - Combina fondo (var(--primary-soft)), color de texto (var(--accent)) y borde lateral
+//     - Agrega sombra interna sutil con box-shadow para efecto de profundidad
+//     - Todas las transiciones están coordinadas para un efecto visual cohesivo
 
 "use client";
 
@@ -89,12 +106,17 @@ export default function Sidebar({
             onNavigate?.(item.href);
           };
 
+          // MEJORA APLICADA: Clases dinámicas para efecto hover y estado activo destacado
+          // - Se agregan transiciones suaves y cambios visuales en hover
+          // - El estado activo se destaca con color de fondo y bordes laterales
+          const linkClasses = `admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""} admin-sidebar__link--hoverable`;
+
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={handleClick}
-              className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
+              className={linkClasses}
               aria-current={isActive ? "page" : undefined}
             >
               {/* APLICADO: aria-current="page" agregado para indicar la página activa a lectores de pantalla */}
