@@ -517,44 +517,54 @@ export default function BookingsClient({
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
         {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Servicio</th>
-              <th>Customer</th>
-              <th>Business</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredBookings.map((booking) => (
-              <tr key={booking.id}>
-                <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                <td>{formatDate(booking.date)}</td>
-                <td>{booking.time}</td>
-                <td>{booking.serviceName}</td>
-                <td>{booking.customerId}</td>
-                <td>{booking.businessId}</td>
-                <td><StatusBadge status={booking.status} /></td>
-                <td>
-                  <div className="table-actions">
-                    {/* APLICADO: Agrupación de acciones para una mejor apariencia y consistencia con los estilos de tabla */}
-                    <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
-                      Editar
-                    </button>
-                    <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Servicio</th>
+                <th>Customer</th>
+                <th>Business</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredBookings.map((booking) => (
+                <tr key={booking.id}>
+                  <td style={{ fontWeight: 600 }}>{booking.id}</td>
+                  <td>{formatDate(booking.date)}</td>
+                  <td>{booking.time}</td>
+                  <td>{booking.serviceName}</td>
+                  <td>{booking.customerId}</td>
+                  <td>{booking.businessId}</td>
+                  <td><StatusBadge status={booking.status} /></td>
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openEditForm(booking)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openDeleteModal(booking.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </section>
     </div>
   );
