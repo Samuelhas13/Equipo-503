@@ -65,13 +65,12 @@ function KpiCard({
       <p className="kpi-card__label">{title}</p>
       <h3 className="kpi-card__value">{value}</h3>
       <p
-        className={`kpi-card__meta ${
-          variant === "positive"
+        className={`kpi-card__meta ${variant === "positive"
             ? "kpi-card__meta--positive"
             : variant === "warning"
               ? "kpi-card__meta--warning"
               : ""
-        }`}
+          }`}
       >
         {subtitle}
       </p>
@@ -126,34 +125,36 @@ export default function PaymentsPage() {
           </span>
         </div>
 
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Comercio</th>
-              <th>Importe</th>
-              <th>Método</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.id}>
-                <td style={{ fontWeight: 600 }}>{payment.id}</td>
-                <td>{payment.client}</td>
-                <td>{payment.business}</td>
-                <td>{payment.amount}</td>
-                <td>{payment.method}</td>
-                <td>{payment.date}</td>
-                <td>
-                  <Badge status={payment.status} />
-                </td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Comercio</th>
+                <th>Importe</th>
+                <th>Método</th>
+                <th>Fecha</th>
+                <th>Estado</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {payments.map((payment) => (
+                <tr key={payment.id}>
+                  <td style={{ fontWeight: 600 }}>{payment.id}</td>
+                  <td>{payment.client}</td>
+                  <td>{payment.business}</td>
+                  <td>{payment.amount}</td>
+                  <td>{payment.method}</td>
+                  <td>{payment.date}</td>
+                  <td>
+                    <Badge status={payment.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
