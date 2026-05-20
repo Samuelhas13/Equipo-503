@@ -13,9 +13,11 @@ async function bootstrap() {
   // 1. Crea la instancia de la aplicación NestJS utilizando el módulo raíz (AppModule)
   const app = await NestFactory.create(AppModule);
 
-  // 2. Configuración de CORS: Permite que el frontend (en puerto 3001) pueda consumir esta API sin ser bloqueado por el navegador
+  // 2. Configuración de CORS: Permite que el frontend pueda consumir esta API sin ser bloqueado por el navegador
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL]
+      : ['http://localhost:3000', 'http://localhost:3001'],
   });
 
   // 3. Configuración de validación global: Obliga a que todas las peticiones cumplan las reglas de los DTOs

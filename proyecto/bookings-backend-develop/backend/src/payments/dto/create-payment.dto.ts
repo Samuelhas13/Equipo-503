@@ -33,16 +33,10 @@ export class CreatePaymentDto {
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
 
-  @ApiProperty({ example: 'María López', description: 'Nombre del cliente' })
-  @IsString()
-  customerName: string;
-
-  @ApiProperty({
-    example: 'Peluquería Nova',
-    description: 'Nombre del comercio',
-  })
-  @IsString()
-  businessName: string;
+  @ApiProperty({ example: 1, description: 'ID del cliente que realiza el pago' })
+  @IsInt()
+  @IsPositive()
+  customerId: number;
 
   @ApiProperty({ example: 1, description: 'ID de la reserva asociada' })
   @IsInt()

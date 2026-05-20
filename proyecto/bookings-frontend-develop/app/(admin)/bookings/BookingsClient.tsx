@@ -231,8 +231,9 @@ export default function BookingsClient({
   }
 
   return (
-    <div className="page-stack">
-      <section className="page-hero">
+    <div className="booking-page page-stack">
+      {/* APLICADO: Clase booking-page para aplicar estilos específicos al listado de reservas */}
+      <section className="page-hero booking-hero">
         <div>
           <h2>Bookings list</h2>
           <p>Gestión de reservas conectada con la API.</p>
@@ -274,7 +275,8 @@ export default function BookingsClient({
       </section>
 
       {isCreateOpen && (
-        <section className="section-card">
+        <section className="section-card booking-form-card">
+          {/* APLICADO: Sección de formulario de creación con tarjeta visual y espaciado consistente */}
           <div className="panel-title-row">
             <h3 className="panel-title">Nueva reserva</h3>
             <button type="button" className="secondary-btn" onClick={closeCreateForm}>
@@ -353,7 +355,8 @@ export default function BookingsClient({
       )}
 
       {editingBookingId !== null && (
-        <section className="section-card">
+        <section className="section-card booking-form-card">
+          {/* APLICADO: Sección de formulario de edición con estilos coherentes con el panel de creación */}
           <div className="panel-title-row">
             <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
             <button type="button" className="secondary-btn" onClick={closeEditForm}>
@@ -471,14 +474,43 @@ export default function BookingsClient({
         </div>
       )}
 
-      <section className="section-card">
+      <section className="section-card booking-table-card">
+        {/* APLICADO: Tarjeta de tabla para agrupar listado de reservas con filtros y acciones */}
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
           <div className="filter-row">
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>Pagadas</button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === "all" ? "filter-pill--active" : ""}`}
+              aria-pressed={statusFilter === "all"}
+              onClick={() => setStatusFilter("all")}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
+              aria-pressed={statusFilter === "pending"}
+              onClick={() => setStatusFilter("pending")}
+            >
+              Pendientes
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
+              aria-pressed={statusFilter === "confirmed"}
+              onClick={() => setStatusFilter("confirmed")}
+            >
+              Confirmadas
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
+              aria-pressed={statusFilter === "paid"}
+              onClick={() => setStatusFilter("paid")}
+            >
+              Pagadas
+            </button>
           </div>
         </div>
 
@@ -509,7 +541,8 @@ export default function BookingsClient({
                 <td>{booking.businessId}</td>
                 <td><StatusBadge status={booking.status} /></td>
                 <td>
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div className="table-actions">
+                    {/* APLICADO: Agrupación de acciones para una mejor apariencia y consistencia con los estilos de tabla */}
                     <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
                       Editar
                     </button>

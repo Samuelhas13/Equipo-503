@@ -6,6 +6,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Appointment } from '../appointments/appointment.entity';
+import { Payment } from '../payments/payment.entity';
 
 @Entity()
 export class Customer {
@@ -25,6 +26,14 @@ export class Customer {
   @Column()
   phone: string;
 
+  @ApiProperty({ example: 'Peluquería Nova', description: 'Nombre del negocio del cliente' })
+  @Column({ nullable: true })
+  business: string;
+
+  @ApiProperty({ example: 'Hoy · 09:00', description: 'Próxima reserva del cliente', required: false })
+  @Column({ nullable: true })
+  nextBooking: string;
+
   @ApiProperty({ example: '2026-05-14T08:00:00Z', description: 'Fecha de creación' })
   @CreateDateColumn()
   createdAt: Date;
@@ -32,4 +41,10 @@ export class Customer {
   @ApiProperty({ type: () => [Appointment], description: 'Reservas del cliente' })
   @OneToMany(() => Appointment, (appointment) => appointment.customer)
   appointments: Appointment[];
+
+  // --- RELACIÓN CON PAYMENT (1 a N) ---
+  // Un cliente puede tener múltiples pagos realizados
+  @ApiProperty({ type: () => [Payment], description: 'Pagos del cliente' })
+  @OneToMany(() => Payment, (payment) => payment.customer)
+  payments: Payment[];
 }

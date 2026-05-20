@@ -11,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToOne,
   JoinColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -74,4 +75,10 @@ export class Appointment {
   @ApiPropertyOptional({ description: 'Fecha de eliminación lógica' })
   @DeleteDateColumn()
   deletedAt: Date;
+
+  // --- RELACIÓN CON PAYMENT (1 a 1) ---
+  // Una reserva puede tener un pago asociado (bidireccional con Payment)
+  @ApiProperty({ type: () => require('../payments/payment.entity').Payment, description: 'Pago asociado a la reserva', required: false })
+  @OneToOne(() => require('../payments/payment.entity').Payment, (payment: any) => payment.appointment)
+  payment: any;
 }
