@@ -59,13 +59,12 @@ function KpiCard({
       <p className="kpi-card__label">{title}</p>
       <h3 className="kpi-card__value">{value}</h3>
       <p
-        className={`kpi-card__meta ${
-          variant === "positive"
+        className={`kpi-card__meta ${variant === "positive"
             ? "kpi-card__meta--positive"
             : variant === "warning"
               ? "kpi-card__meta--warning"
               : ""
-        }`}
+          }`}
       >
         {subtitle}
       </p>
@@ -104,7 +103,7 @@ export default function DashboardPage() {
         <KpiCard title="Clientes activos" value="214" subtitle="Este mes" />
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-prueba-lg dashboard-prueba-responsive">
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
@@ -112,34 +111,35 @@ export default function DashboardPage() {
               Ver todas
             </button>
           </div>
-
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Hora</th>
-                <th>Cliente</th>
-                <th>Comercio</th>
-                <th>Servicio</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking, index) => (
-                <tr key={index}>
-                  <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                  <td>{booking.client}</td>
-                  <td>{booking.business}</td>
-                  <td>{booking.service}</td>
-                  <td>
-                    <Badge status={booking.status} />
-                  </td>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Cliente</th>
+                  <th>Comercio</th>
+                  <th>Servicio</th>
+                  <th>Estado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {bookings.map((booking, index) => (
+                  <tr key={index}>
+                    <td style={{ fontWeight: 600 }}>{booking.time}</td>
+                    <td>{booking.client}</td>
+                    <td>{booking.business}</td>
+                    <td>{booking.service}</td>
+                    <td>
+                      <Badge status={booking.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="info-stack">
+        <div className="info-stack dashboard-cartas-lg">
           <div className="info-box">
             <p className="info-box__eyebrow">Siguiente reserva</p>
             <p className="info-box__title">María López</p>

@@ -488,12 +488,23 @@ body {
   color: var(--warning-text);
   /* APLICADO: Color cambiado a var(--warning-text) para mantener consistencia con estados de alerta */
 }
-/* Formato para el grid de la dashboard */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+/*Formato para dashboard responsive*/
+.dashboard-prueba{
+  display: flex;
+  gap: 16px;
 }
+.dashboard-prueba-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-cartas{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* Formato para la fila del título del panel */
 .panel-title-row {
   display: flex;
