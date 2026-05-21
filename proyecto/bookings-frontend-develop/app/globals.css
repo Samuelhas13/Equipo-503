@@ -211,10 +211,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 22px 28px;
-  margin: 18px 18px 0;
   background: var(--surface-translucent-soft);
   border: 1px solid rgba(230, 235, 242, 0.95);
-  border-radius: 22px;
+  
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
@@ -901,4 +900,230 @@ body {
 /* margen para los elementos */
 .margenes {
   margin: 8px;
+}
+
+
+
+/*Espacio para probar*/
+/* ==========================================
+   ESTILOS DEL FOOTER (Responsivo)
+   ========================================== */
+.admin-footer {
+  display: flex;
+  flex-direction: column; /* En móvil: todo apilado al centro */
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+  background-color: #ffffff;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  font-size: 0.875rem;
+  color: #697386;
+}
+
+.admin-footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-footer__copyright {
+  margin: 0;
+}
+
+.admin-footer__links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.admin-footer__links a {
+  color: #635bff; /* Un tono azul/morado profesional para admin */
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.admin-footer__links a:hover {
+  text-decoration: underline;
+  color: #3a3a99;
+}
+
+.admin-footer__meta {
+  font-size: 0.75rem;
+  background-color: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* --- Media Query para tablets y pantallas grandes (Footer) --- */
+@media (min-width: 768px) {
+  .admin-footer {
+    flex-direction: row; /* En PC: fila horizontal repartida */
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .admin-footer__content {
+    flex-direction: row; /* En PC: copyright y links uno al lado del otro */
+    gap: 2rem;
+  }
+}
+
+
+
+
+
+/* ==========================================
+   MÓVIL / PANTALLAS PEQUEÑAS (Por defecto)
+   ========================================== */
+.admin-layout {
+  display: flex;
+  flex-direction: column; /* Todo se apila hacia abajo */
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* El wrapper en móvil también se apila: primero Sidebar, luego el cuerpo */
+.admin-layout__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__main {
+  flex: 1; /* Empuja el footer al fondo */
+  padding: 1rem;
+}
+
+
+/* ==========================================
+   ESCRITORIO / PANTALLAS GRANDES (>= 768px)
+   ========================================== */
+@media (min-width: 768px) {
+  .admin-layout {
+    /* Mantenemos la columna, pero ahora el wrapper cambia el juego */
+    flex-direction: column; 
+  }
+
+  .admin-layout__wrapper {
+    flex-direction: row; /* Sidebar a la izquierda, cuerpo a la derecha */
+  }
+
+  /* REORGANIZACIÓN CON 'ORDER' */
+  .admin-header {
+    order: -1; /* Forzamos a que el Header siempre esté arriba del todo en PC */
+  }
+
+  .admin-layout__body {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+
+/* ==========================================
+   ESTILOS PARA MÓVIL (Por defecto)
+   ========================================== */
+
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* El botón de hamburguesa SOLO se ve en móvil */
+.admin-header__toggle-btn {
+  display: block;
+  background: none;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  color: #1a1f36;
+}
+
+/* Forzamos al Sidebar a convertirse en un panel flotante en móvil */
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px; /* Ajusta al ancho de tu Sidebar */
+  height: 100vh;
+  z-index: 999; /* Por encima de todo */
+  background-color: var(--surface-translucent); /* Color de tu sidebar */
+  transition: transform 0.3s ease;
+  transform: translateX(-100%); /* Oculto por defecto a la izquierda */
+}
+
+
+
+/* Cuando el estado es 'open', lo deslizamos hacia adentro */
+.sidebar-open .admin-sidebar {
+  transform: translateX(0);
+}
+
+/* Capa oscura transparente detrás del menú móvil */
+.admin-layout__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 998; /* Justo debajo del sidebar */
+}
+
+.admin-layout__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+
+/* ==========================================
+   ESTILOS PARA ESCRITORIO (Pantallas Grandes >= 768px)
+   ========================================== */
+@media (min-width: 768px) {
+  /* Ocultamos el botón de hamburguesa en PC ya que el menú estará fijo */
+  .admin-header__toggle-btn {
+    display: none;
+  }
+
+  .admin-layout__wrapper {
+    flex-direction: row; /* Sidebar izquierda, contenido derecha */
+  }
+
+  /* Reseteamos el Sidebar flotante para que sea un bloque normal en la rejilla */
+  .admin-sidebar {
+    position: relative;
+    height: auto;
+    transform: translateX(0); /* Siempre visible */
+    z-index: 1;
+  }
+
+  /* El overlay nunca debe existir en PC */
+  .admin-layout__overlay {
+    display: none;
+  }
+  
+  .admin-layout__body {
+    flex: 1;
+    min-width: 0;
+  }
 }
