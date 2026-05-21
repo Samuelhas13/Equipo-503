@@ -213,7 +213,7 @@ body {
   padding: 22px 28px;
   background: var(--surface-translucent-soft);
   border: 1px solid rgba(230, 235, 242, 0.95);
-  
+
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
@@ -983,7 +983,7 @@ body {
   display: flex;
   flex-direction: column; /* Todo se apila hacia abajo */
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: rgb(161, 155, 155); /* Color de fondo para todo el layout */
 }
 
 /* El wrapper en móvil también se apila: primero Sidebar, luego el cuerpo */
