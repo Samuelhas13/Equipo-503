@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
 type DashboardBooking = {
@@ -8,71 +12,37 @@ type DashboardBooking = {
   status: DashboardBookingStatus;
 };
 
-const bookings: DashboardBooking[] = [
-  {
-    time: "09:00",
-    client: "María López",
-    business: "Peluquería Nova",
-    service: "Corte + peinado",
-    status: "confirmed",
-  },
-  {
-    time: "10:30",
-    client: "Carlos Pérez",
-    business: "Restaurante Marea",
-    service: "Reserva para 4",
-    status: "pending",
-  },
-  {
-    time: "12:00",
-    client: "Lucía Sánchez",
-    business: "Barber Studio",
-    service: "Corte caballero",
-    status: "paid",
-  },
+// Imaginemos que aquí tienes una lista larga de reservas simuladas
+const allBookings: DashboardBooking[] = [
+  { time: "09:00", client: "María López", business: "Peluquería Nova", service: "Corte + peinado", status: "confirmed" },
+  { time: "10:30", client: "Carlos Pérez", business: "Restaurante Marea", service: "Reserva para 4", status: "pending" },
+  { time: "12:00", client: "Lucía Sánchez", business: "Barber Studio", service: "Corte caballero", status: "paid" },
+  { time: "14:00", client: "Alejandro Ruiz", business: "Gimnasio Fit", service: "Entrenamiento", status: "confirmed" },
+  { time: "16:30", client: "Ana Gómez", business: "Clínica Dental", service: "Revisión", status: "pending" },
 ];
 
 function Badge({ status }: { status: DashboardBookingStatus }) {
-  const label =
-    status === "pending"
-      ? "Pendiente"
-      : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
-
+  const label = status === "pending" ? "Pendiente" : status === "confirmed" ? "Confirmada" : "Pagada";
   return <span className={`badge badge--${status}`}>{label}</span>;
 }
 
-function KpiCard({
-  title,
-  value,
-  subtitle,
-  variant,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
-}) {
+function KpiCard({ title, value, subtitle, variant }: { title: string; value: string; subtitle: string; variant?: "positive" | "warning"; }) {
   return (
     <div className="kpi-card">
       <p className="kpi-card__label">{title}</p>
       <h3 className="kpi-card__value">{value}</h3>
-      <p
-        className={`kpi-card__meta ${variant === "positive"
-            ? "kpi-card__meta--positive"
-            : variant === "warning"
-              ? "kpi-card__meta--warning"
-              : ""
-          }`}
-      >
-        {subtitle}
-      </p>
+      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>{subtitle}</p>
     </div>
   );
 }
 
 export default function DashboardPage() {
+  // 1. Estado para controlar si mostramos todas o solo una vista previa
+  const [showAll, setShowAll] = useState(false);
+
+  // 2. Si showAll es falso, cortamos el array para mostrar solo las 2 primeras
+  const displayedBookings = showAll ? allBookings : allBookings.slice(0, 2);
+
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -80,26 +50,13 @@ export default function DashboardPage() {
           <h2>Dashboard overview</h2>
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
-
-        <button className="primary-btn" type="button">
-          Export report
-        </button>
+        <button className="primary-btn" type="button">Export report</button>
       </section>
 
       <section className="kpi-grid">
-        <KpiCard
-          title="Reservas hoy"
-          value="24"
-          subtitle="+5 respecto a ayer"
-          variant="positive"
-        />
+        <KpiCard title="Reservas hoy" value="24" subtitle="+5 respecto a ayer" variant="positive" />
         <KpiCard title="Cobrado hoy" value="820 €" subtitle="18 pagos registrados" />
-        <KpiCard
-          title="Pendientes"
-          value="6"
-          subtitle="Seguimiento necesario"
-          variant="warning"
-        />
+        <KpiCard title="Pendientes" value="6" subtitle="Seguimiento necesario" variant="warning" />
         <KpiCard title="Clientes activos" value="214" subtitle="Este mes" />
       </section>
 
@@ -107,10 +64,17 @@ export default function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
-            <button className="panel-subtle-link" type="button">
-              Ver todas
+            
+            {/* 3. Cambiamos el comportamiento del botón y el texto dinámicamente */}
+            <button 
+              className="panel-subtle-link" 
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "Ver menos" : "Ver todas"}
             </button>
           </div>
+          
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -123,7 +87,8 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking, index) => (
+                {/* 4. Mapeamos la variable filtrada en lugar del array estático */}
+                {displayedBookings.map((booking, index) => (
                   <tr key={index}>
                     <td style={{ fontWeight: 600 }}>{booking.time}</td>
                     <td>{booking.client}</td>
@@ -145,13 +110,11 @@ export default function DashboardPage() {
             <p className="info-box__title">María López</p>
             <p className="info-box__text">09:00 · Peluquería Nova</p>
           </div>
-
           <div className="info-box">
             <p className="info-box__eyebrow">Comercio destacado</p>
             <p className="info-box__title">Restaurante Marea</p>
             <p className="info-box__text">6 reservas hoy</p>
           </div>
-
           <div className="info-box">
             <p className="info-box__eyebrow">Recordatorios</p>
             <p className="info-box__title">4 confirmaciones pendientes</p>
