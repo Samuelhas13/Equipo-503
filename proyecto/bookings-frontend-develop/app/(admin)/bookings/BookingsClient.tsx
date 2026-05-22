@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+// 1. Importamos useRef de React
+import { useMemo, useState, useRef } from "react";
 import type {
   Booking,
   BookingStatus,
@@ -65,6 +66,10 @@ export default function BookingsClient({
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
+  // 2. Creamos las referencias para los contenedores de los formularios
+  const createFormRef = useRef<HTMLDivElement>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
+
   const filteredBookings = useMemo(() => {
     if (statusFilter === "all") return bookings;
     return bookings.filter((booking) => booking.status === statusFilter);
@@ -103,6 +108,7 @@ export default function BookingsClient({
     setEditForm(emptyForm);
   }
 
+  // 3. Modificamos la apertura para añadir el scroll
   function openCreateForm() {
     setErrorMessage("");
     setSuccessMessage("");
@@ -110,6 +116,11 @@ export default function BookingsClient({
     setDeleteTargetId(null);
     resetEditForm();
     setIsCreateOpen(true);
+
+    // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
+    setTimeout(() => {
+      createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
   }
 
   function closeCreateForm() {
@@ -118,6 +129,7 @@ export default function BookingsClient({
     setIsCreateOpen(false);
   }
 
+  // 4. Modificamos la apertura de edición para añadir el scroll
   function openEditForm(booking: Booking) {
     setErrorMessage("");
     setSuccessMessage("");
@@ -132,6 +144,11 @@ export default function BookingsClient({
       businessId: booking.businessId,
       serviceName: booking.serviceName,
     });
+
+    // Desplazamiento suave hacia el formulario de edición
+    setTimeout(() => {
+      editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
   }
 
   function closeEditForm() {
@@ -232,7 +249,6 @@ export default function BookingsClient({
 
   return (
     <div className="booking-page page-stack">
-      {/* APLICADO: Clase booking-page para aplicar estilos específicos al listado de reservas */}
       <section className="page-hero booking-hero">
         <div>
           <h2>Bookings list</h2>
@@ -275,8 +291,8 @@ export default function BookingsClient({
       </section>
 
       {isCreateOpen && (
-        <section className="section-card booking-form-card">
-          {/* APLICADO: Sección de formulario de creación con tarjeta visual y espaciado consistente */}
+        /* 5. AÑADIDO: ref={createFormRef} al elemento section */
+        <section ref={createFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Nueva reserva</h3>
             <button type="button" className="secondary-btn" onClick={closeCreateForm}>
@@ -355,8 +371,8 @@ export default function BookingsClient({
       )}
 
       {editingBookingId !== null && (
-        <section className="section-card booking-form-card">
-          {/* APLICADO: Sección de formulario de edición con estilos coherentes con el panel de creación */}
+        /* 6. AÑADIDO: ref={editFormRef} al elemento section */
+        <section ref={editFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
             <button type="button" className="secondary-btn" onClick={closeEditForm}>
@@ -475,7 +491,6 @@ export default function BookingsClient({
       )}
 
       <section className="section-card booking-table-card">
-        {/* APLICADO: Tarjeta de tabla para agrupar listado de reservas con filtros y acciones */}
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
           <div className="filter-row">
