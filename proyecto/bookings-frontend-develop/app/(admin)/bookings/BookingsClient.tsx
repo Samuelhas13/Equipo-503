@@ -66,20 +66,6 @@ export default function BookingsClient({
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
-  const serviceNamePattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9\s\-,.]+$/;
-
-  function validateBookingForm(form: CreateBookingDto) {
-    if (!form.date) return "La fecha es obligatoria";
-    if (!form.time) return "La hora es obligatoria";
-    if (form.customerId <= 0) return "El ID del cliente debe ser un número positivo";
-    if (form.businessId <= 0) return "El ID del negocio debe ser un número positivo";
-    if (!form.serviceName.trim()) return "El servicio es obligatorio";
-    if (!serviceNamePattern.test(form.serviceName.trim())) {
-      return "El nombre del servicio contiene caracteres no permitidos";
-    }
-    return "";
-  }
-
   // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
@@ -187,13 +173,6 @@ export default function BookingsClient({
     setSuccessMessage("");
     setErrorMessage("");
 
-    const validationError = validateBookingForm(createForm);
-    if (validationError) {
-      setErrorMessage(validationError);
-      setLoadingCreate(false);
-      return;
-    }
-
     try {
       const created = await createAppointment(createForm);
       setBookings((prev) => [created, ...prev]);
@@ -211,12 +190,6 @@ export default function BookingsClient({
     e.preventDefault();
 
     if (!editingBookingId) return;
-
-    const validationError = validateBookingForm(editForm);
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
 
     setLoadingEdit(true);
     setSuccessMessage("");
@@ -358,7 +331,6 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                step={1}
                 value={createForm.customerId}
                 onChange={(e) =>
                   updateCreateForm("customerId", Number(e.target.value))
@@ -370,7 +342,6 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                step={1}
                 value={createForm.businessId}
                 onChange={(e) =>
                   updateCreateForm("businessId", Number(e.target.value))
@@ -384,8 +355,6 @@ export default function BookingsClient({
                 value={createForm.serviceName}
                 onChange={(e) => updateCreateForm("serviceName", e.target.value)}
                 placeholder="Servicio"
-                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9\s\-,.]+"
-                title="Solo letras, números, espacios y signos básicos"
                 required
               />
             </div>
@@ -466,8 +435,6 @@ export default function BookingsClient({
                 value={editForm.serviceName}
                 onChange={(e) => updateEditForm("serviceName", e.target.value)}
                 placeholder="Servicio"
-                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9\s\-,.]+"
-                title="Solo letras, números, espacios y signos básicos"
                 required
               />
             </div>
