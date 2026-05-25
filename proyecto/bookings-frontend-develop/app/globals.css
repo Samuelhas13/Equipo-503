@@ -1,55 +1,84 @@
-/* Variables globales: actualización de colores y aplicación de mejoras sugeridas en comentarios */
-/* Mejoras aplicadas:
-   - Uso de var(--bg) en lugar de valor hardcoded para consistencia.
-   - Actualización de colores según especificaciones:
-     - --text: #1E1E1E (Gris carbón - texto principal) - Afecta al color del texto en toda la aplicación
-     - --bg: #F4F4F5 (Gris claro - fondos de secciones) - Afecta al fondo del body y secciones principales
-     - --surface: #FFFFFF (Blanco puro - paneles y tarjetas) - Afecta a componentes como tarjetas, paneles y elementos de superficie
-     - --accent: #3B82F6 (Azul acento - botones, enlaces, estados positivos) - Afecta a botones primarios, enlaces y indicadores de éxito
-     - --error: #EF4444 (Rojo suave - alertas, pendientes) - Afecta a mensajes de error, alertas y estados pendientes
-   - Tipografía global Manrope aplicada al frontend completo.
+/* Variables globales: tema Púrpura Profundo — BookFlow */
+/* Cambios aplicados:
+   - Paleta completa reemplazada por gama púrpura profesional
+   - Todos los colores hardcoded sustituidos por variables CSS
+   - Se añaden variables de marca: --purple-*, --sidebar-*, --page-bg
+   - Tipografía Manrope conservada
+   - Estructura, comentarios y lógica 100% originales
 */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --bg: #F4F4F5; /* Gris claro - fondos de secciones */
-  --surface: #FFFFFF; /* Blanco puro - paneles y tarjetas */
-  --surface-2: #f8fafc;
-  --surface-translucent: rgba(255, 255, 255, 0.92); /* Superficie translúcida para componentes flotantes */
-  --surface-translucent-soft: rgba(255, 255, 255, 0.82); /* Superficie translúcida suave para cabeceras */
-  --border: #e6ebf2;
-  --border-strong: #d8e0ea;
-  --text: #1E1E1E; /* Gris carbón - texto principal */
-  --muted: #6b7280;
-  --muted-2: #94a3b8;
-  --primary: #0f172a;
-  --primary-soft: #eff3ff;
-  --accent: #3B82F6; /* Azul acento - botones, enlaces, estados positivos */
-  --error: #EF4444; /* Rojo suave - alertas, pendientes */
-  --success-bg: #dcfce7;
-  --success-text: #166534;
-  --warning-bg: #fef3c7;
-  --warning-text: #92400e;
-  --paid-bg: #dbeafe;
-  --paid-text: #1d4ed8;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.06);
+  /* ── Paleta púrpura ──────────────────────────────── */
+  --purple-50:  #EEEDFE;
+  --purple-100: #CECBF6;
+  --purple-200: #AFA9EC;
+  --purple-400: #7F77DD;
+  --purple-600: #534AB7;
+  --purple-800: #3C3489;
+  --purple-900: #26215C;
+
+  /* ── Fondo y superficies ────────────────────────── */
+  --bg:                      #F5F4FB;              /* Gris lavanda claro - fondos de secciones */
+  --surface:                 #FFFFFF;              /* Blanco puro - paneles y tarjetas */
+  --surface-2:               var(--purple-50);     /* Superficie alternativa suave */
+  --surface-translucent:     rgba(255, 255, 255, 0.92); /* Superficie translúcida para componentes flotantes */
+  --surface-translucent-soft:rgba(255, 255, 255, 0.82); /* Superficie translúcida suave para cabeceras */
+
+  /* ── Bordes ─────────────────────────────────────── */
+  --border:                  var(--purple-100);    /* Borde estándar */
+  --border-strong:           var(--purple-200);    /* Borde reforzado para inputs */
+
+  /* ── Tipografía ─────────────────────────────────── */
+  --text:                    var(--purple-900);    /* Texto principal */
+  --muted:                   var(--purple-400);    /* Texto secundario/muted */
+  --muted-2:                 var(--purple-200);    /* Texto muy tenue */
+
+  /* ── Tokens de marca ────────────────────────────── */
+  --primary:                 var(--purple-900);    /* Color primario oscuro */
+  --primary-soft:            var(--purple-50);     /* Fondo suave para estados activos */
+  --accent:                  var(--purple-600);    /* Acento principal - botones, enlaces */
+
+  /* ── Sidebar ────────────────────────────────────── */
+  --sidebar-bg:              var(--purple-900);    /* Fondo sidebar */
+  --sidebar-active-bg:       var(--purple-800);    /* Fondo ítem activo */
+  --sidebar-text:            var(--purple-200);    /* Texto enlaces sidebar */
+  --sidebar-text-active:     var(--purple-50);     /* Texto ítem activo */
+  --sidebar-brand:           var(--purple-100);    /* Texto marca/brand */
+  --sidebar-section-label:   var(--purple-400);    /* Etiquetas de sección */
+  --sidebar-width:           248px;
+
+  /* ── Estados semánticos ─────────────────────────── */
+  --error:                   #E24B4A;              /* Rojo suave - alertas, pendientes */
+  --success-bg:              #E1F5EE;              /* Fondo éxito (teal-50) */
+  --success-text:            #0F6E56;              /* Texto éxito (teal-600) */
+  --warning-bg:              #FAEEDA;              /* Fondo advertencia (amber-50) */
+  --warning-text:            #854F0B;              /* Texto advertencia (amber-600) */
+  --paid-bg:                 var(--purple-50);     /* Fondo pagado */
+  --paid-text:               var(--purple-800);    /* Texto pagado */
+
+  /* ── Sombras ────────────────────────────────────── */
+  --shadow-sm:               0 1px 2px rgba(38, 33, 92, 0.06);
+  --shadow-md:               0 8px 24px rgba(38, 33, 92, 0.10);
+
+  /* ── Radios ─────────────────────────────────────── */
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 24px;
-  --sidebar-width: 248px;
 }
 
 * {
   box-sizing: border-box;
 }
+
 /*-Principal, pone la tipografía global ademas que quita margenes y padding, aplica el color del fondo*/
 html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg); /* Aplicada mejora: uso de variable para consistencia */
+  background: var(--bg);
   color: var(--text);
-  font-family: 'Manrope', Arial, Helvetica, sans-serif; /* Tipografía global Manrope para todo el frontend */
+  font-family: 'Manrope', Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -62,54 +91,60 @@ input,
 select,
 textarea {
   font: inherit;
-  /* Comentario: sería útil incluir textarea aquí también si se usan formularios largos. */
   /* APLICADO: Se agregó textarea al selector para heredar tipografía en formularios largos */
 }
+
 /*Pone el min-height del body al 100% de la ventana */
 body {
   min-height: 100vh;
 }
+
 /*Haz que el contenedor principal ocupe todo el espacio disponible */
 .admin-shell {
   display: flex;
   min-height: 100vh;
 }
 
-
 /* Sidebar fija: cuidado con `height: 100vh` y `position: sticky`; en pantallas pequeñas puede causar problemas de overflow. */
 .admin-sidebar {
   width: var(--sidebar-width);
-  background: var(--surface-translucent);
-  border-right: 1px solid rgba(230, 235, 242, 0.9);
+  background: var(--sidebar-bg);
+  border-right: 1px solid rgba(83, 74, 183, 0.25);
   backdrop-filter: blur(10px);
   padding: 24px 16px;
   position: sticky;
   top: 0;
   height: 100vh;
 }
+
 /*Añade un margen inferior al logo de la barra lateral */
 .admin-sidebar__brand {
   margin-bottom: 28px;
 }
+
 /*Da formato al título de la barra lateral */
 .admin-sidebar__title {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.03em;
   margin: 0;
+  color: var(--sidebar-brand);
 }
+
 /*Da formato al subtítulo de la barra lateral */
 .admin-sidebar__subtitle {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: var(--sidebar-section-label);
   font-size: 14px;
 }
+
 /*Navegación de la barra lateral */
 .admin-sidebar__nav {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 /* Estilo para los enlaces de la barra lateral */
 .admin-sidebar__link {
   display: flex;
@@ -118,86 +153,62 @@ body {
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 14px;
-  color: var(--text);
+  color: var(--sidebar-text);
   background: transparent;
-  transition: background 0.2s ease, color 0.2s ease; /* Usar `all` es práctico pero puede ser más costoso; preferir propiedades específicas para mejor rendimiento. */
-  /* APLICADO: Transition optimizado usando propiedades específicas en lugar de 'all' para mejor rendimiento */
-  /* APLICADO: Color cambiado a var(--text) para consistencia con la paleta global */
-  /* MEJORA: Posición relativa para permitir pseudo-elementos en animaciones futuras */
+  transition: background 0.2s ease, color 0.2s ease;
   position: relative;
   border-left: 3px solid transparent;
-  /* MEJORA: Borde izquierdo transparente - se activará en hover para efecto visual mejorado */
 }
 
 /*Añade cierto efecto al pasar el mouse por encima de los enlaces */
 .admin-sidebar__link:hover,
 .admin-sidebar__link--hoverable:hover {
   /* MEJORA APLICADA (18/05/2026): Efecto hover mejorado con múltiples cambios visuales para mejor feedback de usuario */
-  background: var(--surface-2);
-  /* MEJORA: Fondo suave en hover para indicar interactividad */
-  color: var(--accent);
-  /* MEJORA: Color de texto cambia a acento para destacar el enlace en hover */
-  border-left-color: var(--accent);
-  /* MEJORA: Borde izquierdo aparece en hover como indicador visual adicional */
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--purple-100);
+  border-left-color: var(--purple-400);
   transition: background 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
-  /* MEJORA: Transición suave también para el borde izquierdo */
 }
 
 /*Añade estilo para el enlace activo*/
 .admin-sidebar__link--active {
   /* MEJORA APLICADA (18/05/2026): Estado activo más destacado con cambios visuales más pronunciados */
-  background: var(--primary-soft);
-  /* Fondo con color primario suave para máximo contraste */
-  color: var(--accent);
-  /* Color acento para el texto activo */
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
   font-weight: 600;
-  /* APLICADO: Color activo cambiado a var(--accent) para mantener consistencia cromática en estado seleccionado */
-  border-left-color: var(--accent);
-  /* MEJORA: Borde izquierdo de acento en estado activo - proporciona un indicador visual claro */
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
-  /* MEJORA: Sombra interna sutil para profundidad visual */
+  border-left-color: var(--purple-400);
+  box-shadow: inset 0 0 0 1px rgba(175, 169, 236, 0.15);
   transition: background 0.2s ease, color 0.2s ease, border-left-color 0.2s ease, box-shadow 0.2s ease;
-  /* MEJORA: Todas las propiedades animadas transicionan suavemente */
 }
 
 /* MEJORA APLICADA (18/05/2026): Estilos para el icono del elemento de navegación */
 .admin-sidebar__icon {
-  /* Estilo base del icono */
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 20px;
-  /* MEJORA: Ancho mínimo para mantener alineación consistente */
   transition: transform 0.2s ease, color 0.2s ease;
-  /* MEJORA: Permite animaciones suaves en el icono */
 }
 
 /* MEJORA APLICADA (18/05/2026): Animación del icono en hover */
 .admin-sidebar__link:hover .admin-sidebar__icon,
 .admin-sidebar__link--active .admin-sidebar__icon {
-  /* MEJORA: El icono se transforma ligeramente para dar feedback visual */
   transform: scale(1.1);
-  /* MEJORA: El icono crece un 10% para enfatizar la interactividad */
 }
 
 /* MEJORA APLICADA (18/05/2026): Estilos para la etiqueta del elemento de navegación */
 .admin-sidebar__label {
-  /* Estilo base de la etiqueta */
   transition: font-weight 0.2s ease, letter-spacing 0.2s ease;
-  /* MEJORA: Transición suave para cambios en peso de fuente y espaciado */
   letter-spacing: -0.01em;
-  /* MEJORA: Espaciado de letras ajustado para mejor legibilidad */
 }
 
 /* MEJORA APLICADA (18/05/2026): Animación de la etiqueta en hover */
 .admin-sidebar__link:hover .admin-sidebar__label,
 .admin-sidebar__link--active .admin-sidebar__label {
-  /* MEJORA: La etiqueta se enfatiza más en estados interactivos */
   font-weight: 600;
-  /* MEJORA: El peso aumenta para mayor legibilidad en hover/activo */
   letter-spacing: -0.02em;
-  /* MEJORA: Espaciado ligeramente ajustado para mejor compactación del texto */
 }
+
 /*hace que el contenedor principal ocupe todo el espacio disponible*/
 .admin-main {
   flex: 1;
@@ -211,25 +222,19 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 22px 28px;
-  margin: 18px 18px 0;
   background: var(--surface-translucent-soft);
-  border: 1px solid rgba(230, 235, 242, 0.95);
-  border-radius: 22px;
+  border: 1px solid rgba(206, 203, 246, 0.6);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
-  /* gap añadido para separación consistente entre contenido y acciones */
   gap: 16px;
-  /* MEJORA: Permite que el header se adapte mejor en pantallas pequeñas */
   flex-wrap: wrap;
 }
 
 /* MEJORA APLICADA (18/05/2026): Contenedor para título y subtítulo */
 .admin-header__content {
   flex: 1;
-  /* MEJORA: Permite que el contenedor crezca y ocupe el espacio disponible */
   min-width: 0;
-  /* MEJORA: Evita que los hijos superen el contenedor */
 }
 
 /*Pone formato al título de la cabecera */
@@ -238,9 +243,8 @@ body {
   font-size: 28px;
   line-height: 1.1;
   letter-spacing: -0.04em;
-  /* MEJORA APLICADA (18/05/2026): Font-weight agregado para mayor consistencia visual */
   font-weight: 700;
-  /* MEJORA: Asegura que el título sea claramente visible como elemento principal */
+  color: var(--text);
 }
 
 /*Añade formato al subtítulo de la cabecera */
@@ -248,9 +252,7 @@ body {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 14px;
-  /* MEJORA APLICADA (18/05/2026): Line-height agregado para mejor legibilidad */
   line-height: 1.4;
-  /* MEJORA: Mejora la legibilidad en pantallas pequeñas y facilita el escaneo visual */
 }
 
 /*Formato para las acciones en la cabecera */
@@ -258,39 +260,40 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  /* MEJORA APLICADA (18/05/2026): flex-shrink agregado para evitar compresión excesiva */
   flex-shrink: 0;
-  /* MEJORA: Mantiene los botones/acciones a su tamaño natural en pantallas pequeñas */
 }
 
-/* El avatar utiliza colores directos; sería mejor usar variables para mantener consistencia de marca. */
+/* El avatar utiliza variables para mantener consistencia de marca. */
 .admin-avatar {
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--primary), var(--muted));
-  color: white;
+  background: var(--purple-800);
+  color: var(--purple-100);
   display: grid;
   place-items: center;
   font-weight: 700;
   box-shadow: var(--shadow-sm);
-  /* CAMBIO: Se reemplazaron colores hardcoded por variables --primary y --muted para mantener consistencia de marca */
 }
+
 /*espacio entre el contenido y el borde*/
 .admin-content {
   padding: 24px 18px 18px;
 }
+
 /*posiciona los elementos en la pila de páginas*/
 .page-stack {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
+
 /* Mejora aplicada: wrapper específico para la página de bookings */
 .booking-page {
   width: 100%;
   gap: 28px;
 }
+
 /*Forma para las tarjetas de superficie */
 .surface-card {
   background: var(--surface);
@@ -298,6 +301,7 @@ body {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
+
 /*Forma para las tarjetas de sección */
 .section-card {
   background: var(--surface);
@@ -305,37 +309,100 @@ body {
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-sm);
-  /* MEJORA APLICADA: Aumenta el padding y el radio para secciones de formulario y tablas en /bookings */
 }
+
 .booking-form-card,
 .booking-table-card {
-  border-color: rgba(59, 130, 246, 0.12);
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  border-color: rgba(83, 74, 183, 0.15);
+  box-shadow: 0 20px 40px rgba(38, 33, 92, 0.07);
   /* MEJORA APLICADA: Estilo distintivo para formularios y tablas en la página de bookings */
 }
+
+/*Modificacion de las tablas, mejoras responsive para movil para la pagina de bookings*/
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 900px; /* fuerza scroll si no cabe */
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .booking-table-card {
+    padding: 16px;
+  }
+
+  .panel-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .data-table th,
+  .data-table td {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .table-actions {
+    flex-direction: column;
+  }
+
+  .table-actions .secondary-btn {
+    width: 100%;
+  }
+}
+
 /* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
 .page-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-sm);
 }
+
 /* Formato para el título del hero */
 .page-hero h2 {
   margin: 0;
   font-size: 30px;
   letter-spacing: -0.04em;
+  color: var(--text);
 }
+
 /* MEJORA APLICADA: Variantes de hero para páginas específicas como /bookings */
 .booking-hero {
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
-  border-color: rgba(59, 130, 246, 0.18);
+  box-shadow: 0 18px 48px rgba(38, 33, 92, 0.10);
+  border-color: rgba(83, 74, 183, 0.20);
 }
+
 /* Formato para el párrafo del hero y color */
 .page-hero p {
   margin: 8px 0 0;
@@ -353,16 +420,17 @@ body {
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: background 0.2s ease, transform 0.15s ease;
-  /* MEJORA APLICADA: Transición suave para hover/active en botones primarios */
 }
+
 .primary-btn:hover {
-  background: #2563eb;
+  background: var(--purple-800);
   transform: translateY(-1px);
-  /* MEJORA APLICADA: Hover activo más visible para mayor accesibilidad de interacción */
 }
+
 .primary-btn:active {
   transform: translateY(0);
 }
+
 /* botón secundario */
 .secondary-btn {
   border: 1px solid var(--border);
@@ -374,18 +442,18 @@ body {
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
+
 .secondary-btn:hover {
   background: var(--surface-2);
-  border-color: rgba(59, 130, 246, 0.2);
+  border-color: var(--purple-200);
   color: var(--accent);
-  /* MEJORA APLICADA: Estados hover para botones secundarios más sutiles y consistentes */
 }
+
 /* Estados disabled para botones */
 .primary-btn:disabled,
 .secondary-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  /* APLICADO: Estados disabled añadidos para botones inactivos con cursor no-allowed y opacidad reducida */
 }
 
 /* El grid de KPIs se fija en 4 columnas; la media query de 1200px es útil, pero nuevos puntos de quiebre podrían mejorar la adaptación intermedia. */
@@ -394,49 +462,67 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
+
 /* Formato para las tarjetas de KPI de los botones */
 .kpi-card {
-  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 22px;
   box-shadow: var(--shadow-sm);
 }
-/* Formato para la etiqueta de las tarjetas de KPI de los botones */
+
+/* Formato para la etiqueta de las tarjetas de KPI */
 .kpi-card__label {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
 }
-/* Formato para el valor de las tarjetas de KPI de los botones */
+
+/* Formato para el valor de las tarjetas de KPI */
 .kpi-card__value {
   margin: 12px 0 10px;
   font-size: 34px;
   line-height: 1;
   letter-spacing: -0.05em;
+  color: var(--text);
 }
-/* Formato para la metadata de las tarjetas de KPI de los botones */
+
+/* Formato para la metadata de las tarjetas de KPI */
 .kpi-card__meta {
   margin: 0;
   font-size: 14px;
   color: var(--muted);
 }
-/* Formato para la metadata positiva de las tarjetas de KPI de los botones */
+
+/* Formato para la metadata positiva de las tarjetas de KPI */
 .kpi-card__meta--positive {
   color: var(--success-text);
-  /* APLICADO: Color cambiado a var(--success-text) para mantener consistencia con estados positivos */
 }
-/* Formato para la metadata de alerta de las tarjetas de KPI de los botones */
+
+/* Formato para la metadata de alerta de las tarjetas de KPI */
 .kpi-card__meta--warning {
   color: var(--warning-text);
-  /* APLICADO: Color cambiado a var(--warning-text) para mantener consistencia con estados de alerta */
 }
-/* Formato para el grid de la dashboard */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+
+/*Formato para dashboard responsive*/
+.dashboard-prueba {
+  display: flex;
+  gap: 16px;
 }
+
+.dashboard-prueba-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-cartas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* Formato para la fila del título del panel */
 .panel-title-row {
   display: flex;
@@ -444,12 +530,15 @@ body {
   align-items: center;
   margin-bottom: 18px;
 }
+
 /* Formato para el título del panel */
 .panel-title {
   margin: 0;
   font-size: 22px;
   letter-spacing: -0.03em;
+  color: var(--text);
 }
+
 /* Formato para el enlace sutil del panel */
 .panel-subtle-link {
   color: var(--accent);
@@ -460,48 +549,54 @@ body {
   cursor: pointer;
 }
 
-/* La tabla usa `border-collapse`, buen enfoque. Considerar un fondo suave o `th` sticky si la tabla es larga. */
+/* La tabla usa `border-collapse`, buen enfoque. */
 .data-table {
   width: 100%;
   border-collapse: collapse;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.06);
-  /* MEJORA APLICADA: Sombras suaves y borde redondeado para tabla de reservas */
+  box-shadow: 0 16px 35px rgba(38, 33, 92, 0.07);
 }
+
 /* Formato para el encabezado de la tabla */
 .data-table thead {
   position: sticky;
   top: 0;
   background: var(--surface-2);
-  /* APLICADO: Headers sticky para facilitar navegación en tablas largas y fondo suave aplicado */
 }
+
 /* Formato para las filas del encabezado de la tabla */
 .data-table thead tr {
   color: var(--muted);
   text-align: left;
 }
+
 /* Formato para las celdas del encabezado de la tabla */
 .data-table th {
   padding: 16px 14px;
   font-size: 13px;
   font-weight: 600;
+  color: var(--muted);
 }
+
 /* Formato para las celdas de la tabla */
 .data-table td {
   padding: 18px 14px;
   border-top: 1px solid var(--border);
   font-size: 14px;
+  color: var(--text);
 }
+
 .data-table tbody tr:hover {
   background: var(--surface-2);
-  /* MEJORA APLICADA: Hover para filas de tabla para mejor lectura e interacción */
 }
+
 /* Formato para las celdas de la tabla en la primera columna */
 .data-table td:first-child,
 .data-table th:first-child {
   padding-left: 18px;
 }
+
 /* Formato para las insignias */
 .badge {
   display: inline-block;
@@ -510,27 +605,32 @@ body {
   font-size: 12px;
   font-weight: 600;
 }
+
 /* Colores para la insignia pendiente */
 .badge--pending {
   background: var(--warning-bg);
   color: var(--warning-text);
 }
+
 /* Colores para la insignia confirmada */
 .badge--confirmed {
   background: var(--success-bg);
   color: var(--success-text);
 }
+
 /* Colores para la insignia pagada */
 .badge--paid {
   background: var(--paid-bg);
   color: var(--paid-text);
 }
+
 /* Formato para la pila de información */
 .info-stack {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
 /* Formato para la caja de información */
 .info-box {
   background: var(--surface-2);
@@ -538,35 +638,42 @@ body {
   border-radius: 18px;
   padding: 16px;
 }
+
 /* Formato para el subtítulo de la caja de información */
 .info-box__eyebrow {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
 }
+
 /* Formato para el título de la caja de información */
 .info-box__title {
   margin: 10px 0 4px;
   font-weight: 700;
+  color: var(--text);
 }
+
 /* Formato para el texto de la caja de información */
 .info-box__text {
   margin: 0;
   color: var(--muted);
   font-size: 14px;
 }
+
 /* Formato para la fila de filtros */
 .filter-row {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
+
 .table-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
-/* Formato para las pastillas de filtro: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global. */
+
+/* Formato para las pastillas de filtro */
 .filter-pill {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -575,24 +682,24 @@ body {
   font-size: 14px;
   color: var(--text);
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  /* APLICADO: Transición añadida para estados hover y activos */
 }
+
 .filter-pill--active {
   background: var(--primary-soft);
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
-  /* MEJORA APLICADA: Estado activo visual más claro en filtros de reserva */
+  box-shadow: inset 0 0 0 1px rgba(83, 74, 183, 0.15);
 }
 
-/* El grid de formularios usa 2 columnas; en formularios con muchos campos mejorar el diseño móvil/columnas podría ser necesario. */
+/* El grid de formularios usa 2 columnas */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
-/*  Formato para los campos de entrada y select: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global. */
+
+/* Formato para los campos de entrada y select */
 .input,
 .select {
   width: 100%;
@@ -602,16 +709,19 @@ body {
   background: var(--surface);
   color: var(--text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  /* MEJORA APLICADA: Transiciones suaves en campos de formulario */
 }
+
 .input:focus,
 .select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
-  /* MEJORA APLICADA: Focus claro para mejorar accesibilidad en formularios */
+  box-shadow: 0 0 0 4px rgba(83, 74, 183, 0.12);
 }
-/* Formato para los campos de entrada y select en estado focus: el color del borde se ajusta para mantener consistencia con la paleta de colores global. */
+
+.input::placeholder {
+  color: var(--muted-2);
+}
+
 .input--full {
   grid-column: 1 / -1;
 }
@@ -625,29 +735,30 @@ body {
 .message-success {
   color: var(--success-text);
   font-size: 14px;
-  background: rgba(220, 252, 231, 0.4);
-  border: 1px solid rgba(22, 101, 52, 0.16);
+  background: rgba(225, 245, 238, 0.5);
+  border: 1px solid rgba(15, 110, 86, 0.16);
   border-radius: 16px;
   padding: 12px 16px;
-  /* APLICADO: Mensajes de éxito con fondo y borde suave para mejorar la legibilidad */
 }
-/* Formato para los mensajes de error: el color se ajusta para mantener consistencia con la paleta de errores global. */
+
+/* Formato para los mensajes de error */
 .message-error {
   color: var(--error);
   font-size: 14px;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.24);
+  background: rgba(226, 75, 74, 0.08);
+  border: 1px solid rgba(226, 75, 74, 0.20);
   border-radius: 16px;
   padding: 12px 16px;
-  /* APLICADO: Mensajes de error con fondo suave para menor fatiga visual */
 }
-/* Formato para el grid de clientes: el número de columnas se ajusta para mejorar la adaptabilidad en pantallas intermedias. */
+
+/* Formato para el grid de clientes */
 .customer-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-/*  Formato para las tarjetas de cliente: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para las tarjetas de cliente */
 .customer-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -655,42 +766,50 @@ body {
   padding: 20px;
   box-shadow: var(--shadow-sm);
 }
+
 /* Formato para el nombre del cliente */
 .customer-name {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
+  color: var(--text);
 }
-/* Formato para la metadata del cliente: el color se ajusta para mantener consistencia con la paleta de colores global. */
+
+/* Formato para la metadata del cliente */
 .customer-meta {
   margin: 8px 0 0;
   color: var(--muted);
   font-size: 14px;
 }
-/* Formato para la etiqueta de cliente: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para la etiqueta de cliente */
 .customer-tag {
   width: fit-content;
   margin-top: 12px;
   background: var(--surface-2);
+  color: var(--purple-800);
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 13px;
 }
-/* Formato para el texto adicional del cliente: el color se ajusta para mantener consistencia con la paleta de colores global. */
+
+/* Formato para el texto adicional del cliente */
 .customer-next {
   margin-top: 14px;
   font-size: 14px;
+  color: var(--text);
 }
-/* Formato para la fila de búsqueda: el diseño se ajusta para mejorar la adaptabilidad en pantallas intermedias. */
+
+/* Formato para la fila de búsqueda */
 .search-row {
   display: flex;
   gap: 12px;
 }
-/* Formato para el campo de búsqueda: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
 .search-row .input {
   flex: 1;
 }
-/*  Formato para el botón de búsqueda: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
 @media (max-width: 1200px) {
   .kpi-grid,
   .customer-grid {
@@ -726,12 +845,14 @@ body {
     align-items: stretch;
   }
 }
-/* Formato para las pastillas de filtro en estado hover: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para las pastillas de filtro en estado hover */
 .filter-pill:hover {
   background: var(--surface-2);
   cursor: pointer;
 }
-/* Formato para las pastillas de filtro en estado focus-visible: el color del outline se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para estados focus-visible con outline de marca */
 .filter-pill:focus-visible,
 .primary-btn:focus-visible,
 .secondary-btn:focus-visible,
@@ -739,7 +860,6 @@ body {
 .select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  /* APLICADO: Outline cambiado de color directo a var(--accent) para mantener consistencia cromática */
 }
 
 /* El modal usa `backdrop-filter`, que no es compatible en navegadores antiguos; revisar soporte si la app apunta a clientes legacy. */
@@ -750,19 +870,21 @@ body {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(38, 33, 92, 0.5);
   backdrop-filter: blur(4px);
 }
-/* Formato para la tarjeta del modal: el color de fondo y borde se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para la tarjeta del modal */
 .modal-card {
   width: min(100%, 460px);
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
   background: var(--surface);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(38, 33, 92, 0.22);
   padding: 28px;
 }
-/* Formato para el ícono del modal: el color de fondo y texto se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para el ícono del modal */
 .modal-icon {
   width: 48px;
   height: 48px;
@@ -775,33 +897,34 @@ body {
   color: var(--error);
   font-weight: 700;
   font-size: 1.25rem;
-  /* APLICADO: Colores cambiados a var(--error) con opacity para crear fondo de error suave, manteniendo consistencia cromática */
 }
-/* Formato para el título del modal: el color se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para el título del modal */
 .modal-title {
   margin: 0 0 10px;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
   line-height: 1.2;
-  /* APLICADO: Color cambiado a var(--text) para mantener consistencia con la paleta de tipografía */
 }
-/* Formato para el texto del modal: el color se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para el texto del modal */
 .modal-text {
   margin: 0 0 24px;
   font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.5;
-  /* APLICADO: Color cambiado a var(--muted) para consistencia con textos secundarios */
 }
-/* Formato para las acciones del modal: el diseño se ajusta para mejorar la adaptabilidad en pantallas intermedias. */
+
+/* Formato para las acciones del modal */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
 }
-/* Formato para el botón de peligro: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
+/* Formato para el botón de peligro */
 .danger-btn {
   min-height: 44px;
   padding: 0 20px;
@@ -813,24 +936,237 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background 150ms ease, transform 150ms ease;
-  /* APLICADO: Background cambiado a var(--error) para mantener consistencia con la paleta de errores */
 }
-/* Formato para el botón de peligro en estado hover: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
 .danger-btn:hover {
   background: var(--error);
   opacity: 0.8;
-  /* APLICADO: Hover effect mejorado usando opacity en lugar de color oscuro para mantener consistencia */
 }
-/* Formato para el botón de peligro en estado active: se ajusta la transformación para mejorar la sensación de interacción. */
+
 .danger-btn:active {
   transform: translateY(1px);
 }
-/*  Formato para el botón de peligro en estado disabled: el color de fondo se ajusta para mantener consistencia con la paleta de colores global, además de aplicar mejoras en el diseño. */
+
 .danger-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
+
 /* margen para los elementos */
 .margenes {
   margin: 8px;
+}
+
+
+/* ==========================================
+   ESTILOS DEL FOOTER (Responsivo)
+   ========================================== */
+.admin-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+  background-color: var(--surface);
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.admin-footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-footer__copyright {
+  margin: 0;
+  color: var(--muted);
+}
+
+.admin-footer__links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.admin-footer__links a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.admin-footer__links a:hover {
+  text-decoration: underline;
+  color: var(--purple-800);
+}
+
+.admin-footer__meta {
+  font-size: 0.75rem;
+  background-color: var(--surface-2);
+  color: var(--muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* --- Media Query para tablets y pantallas grandes (Footer) --- */
+@media (min-width: 768px) {
+  .admin-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .admin-footer__content {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+
+/* ==========================================
+   MÓVIL / PANTALLAS PEQUEÑAS (Por defecto)
+   ========================================== */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+.admin-layout__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__main {
+  flex: 1;
+  padding: 1rem;
+}
+
+
+/* ==========================================
+   ESCRITORIO / PANTALLAS GRANDES (>= 768px)
+   ========================================== */
+@media (min-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-layout__wrapper {
+    flex-direction: row;
+  }
+
+  .admin-header {
+    order: -1;
+  }
+
+  .admin-layout__body {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+
+/* ==========================================
+   ESTILOS PARA MÓVIL (Por defecto)
+   ========================================== */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* El botón de hamburguesa SOLO se ve en móvil */
+.admin-header__toggle-btn {
+  display: block;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+/* Forzamos al Sidebar a convertirse en un panel flotante en móvil */
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  z-index: 999;
+  background-color: var(--sidebar-bg);
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
+}
+
+/* Cuando el estado es 'open', lo deslizamos hacia adentro */
+.sidebar-open .admin-sidebar {
+  transform: translateX(0);
+}
+
+/* Capa oscura transparente detrás del menú móvil */
+.admin-layout__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 998;
+}
+
+.admin-layout__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+
+/* ==========================================
+   ESTILOS PARA ESCRITORIO (Pantallas Grandes >= 768px)
+   ========================================== */
+@media (min-width: 768px) {
+  .admin-header__toggle-btn {
+    display: none;
+  }
+
+  .admin-layout__wrapper {
+    flex-direction: row;
+  }
+
+  .admin-sidebar {
+    position: relative;
+    height: auto;
+    transform: translateX(0);
+    z-index: 1;
+  }
+
+  .admin-layout__overlay {
+    display: none;
+  }
+
+  .admin-layout__body {
+    flex: 1;
+    min-width: 0;
+  }
 }
