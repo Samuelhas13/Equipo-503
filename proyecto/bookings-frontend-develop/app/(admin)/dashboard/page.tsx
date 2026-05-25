@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+// [NUEVO] Importamos useEffect para disparar la llamada a la API cuando el dashboard se monte
+import { useState, useEffect } from "react";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
@@ -11,15 +12,6 @@ type DashboardBooking = {
   service: string;
   status: DashboardBookingStatus;
 };
-
-// Imaginemos que aquí tienes una lista larga de reservas simuladas
-const allBookings: DashboardBooking[] = [
-  { time: "09:00", client: "María López", business: "Peluquería Nova", service: "Corte + peinado", status: "confirmed" },
-  { time: "10:30", client: "Carlos Pérez", business: "Restaurante Marea", service: "Reserva para 4", status: "pending" },
-  { time: "12:00", client: "Lucía Sánchez", business: "Barber Studio", service: "Corte caballero", status: "paid" },
-  { time: "14:00", client: "Alejandro Ruiz", business: "Gimnasio Fit", service: "Entrenamiento", status: "confirmed" },
-  { time: "16:30", client: "Ana Gómez", business: "Clínica Dental", service: "Revisión", status: "pending" },
-];
 
 function Badge({ status }: { status: DashboardBookingStatus }) {
   const label = status === "pending" ? "Pendiente" : status === "confirmed" ? "Confirmada" : "Pagada";
@@ -37,11 +29,42 @@ function KpiCard({ title, value, subtitle, variant }: { title: string; value: st
 }
 
 export default function DashboardPage() {
+  // [NUEVO] Estado dinámico para almacenar las reservas reales que vendrán desde SQLite a través de la API
+  const [bookings, setBookings] = useState<DashboardBooking[]>([]);
+
+  // [NUEVO] Estado de carga para dar feedback al usuario mientras los datos están en camino
+  const [loading, setLoading] = useState<boolean>(true);
+
   // 1. Estado para controlar si mostramos todas o solo una vista previa
   const [showAll, setShowAll] = useState(false);
 
+  // [NUEVO] Conexión directa a la API. Se ejecuta automáticamente al renderizar el componente por primera vez
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        // Hacemos la petición a la ruta interna de Next.js conectada a SQLite
+        // Cambia la línea 46 de tu archivo del Dashboard por esto:
+        // (Asegúrate de poner el puerto correcto en el que corra tu NestJS, ej: 3000 o 3001)
+        const response = await fetch("http://localhost:3000/appointments");
+        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+
+        const data: DashboardBooking[] = await response.json();
+        // Guardamos los datos recibidos en nuestro estado
+        setBookings(data);
+      } catch (error) {
+        console.error("Error conectando a la API de SQLite:", error);
+      } finally {
+        // Finalizamos el estado de carga tanto si fue exitoso como si falló
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
   // 2. Si showAll es falso, cortamos el array para mostrar solo las 2 primeras
-  const displayedBookings = showAll ? allBookings : allBookings.slice(0, 2);
+  // [NUEVO] Ahora apunta dinámicamente a 'bookings' (vienen de la API) en lugar del antiguo array estático
+  const displayedBookings = showAll ? bookings : bookings.slice(0, 2);
 
   return (
     <div className="page-stack">
@@ -64,17 +87,18 @@ export default function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
-            
+
             {/* 3. Cambiamos el comportamiento del botón y el texto dinámicamente */}
-            <button 
-              className="panel-subtle-link" 
+            <button
+              className="panel-subtle-link"
               type="button"
               onClick={() => setShowAll(!showAll)}
+              disabled={loading} // [NUEVO] Deshabilitamos el botón si los datos aún no se han cargado
             >
               {showAll ? "Ver menos" : "Ver todas"}
             </button>
           </div>
-          
+
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -87,18 +111,33 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* 4. Mapeamos la variable filtrada en lugar del array estático */}
-                {displayedBookings.map((booking, index) => (
-                  <tr key={index}>
-                    <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                    <td>{booking.client}</td>
-                    <td>{booking.business}</td>
-                    <td>{booking.service}</td>
-                    <td>
-                      <Badge status={booking.status} />
+                {/* [NUEVO] Renderizado condicional basado en el estado de la conexión de la API */}
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "2rem" }}>
+                      Buscando nuevas reservas en SQLite...
                     </td>
                   </tr>
-                ))}
+                ) : displayedBookings.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "2rem" }}>
+                      No se encontraron reservas disponibles.
+                    </td>
+                  </tr>
+                ) : (
+                  /* 4. Mapeamos la variable filtrada en lugar del array estático */
+                  displayedBookings.map((booking, index) => (
+                    <tr key={index}>
+                      <td style={{ fontWeight: 600 }}>{booking.time}</td>
+                      <td>{booking.client}</td>
+                      <td>{booking.business}</td>
+                      <td>{booking.service}</td>
+                      <td>
+                        <Badge status={booking.status} />
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -107,8 +146,13 @@ export default function DashboardPage() {
         <div className="info-stack dashboard-cartas-lg">
           <div className="info-box">
             <p className="info-box__eyebrow">Siguiente reserva</p>
-            <p className="info-box__title">María López</p>
-            <p className="info-box__text">09:00 · Peluquería Nova</p>
+            {/* [NUEVO] El bloque ahora lee dinámicamente el primer registro devuelto por SQLite */}
+            <p className="info-box__title">
+              {bookings[0]?.client || "Sin reservas"}
+            </p>
+            <p className="info-box__text">
+              {bookings[0] ? `${bookings[0].time} · ${bookings[0].business}` : "No hay actividad programada"}
+            </p>
           </div>
           <div className="info-box">
             <p className="info-box__eyebrow">Comercio destacado</p>

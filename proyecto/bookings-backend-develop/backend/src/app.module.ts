@@ -27,7 +27,7 @@ import { PaymentsModule } from './payments/payments.module';
     }),
     AppointmentsModule,
     CustomersModule,
-    PaymentsModule, // Registra la entidad Payment en TypeORM y expone los endpoints de pagos
+    PaymentsModule,
   ],
 })
 export class AppModule {}
