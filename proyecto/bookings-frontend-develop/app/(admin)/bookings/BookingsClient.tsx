@@ -200,8 +200,6 @@ export default function BookingsClient({
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        customerId: editForm.customerId,
-        businessId: editForm.businessId,
         serviceName: editForm.serviceName,
       };
 
@@ -412,22 +410,18 @@ export default function BookingsClient({
                 type="number"
                 min={1}
                 value={editForm.customerId}
-                onChange={(e) =>
-                  updateEditForm("customerId", Number(e.target.value))
-                }
                 placeholder="Customer ID"
-                required
+                disabled
+                title="El Customer ID no se puede modificar una vez creada la reserva"
               />
               <input
                 className="input"
                 type="number"
                 min={1}
                 value={editForm.businessId}
-                onChange={(e) =>
-                  updateEditForm("businessId", Number(e.target.value))
-                }
                 placeholder="Business ID"
-                required
+                disabled
+                title="El Business ID no se puede modificar una vez creada la reserva"
               />
               <input
                 className="input input--full"
