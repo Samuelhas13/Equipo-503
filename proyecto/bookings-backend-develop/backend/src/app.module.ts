@@ -8,7 +8,6 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CustomersModule } from './customers/customers.module';
-import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -27,7 +26,6 @@ import { PaymentsModule } from './payments/payments.module';
     }),
     AppointmentsModule,
     CustomersModule,
-    PaymentsModule, // Registra la entidad Payment en TypeORM y expone los endpoints de pagos
   ],
 })
 export class AppModule {}
