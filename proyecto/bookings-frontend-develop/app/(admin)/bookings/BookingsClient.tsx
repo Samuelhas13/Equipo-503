@@ -13,8 +13,8 @@ import {
   updateAppointment,
 } from "@/lib/api";
 
-function StatusBadge({ status }: { status: BookingStatus }) {
-  const label =
+function StatusBadge({ status }: { status: BookingStatus }) {       // funcion que consiste en mostrar el estado de una reserva utilizando un label,
+  const label =                                                     // es decir si una reserva tiene el estado pending en la pantalla mostrara el estado pendiente
     status === "pending"
       ? "Pendiente"
       : status === "confirmed"
@@ -52,40 +52,40 @@ export default function BookingsClient({
     serviceName: "",
   };
 
-  const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
-  const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
+  const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);     //guarda lo que escribes en el formulario de crear reserva.
+  const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);         //guarda lo que escribes en el formulario de editar reserva.
 
-  const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
-  const [loadingCreate, setLoadingCreate] = useState(false);
-  const [loadingEdit, setLoadingEdit] = useState(false);
-  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");   //Esto guarda qué filtro está seleccionado.
+  const [loadingCreate, setLoadingCreate] = useState(false);                        //Sirven para saber si se está creando o editando una reserva.
+  const [loadingEdit, setLoadingEdit] = useState(false);                            
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);  //Guarda el id de la reserva que se está eliminando en ese momento.
+  const [successMessage, setSuccessMessage] = useState("");                         //Guardan los mensajes que se enseñan al usuario.
+  const [errorMessage, setErrorMessage] = useState("");                             
+  const [isCreateOpen, setIsCreateOpen] = useState(false);                          //Controla si el formulario de crear reserva está abierto o cerrado.
+  const [editingBookingId, setEditingBookingId] = useState<number | null>(null);    //Guarda el id de la reserva que se está editando.
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);        //Guarda el id de la reserva que el usuario quiere eliminar.
 
-  const filteredBookings = useMemo(() => {
+  const filteredBookings = useMemo(() => {                                          //Esto crea la lista de reservas filtradas.
     if (statusFilter === "all") return bookings;
     return bookings.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
 
-  const totalCount = bookings.length;
-  const pendingCount = bookings.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const paidCount = bookings.filter((b) => b.status === "paid").length;
+  const totalCount = bookings.length;                                               // numero total de reservas
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;       // numero de reservas pendientes, la b es cada reserva individual, es una abreviatura de booking
+  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;   // reservas confirmadas
+  const paidCount = bookings.filter((b) => b.status === "paid").length;             // numero reservas pagadas
 
-  function updateCreateForm<K extends keyof CreateBookingDto>(
-    key: K,
-    value: CreateBookingDto[K]
-  ) {
-    setCreateForm((prev) => ({
+  function updateCreateForm<K extends keyof CreateBookingDto>(                      // esta funcion sirve para actualizar un campo concreto del formulario de creacion
+    key: K,                                                                         // la clave key solo puede ser uno de los campos de CreateBookingDto-
+    value: CreateBookingDto[K]                                                      // -es para evitar que pongas campos inventados
+  ) {                                                                               // value: CreateBookingDto[K] significa que el valor debe coincidir con el tipo del campo 
+    setCreateForm((prev) => ({                                                      // -si un campo es numero no deberias pasarle texto
       ...prev,
       [key]: value,
     }));
   }
 
-  function updateEditForm<K extends keyof CreateBookingDto>(
+  function updateEditForm<K extends keyof CreateBookingDto>(                        // esta funcion hace lo mismo pero para el formulario de edicion
     key: K,
     value: CreateBookingDto[K]
   ) {
@@ -95,7 +95,7 @@ export default function BookingsClient({
     }));
   }
 
-  function resetCreateForm() {
+  function resetCreateForm() {                                                      // estas dos funciones sirven para dejar los formularios como al principio
     setCreateForm(emptyForm);
   }
 
@@ -103,62 +103,62 @@ export default function BookingsClient({
     setEditForm(emptyForm);
   }
 
-  function openCreateForm() {
-    setErrorMessage("");
-    setSuccessMessage("");
-    setEditingBookingId(null);
-    setDeleteTargetId(null);
-    resetEditForm();
-    setIsCreateOpen(true);
+  function openCreateForm() {                                                      // esta funcion se ejecuta cuando pulsas nueva reserva
+    setErrorMessage("");                                                           // borra mensajes de error
+    setSuccessMessage("");                                                         // borra mensajes de éxito
+    setEditingBookingId(null);                                                     // cancela cualquier edición activa
+    setDeleteTargetId(null);                                                       // cancela cualquier eliminación pendiente
+    resetEditForm();                                                               // limpia el formulario de edición
+    setIsCreateOpen(true);                                                         // abre el formulario de crear
   }
 
-  function closeCreateForm() {
-    setErrorMessage("");
-    resetCreateForm();
-    setIsCreateOpen(false);
+  function closeCreateForm() {                                                     // se ejecuta cuando borras mensajes de error
+    setErrorMessage("");                                                           // borra mensajes de error
+    resetCreateForm();                                                             // limpia el formulario de crear
+    setIsCreateOpen(false);                                                        // cierra el formulario
   }
 
-  function openEditForm(booking: Booking) {
-    setErrorMessage("");
+  function openEditForm(booking: Booking) {                                        // Esta funcion controla editar reservas y abrir/cerrar el modal de eliminar
+    setErrorMessage("");                                                           // booking: Booking Recibe como parámetro una reserva completa:
     setSuccessMessage("");
-    setIsCreateOpen(false);
-    setDeleteTargetId(null);
-    setEditingBookingId(booking.id);
-    setEditForm({
+    setIsCreateOpen(false);                                                        // Cierra el formulario de crear reserva, por si estaba abierto.
+    setDeleteTargetId(null);                                                       // Cierra o cancela cualquier intento de eliminar una reserva.
+    setEditingBookingId(booking.id);                                               // Guarda el id de la reserva que se está editando.
+    setEditForm({                                                                  // Esto rellena el formulario de edición con los datos actuales de la reserva.
       date: booking.date,
       time: booking.time,
-      status: booking.status,
+      status: booking.status, 
       customerId: booking.customerId,
       businessId: booking.businessId,
       serviceName: booking.serviceName,
     });
   }
 
-  function closeEditForm() {
+  function closeEditForm() {                                                      // sirve para cerrar el formulario de edición
     setErrorMessage("");
-    setEditingBookingId(null);
+    setEditingBookingId(null);                                                    // indica que ya no se está editando ninguna reserva
     resetEditForm();
   }
 
-  function openDeleteModal(id: number) {
-    setErrorMessage("");
+  function openDeleteModal(id: number) {                                          // elimina el id de una reserva el recibe el id
+    setErrorMessage("");                                                          // y normalmente provoca que se abra un modal de confirmación 
     setSuccessMessage("");
     setDeleteTargetId(id);
   }
 
-  function closeDeleteModal() {
+  function closeDeleteModal() {                                                  // cierra el modal de eliminar
     setDeleteTargetId(null);
   }
 
-  async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {      // esta funcion se ejecuta cuando envias el formulario de crear reserva
+    e.preventDefault();                                                         // evita que el formulario se recargue  cuando envias un formulario HTML
     setLoadingCreate(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const created = await createAppointment(createForm);
-      setBookings((prev) => [created, ...prev]);
+      const created = await createAppointment(createForm);                    // Mandara los datos al backend para crear una resrva--
+      setBookings((prev) => [created, ...prev]);//pon la nueva reserva al principio     // --Si todo va bien el backend devuelve la reserva creada
       resetCreateForm();
       setIsCreateOpen(false);
       setSuccessMessage("Reserva creada correctamente.");
@@ -169,17 +169,17 @@ export default function BookingsClient({
     }
   }
 
-  async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {    // edita una reserva existente
     e.preventDefault();
 
-    if (!editingBookingId) return;
-
+    if (!editingBookingId) return;                                // comprueba si hay una reserva seleccionada para editar, editBookingId guarda el id de la reserva-
+                                                                  // si no hay ningun id la funcion se detiene con return
     setLoadingEdit(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const payload: UpdateBookingDto = {
+      const payload: UpdateBookingDto = {                         // el playload es el que se va a enviar al backend, contiene los nuevos datos
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
@@ -190,7 +190,7 @@ export default function BookingsClient({
 
       const updated = await updateAppointment(editingBookingId, payload);
 
-      setBookings((prev) =>
+      setBookings((prev) =>                                               // actualiza la lista de reservas que se ve en la pantalla
         prev.map((booking) =>
           booking.id === editingBookingId ? updated : booking
         )
@@ -206,7 +206,7 @@ export default function BookingsClient({
     }
   }
 
-  async function confirmDelete() {
+  async function confirmDelete() {                                           // esta funcion se ejecuta cuando se confirma que quiere eliminar una reserva 
     if (deleteTargetId === null) return;
 
     setDeletingBookingId(deleteTargetId);
@@ -214,10 +214,10 @@ export default function BookingsClient({
     setErrorMessage("");
 
     try {
-      await deleteAppointment(deleteTargetId);
+      await deleteAppointment(deleteTargetId);                             // llamada al backend para eliminar
       setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
 
-      if (editingBookingId === deleteTargetId) {
+      if (editingBookingId === deleteTargetId) {                           // Si justo estabas editando la reserva que acabas de eliminar, se cierra el formulario de edición.
         closeEditForm();
       }
 
