@@ -1155,10 +1155,11 @@ body {
   }
 
   .admin-sidebar {
-    position: relative;
-    height: auto;
+    position: sticky;
+    top: 0;
+    height: 100vh;
     transform: translateX(0);
-    z-index: 1;
+    z-index: 10;
   }
 
   .admin-layout__overlay {
