@@ -8,22 +8,12 @@ import {
   createPayment,
   PaymentMethod,
   PaymentStatus,
-  Payment,
-} from "../../../lib/api";
-
-type PaymentRow = {
-  id: string;
-  client: string;
-  business: string;
-  amount: string;
-  method: string;
-  date: string;
-  status: PaymentStatus;
-};
+} from "@/lib/api";
+import type { Payment } from "@/lib/types";
 
 type PaymentForm = {
-  client: any;
-  business: any;
+  client: string;
+  business: string;
   appointmentId: string;
   amount: string;
   method: PaymentMethod;
@@ -41,38 +31,21 @@ const initialPaymentForm: PaymentForm = {
   status: "paid",
 };
 
-const initialPayments: PaymentRow[] = [];
-
-function KpiCard({
-  title,
-  value,
-  subtitle,
-  variant,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
+function KpiCard({ title, value, subtitle, variant }: {
+  title: string; value: string; subtitle: string; variant?: "positive" | "warning";
 }) {
   return (
     <div className="kpi-card">
       <p className="kpi-card__label">{title}</p>
       <h3 className="kpi-card__value">{value}</h3>
-      <p
-        className={`kpi-card__meta ${variant === "positive"
-            ? "kpi-card__meta--positive"
-            : variant === "warning"
-              ? "kpi-card__meta--warning"
-              : ""
-          }`}
-      >
+      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>
         {subtitle}
       </p>
     </div>
   );
 }
 
-function Badge({ status }: { status: PaymentStatus }) {
+function Badge({ status }: { status: Payment["status"] }) {
   return (
     <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
       {status === "pending" ? "Por cobrar" : "Pagado"}
@@ -80,19 +53,37 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
-
-
 export default function PaymentsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [paymentsState, setPaymentsState] = useState<PaymentRow[]>(initialPayments);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [appointments, setAppointments] = useState<Booking[]>([]);
   const [paymentForm, setPaymentForm] = useState<PaymentForm>(initialPaymentForm);
   const [formError, setFormError] = useState("");
-  const [backendError, setBackendError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const amountRegex = /^[0-9]+$/;
   const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await getPayments();
+        setPayments(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const paid = payments.filter((p) => p.status === "paid");
+  const pending = payments.filter((p) => p.status === "pending");
+  const totalPaid = paid.reduce((sum, p) => sum + (p.amount ?? 0), 0);
+  const totalPending = pending.reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
   const validatePaymentForm = () => {
     if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
@@ -133,24 +124,27 @@ export default function PaymentsPage() {
     setPaymentForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSavePayment = () => {
+  const handleSavePayment = async () => {
     if (!validatePaymentForm()) {
       return;
     }
 
-    const newPayment: PaymentRow = {
-      id: `COB-${paymentsState.length + 1}`,
-      client: paymentForm.client.trim(),
-      business: paymentForm.business.trim(),
-      amount: `${paymentForm.amount.trim()} €`,
-      method: paymentForm.method,
-      date: paymentForm.date,
-      status: paymentForm.status,
-    };
+    try {
+      const newPayment = await createPayment({
+        amount: Number(paymentForm.amount.trim()),
+        date: paymentForm.date,
+        status: paymentForm.status,
+        paymentMethod: paymentForm.method,
+        customerId: 1,
+        appointmentId: Number(paymentForm.appointmentId) || 1,
+      });
 
-    setPaymentsState((prev) => [newPayment, ...prev]);
-    setPaymentForm(initialPaymentForm);
-    setIsCreateOpen(false);
+      setPayments((prev) => [newPayment, ...prev]);
+      setPaymentForm(initialPaymentForm);
+      setIsCreateOpen(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Error al guardar el pago");
+    }
   };
 
   return (
@@ -160,9 +154,6 @@ export default function PaymentsPage() {
           <h2>Payments</h2>
           <p>Seguimiento de cobros realizados y pendientes.</p>
         </div>
-
-
-
         <button className="primary-btn" 
         type="button"
         onClick = {() => setIsCreateOpen((prev) => !prev) }
@@ -284,58 +275,64 @@ export default function PaymentsPage() {
 )}
       <section className="kpi-grid">
         <KpiCard
-          title="Cobrado hoy"
-          value="171 €"
-          subtitle="4 operaciones registradas"
+          title="Cobrado total"
+          value={loading ? "—" : `${totalPaid} €`}
+          subtitle={`${paid.length} operaciones`}
           variant="positive"
         />
         <KpiCard
           title="Pendiente"
-          value="80 €"
-          subtitle="1 cobro por revisar"
+          value={loading ? "—" : `${totalPending} €`}
+          subtitle={`${pending.length} cobros por revisar`}
           variant="warning"
         />
-        <KpiCard title="Método más usado" value="Tarjeta" subtitle="Mayor volumen del día" />
-        <KpiCard title="Conversión" value="84%" subtitle="Cobros cerrados hoy" />
+        <KpiCard
+          title="Total pagos"
+          value={loading ? "—" : String(payments.length)}
+          subtitle="registros en BD"
+        />
       </section>
 
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Listado de cobros</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {paymentsState.length} resultados
+            {loading ? "—" : `${payments.length} resultados`}
           </span>
         </div>
 
         <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Comercio</th>
-                <th>Importe</th>
-                <th>Método</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paymentsState.map((payment) => (
-                <tr key={payment.id}>
-                  <td style={{ fontWeight: 600 }}>{payment.id}</td>
-                  <td>{payment.client}</td>
-                  <td>{payment.business}</td>
-                  <td>{payment.amount}</td>
-                  <td>{payment.method}</td>
-                  <td>{payment.date}</td>
-                  <td>
-                    <Badge status={payment.status} />
-                  </td>
+          {loading && <p className="table-feedback">Cargando pagos...</p>}
+          {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
+          {!loading && !error && payments.length === 0 && (
+            <p className="table-feedback">No hay pagos registrados.</p>
+          )}
+          {!loading && !error && payments.length > 0 && (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Reserva</th>
+                  <th>Importe</th>
+                  <th>Método</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td style={{ fontWeight: 600 }}>#{p.id}</td>
+                    <td>Reserva #{p.appointmentId}</td>
+                    <td>{p.amount} €</td>
+                    <td>{p.method}</td>
+                    <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString("es-ES") : "—"}</td>
+                    <td><Badge status={p.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
     </div>

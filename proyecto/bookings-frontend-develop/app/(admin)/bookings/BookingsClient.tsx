@@ -148,7 +148,8 @@ export default function BookingsClient({
   }
 
   // 3. Modificamos la apertura para añadir el scroll
-  function openCreateForm() {
+  function openCreateForm() {                                                               // esta funcion se ejecuta cuando pulsas nueva reserva
+    setSuccessMessage(""); 
     setErrorMessage("");
     setSuccessMessage("");
     setEditingBookingId(null);
