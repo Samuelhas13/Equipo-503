@@ -32,6 +32,8 @@ type PaymentForm = {
 };
 
 const initialPaymentForm: PaymentForm = {
+  client: "",
+  business: "",
   appointmentId: "",
   amount: "",
   method: "card",
@@ -78,13 +80,7 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
-const initialPaymentForm: PaymentForm = {
-  appointmentId: "",
-  amount: "",
-  method: "card",
-  date: "",
-  status: "paid",
-};
+
 
 export default function PaymentsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -96,6 +92,7 @@ export default function PaymentsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const amountRegex = /^[0-9]+$/;
+  const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
 
   const validatePaymentForm = () => {
     if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
@@ -141,7 +138,7 @@ export default function PaymentsPage() {
       return;
     }
 
-    const newPayment: Payment = {
+    const newPayment: PaymentRow = {
       id: `COB-${paymentsState.length + 1}`,
       client: paymentForm.client.trim(),
       business: paymentForm.business.trim(),
