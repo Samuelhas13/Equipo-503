@@ -88,3 +88,7 @@ export async function deleteAppointment(
 
   return res.json();
 }
+
+export function getExportReportUrl(): string {
+  return `${API_URL}/appointments/export`;
+}

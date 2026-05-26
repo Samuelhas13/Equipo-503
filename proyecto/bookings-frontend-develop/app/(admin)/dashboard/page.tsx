@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getExportReportUrl } from "@/lib/api";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
@@ -43,6 +44,10 @@ export default function DashboardPage() {
   // 2. Si showAll es falso, cortamos el array para mostrar solo las 2 primeras
   const displayedBookings = showAll ? allBookings : allBookings.slice(0, 2);
 
+  const handleExportReport = () => {
+    window.location.href = getExportReportUrl();
+  };
+
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -50,7 +55,7 @@ export default function DashboardPage() {
           <h2>Dashboard overview</h2>
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
-        <button className="primary-btn" type="button">Export report</button>
+        <button className="primary-btn" type="button" onClick={handleExportReport}>Export report</button>
       </section>
 
       <section className="kpi-grid">
