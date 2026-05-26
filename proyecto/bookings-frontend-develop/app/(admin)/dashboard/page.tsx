@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import {
   getAppointments,
   getExportReportUrl,
@@ -55,6 +57,9 @@ function getTodayISO() {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   // 1. Estado para controlar si mostramos todas o solo una vista previa
   const [showAll, setShowAll] = useState(false);
 
@@ -62,6 +67,13 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Guard: redirect usuario to /bookings
+  useEffect(() => {
+    if (user?.role === "usuario") {
+      router.push("/bookings");
+    }
+  }, [user, router]);
 
   // NUEVO: fetch al montar el componente
   useEffect(() => {
@@ -80,11 +92,19 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  // NUEVO: KPIs derivados de los datos reales
+  // Filter bookings based on role
+  const filteredBookings = bookings.filter((b) => {
+    if (user?.role === "empresa") {
+      return b.businessId === user.businessId;
+    }
+    return true;
+  });
+
+  // NUEVO: KPIs derivados de los datos reales filtrados
   const today = getTodayISO();
-  const todayBookings = bookings.filter((b) => b.date === today);
-  const pendingBookings = bookings.filter((b) => b.status === "pending");
-  const paidBookings = bookings.filter((b) => b.status === "paid");
+  const todayBookings = filteredBookings.filter((b) => b.date === today);
+  const pendingBookings = filteredBookings.filter((b) => b.status === "pending");
+  const paidBookings = filteredBookings.filter((b) => b.status === "paid");
 
   // NUEVO: siguiente reserva del día, ordenada por hora
   const nextBooking = [...todayBookings].sort((a, b) =>
@@ -203,9 +223,9 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="info-box">
-            <p className="info-box__eyebrow">Comercio destacado</p>
-            <p className="info-box__title">Restaurante Marea</p>
-            <p className="info-box__text">6 reservas hoy</p>
+            <p className="info-box__eyebrow">{user?.role === "empresa" ? "Mi Comercio" : "Comercio destacado"}</p>
+            <p className="info-box__title">{user?.role === "empresa" ? user.name : "Restaurante Marea"}</p>
+            <p className="info-box__text">{user?.role === "empresa" ? `${todayBookings.length} reservas hoy` : "6 reservas hoy"}</p>
           </div>
           <div className="info-box">
             <p className="info-box__eyebrow">Recordatorios</p>

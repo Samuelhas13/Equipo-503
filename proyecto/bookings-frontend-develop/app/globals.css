@@ -1142,3 +1142,337 @@ body {
     display: none;
   }
 }
+
+/* ==========================================
+   ESTILOS DE AUTH / LOGIN Y CARGA
+   ========================================== */
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg);
+  color: var(--text);
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--purple-100);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: radial-gradient(circle at 10% 20%, var(--purple-900) 0%, #17143a 90%);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decoraciones de fondo brillantes */
+.login-container::before {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(127, 119, 221, 0.15) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
+  z-index: 1;
+}
+
+.login-container::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(83, 74, 215, 0.12) 0%, transparent 70%);
+  bottom: -150px;
+  left: -150px;
+  z-index: 1;
+}
+
+.login-card {
+  width: min(100%, 500px);
+  background: rgba(38, 33, 92, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(206, 203, 246, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.login-header {
+  text-align: center;
+}
+
+.login-brand {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--purple-50);
+  margin-bottom: 8px;
+}
+
+.login-tagline {
+  color: var(--purple-100);
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple-100);
+}
+
+.login-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(206, 203, 246, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--purple-200);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(127, 117, 221, 0.25);
+}
+
+.login-btn {
+  border: none;
+  background: var(--accent);
+  color: white;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(83, 74, 183, 0.3);
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: var(--purple-400);
+  transform: translateY(-1px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.quick-login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quick-login-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--purple-200);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.quick-login-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-login-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(206, 203, 246, 0.1);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-login-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--purple-200);
+  transform: translateY(-2px);
+}
+
+.quick-login-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--purple-200);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.quick-login-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   ESTILOS DE DIRECTORIO DE EMPRESAS
+   ========================================== */
+
+.business-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.business-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--purple-200);
+}
+
+.business-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.business-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.business-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.business-category {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--primary-soft);
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.business-desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.business-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.business-actions button {
+  width: 100%;
+}
+
+/* Estilos de cabecera de perfil */
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px 4px 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.user-profile-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.user-profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.user-profile-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.logout-btn-header {
+  background: transparent;
+  border: none;
+  color: var(--error);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.logout-btn-header:hover {
+  background: rgba(226, 75, 74, 0.08);
+}
