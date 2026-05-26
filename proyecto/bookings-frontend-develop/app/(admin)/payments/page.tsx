@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  Booking,
+  getAppointments,
+  getPayments,
+  createPayment,
+  PaymentMethod,
+  PaymentStatus,
+  Payment,
+} from "../../../lib/api";
 
-type PaymentStatus = "pending" | "paid";
-
-type Payment = {
+type PaymentRow = {
   id: string;
   client: string;
   business: string;
@@ -14,44 +21,23 @@ type Payment = {
   status: PaymentStatus;
 };
 
-const payments: Payment[] = [
-  {
-    id: "COB-001",
-    client: "María López",
-    business: "Peluquería Nova",
-    amount: "28 €",
-    method: "Tarjeta",
-    date: "15/04/2026",
-    status: "paid",
-  },
-  {
-    id: "COB-002",
-    client: "Carlos Pérez",
-    business: "Restaurante Marea",
-    amount: "80 €",
-    method: "Pendiente",
-    date: "15/04/2026",
-    status: "pending",
-  },
-  {
-    id: "COB-003",
-    client: "Lucía Sánchez",
-    business: "Barber Studio",
-    amount: "18 €",
-    method: "Bizum",
-    date: "15/04/2026",
-    status: "paid",
-  },
-  {
-    id: "COB-004",
-    client: "Pedro Ruiz",
-    business: "Peluquería Nova",
-    amount: "45 €",
-    method: "Efectivo",
-    date: "16/04/2026",
-    status: "paid",
-  },
-];
+type PaymentForm = {
+  appointmentId: string;
+  amount: string;
+  method: PaymentMethod;
+  date: string;
+  status: PaymentStatus;
+};
+
+const initialPaymentForm: PaymentForm = {
+  appointmentId: "",
+  amount: "",
+  method: "card",
+  date: "",
+  status: "paid",
+};
+
+const initialPayments: PaymentRow[] = [];
 
 function KpiCard({
   title,
@@ -90,8 +76,83 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
+const initialPaymentForm: PaymentForm = {
+  appointmentId: "",
+  amount: "",
+  method: "card",
+  date: "",
+  status: "paid",
+};
+
 export default function PaymentsPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [paymentsState, setPaymentsState] = useState<PaymentRow[]>(initialPayments);
+  const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [paymentForm, setPaymentForm] = useState<PaymentForm>(initialPaymentForm);
+  const [formError, setFormError] = useState("");
+  const [backendError, setBackendError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const amountRegex = /^[0-9]+$/;
+
+  const validatePaymentForm = () => {
+    if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
+      setFormError("Cliente y comercio son obligatorios.");
+      return false;
+    }
+
+    if (!nameRegex.test(paymentForm.client.trim())) {
+      setFormError("El nombre del cliente solo puede contener letras y espacios.");
+      return false;
+    }
+
+    if (!nameRegex.test(paymentForm.business.trim())) {
+      setFormError("El nombre del comercio solo puede contener letras y espacios.");
+      return false;
+    }
+
+    if (!amountRegex.test(paymentForm.amount.trim())) {
+      setFormError("Importe debe ser un número entero sin decimales.");
+      return false;
+    }
+
+    if (!paymentForm.date) {
+      setFormError("Fecha del pago es obligatoria.");
+      return false;
+    }
+
+    if (!["pending", "paid"].includes(paymentForm.status)) {
+      setFormError("Estado de pago inválido.");
+      return false;
+    }
+
+    setFormError("");
+    return true;
+  };
+
+  const handleInputChange = (field: keyof typeof paymentForm, value: string) => {
+    setPaymentForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSavePayment = () => {
+    if (!validatePaymentForm()) {
+      return;
+    }
+
+    const newPayment: Payment = {
+      id: `COB-${paymentsState.length + 1}`,
+      client: paymentForm.client.trim(),
+      business: paymentForm.business.trim(),
+      amount: `${paymentForm.amount.trim()} €`,
+      method: paymentForm.method,
+      date: paymentForm.date,
+      status: paymentForm.status,
+    };
+
+    setPaymentsState((prev) => [newPayment, ...prev]);
+    setPaymentForm(initialPaymentForm);
+    setIsCreateOpen(false);
+  };
 
   return (
     <div className="page-stack">
@@ -118,25 +179,51 @@ export default function PaymentsPage() {
   <section className="section-card">
     <h3 className="panel-title">Registrar cobro</h3>
 
-    <form className="form-grid">
+    <form className="form-grid" onSubmit={(event) => { event.preventDefault(); handleSavePayment(); }}>
       <label className="form-field">
         Cliente
-        <input className="input" placeholder="Nombre del cliente" />
+        <input
+          className="input"
+          placeholder="Nombre del cliente"
+          value={paymentForm.client}
+          onChange={(event) => handleInputChange("client", event.target.value)}
+          pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
+          title="Solo letras y espacios"
+        />
       </label>
 
       <label className="form-field">
         Comercio
-        <input className="input" placeholder="Nombre del comercio" />
+        <input
+          className="input"
+          placeholder="Nombre del comercio"
+          value={paymentForm.business}
+          onChange={(event) => handleInputChange("business", event.target.value)}
+          pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
+          title="Solo letras y espacios"
+        />
       </label>
 
       <label className="form-field">
         Importe
-        <input className="input" placeholder="Ej: 28 €" />
+        <input
+          className="input"
+          placeholder="Ej: 28"
+          value={paymentForm.amount}
+          onChange={(event) => handleInputChange("amount", event.target.value)}
+          inputMode="numeric"
+          pattern="[0-9]+"
+          title="Solo números enteros"
+        />
       </label>
 
       <label className="form-field">
         Método
-        <select className="input">
+        <select
+          className="input"
+          value={paymentForm.method}
+          onChange={(event) => handleInputChange("method", event.target.value)}
+        >
           <option>Tarjeta</option>
           <option>Bizum</option>
           <option>Efectivo</option>
@@ -146,34 +233,53 @@ export default function PaymentsPage() {
 
       <label className="form-field">
         Fecha
-        <input className="input" type="date" />
+        <input
+          className="input"
+          type="date"
+          value={paymentForm.date}
+          onChange={(event) => handleInputChange("date", event.target.value)}
+        />
       </label>
 
       <label className="form-field">
         Estado
-        <select className="input">
+        <select
+          className="input"
+          value={paymentForm.status}
+          onChange={(event) => handleInputChange("status", event.target.value)}
+        >
           <option value="pending">Por cobrar</option>
           <option value="paid">Pagado</option>
         </select>
       </label>
 
+      {formError && (
+        <p style={{ color: "#b91c1c", fontSize: 14, gridColumn: "1 / -1" }}>
+          {formError}
+        </p>
+      )}
+
       <div className="form-actions">
         <button
           className="secondary-btn"
           type="button"
-          onClick={() => setIsCreateOpen(false)}
+          onClick={() => {
+            setIsCreateOpen(false);
+            setFormError("");
+            setPaymentForm(initialPaymentForm);
+          }}
         >
           Cancelar
         </button>
 
-        <button className="primary-btn" type="button">
+        <button className="primary-btn" type="submit">
           Guardar cobro
         </button>
       </div>
     </form>
 
     <p style={{ color: "#6b7280", fontSize: 14 }}>
-      Formulario pendiente de conectar
+      Formulario provisional con validación de importe entero
     </p>
   </section>
 )}
@@ -198,7 +304,7 @@ export default function PaymentsPage() {
         <div className="panel-title-row">
           <h3 className="panel-title">Listado de cobros</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {payments.length} resultados
+            {paymentsState.length} resultados
           </span>
         </div>
 
@@ -216,7 +322,7 @@ export default function PaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment) => (
+              {paymentsState.map((payment) => (
                 <tr key={payment.id}>
                   <td style={{ fontWeight: 600 }}>{payment.id}</td>
                   <td>{payment.client}</td>
