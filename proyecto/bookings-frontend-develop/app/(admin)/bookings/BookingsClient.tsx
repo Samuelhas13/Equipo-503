@@ -81,14 +81,6 @@ export default function BookingsClient({
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);    //Guarda el id de la reserva que se está editando.
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);        //Guarda el id de la reserva que el usuario quiere eliminar.
 
-<<<<<<< HEAD
-  // 2. Creamos las referencias para los contenedores de los formularios
-  const createFormRef = useRef<HTMLDivElement>(null);
-  const editFormRef = useRef<HTMLDivElement>(null);
-
-
-  const filteredBookings = useMemo(() => {                                          //Esto crea la lista de reservas filtradas.
-=======
   const [searchedCustomer, setSearchedCustomer] = useState<{ id: number; name: string; email: string; phone: string } | null>(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [createPersons, setCreatePersons] = useState<number>(1);
@@ -118,7 +110,6 @@ export default function BookingsClient({
   const editFormRef = useRef<HTMLDivElement>(null);
 
   const filteredBookings = useMemo(() => {
->>>>>>> aa59d1222a394130d187e67047ea3a7a209dbe16
     if (statusFilter === "all") return bookings;
     return bookings.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
@@ -160,13 +151,6 @@ export default function BookingsClient({
   function openCreateForm() {                                                               // esta funcion se ejecuta cuando pulsas nueva reserva
     setSuccessMessage(""); 
     setErrorMessage("");
-<<<<<<< HEAD
-    setErrorMessage("");                                                                 // borra mensajes de error
-    setEditingBookingId(null);                                                              // cancela cualquier edición activa
-    setDeleteTargetId(null);                                                                // cancela cualquier eliminación pendiente
-    resetEditForm();                                                                         // limpia el formulario de edición
-    setIsCreateOpen(true);                                                                      // abre el formulario de crear
-=======
     setSuccessMessage("");
     setEditingBookingId(null);
     setDeleteTargetId(null);
@@ -174,7 +158,6 @@ export default function BookingsClient({
     setSearchedCustomer(null);
     resetEditForm();
     setIsCreateOpen(true);
->>>>>>> aa59d1222a394130d187e67047ea3a7a209dbe16
 
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
@@ -189,14 +172,8 @@ export default function BookingsClient({
   }
 
   // 4. Modificamos la apertura de edición para añadir el scroll
-<<<<<<< HEAD
-  
-  function openEditForm(booking: Booking) {                                        // Esta funcion controla editar reservas y abrir/cerrar el modal de eliminar
-    setErrorMessage("");                                                           // booking: Booking Recibe como parámetro una reserva completa:
-=======
   function openEditForm(booking: Booking) {
     setErrorMessage("");
->>>>>>> aa59d1222a394130d187e67047ea3a7a209dbe16
     setSuccessMessage("");
     setIsCreateOpen(false);
     setDeleteTargetId(null);
