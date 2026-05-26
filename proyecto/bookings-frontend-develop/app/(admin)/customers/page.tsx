@@ -1,41 +1,8 @@
-"use client"
+"use client";
+
 import { FormEvent, useEffect, useState } from "react";
-
-type Customer = {
-  id: number | string;
-  name: string;
-  phone: string;
-  email: string;
-  business: string;
-  nextBooking: string;
-};
-
-const initialCustomers: Customer[] = [
-  {
-    id: "C-001",
-    name: "María López",
-    phone: "600 123 456",
-    email: "maria@email.com",
-    business: "Peluquería Nova",
-    nextBooking: "Hoy · 09:00",
-  },
-  {
-    id: "C-002",
-    name: "Carlos Pérez",
-    phone: "611 456 789",
-    email: "carlos@email.com",
-    business: "Restaurante Marea",
-    nextBooking: "Hoy · 10:30",
-  },
-  {
-    id: "C-003",
-    name: "Lucía Sánchez",
-    phone: "622 987 654",
-    email: "lucia@email.com",
-    business: "Barber Studio",
-    nextBooking: "Mañana · 12:00",
-  },
-];
+import { getCustomers, createCustomer } from "@/lib/api";
+import type { Customer } from "@/lib/types";
 
 function CustomerCard({ customer }: { customer: Customer }) {
   return (
@@ -43,10 +10,9 @@ function CustomerCard({ customer }: { customer: Customer }) {
       <p className="customer-name">{customer.name}</p>
       <p className="customer-meta">{customer.phone}</p>
       <p className="customer-meta">{customer.email}</p>
-      <div className="customer-tag">{customer.business}</div>
-      <div className="customer-next">
-        <strong>Próxima reserva:</strong> {customer.nextBooking}
-      </div>
+      {customer.business && (
+        <div className="customer-tag">{customer.business}</div>
+      )}
     </div>
   );
 }
@@ -54,192 +20,123 @@ function CustomerCard({ customer }: { customer: Customer }) {
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [customersState, setCustomersState] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
     business: "",
-    nextBooking: "",
   });
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    async function loadCustomers() {
+    async function load() {
       try {
-        const response = await fetch("http://localhost:3000/customers");
-        if (response.ok) {
-          const backendCustomers = await response.json();
-          setCustomersState(backendCustomers);
-        }
-      } catch (error) {
-        console.error("Error cargando clientes desde el backend:", error);
+        setLoading(true);
+        const data = await getCustomers();
+        setCustomers(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
       }
     }
-
-    loadCustomers();
+    load();
   }, []);
 
-  // 1. Blindamos el filtro contra valores nulos o "undefined" del backend
-  const filteredCustomers = customersState.filter((customer) => {
-    if (!customer) return false;
-    const searchTerm = search.toLowerCase();
-
-    return (
-      (customer.name || "").toLowerCase().includes(searchTerm) ||
-      (customer.phone || "").toLowerCase().includes(searchTerm) ||
-      (customer.email || "").toLowerCase().includes(searchTerm) ||
-      (customer.business || "").toLowerCase().includes(searchTerm)
-    );
-  });
-
-  // 1. Definimos la estructura exacta de tu formulario (Punto 2)
-  interface CustomerFormData {
-    name: string;
-    phone: string;
-    email: string;
-    business: string;
-    nextBooking: string; // Añadido para que coincida con tu estado
-  }
-
-  // 3. Tu función ahora funcionará perfectamente sin errores
-  const handleInputChange = (field: keyof CustomerFormData, value: string) => {
-    setFormData((current) => ({
-      ...current,
-      [field]: value,
-    }));
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCreateSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleCreateSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsSaving(true);
-
     try {
-      const response = await fetch("http://localhost:3000/customers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo guardar el cliente");
-      }
-
-      const newCustomer = await response.json();
-
-      // 2. Nos aseguramos de que si 'nextBooking' viene vacío de NestJS, tenga un texto por defecto
-      const processedCustomer = {
-        ...newCustomer,
-        nextBooking: newCustomer.nextBooking || "Sin reserva próxima"
-      };
-
-      setCustomersState((current) => [...current, processedCustomer]);
-      setFormData({ name: "", phone: "", email: "", business: "", nextBooking: "" });
+      const newCustomer = await createCustomer(formData);
+      setCustomers((prev) => [...prev, newCustomer]);
+      setFormData({ name: "", phone: "", email: "", business: "" });
       setIsCreateOpen(false);
-    } catch (error) {
-      console.error("Error guardando cliente:", error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar");
     } finally {
       setIsSaving(false);
     }
   };
+
+  const filtered = customers.filter((c) => {
+    const term = search.toLowerCase();
     return (
-      <div className="page-stack">
-        <section className="page-hero">
-          <div>
-            <h2>Customer directory</h2>
-            <p>Gestión visual de clientes y próximas reservas.</p>
-          </div>
-
-          <button
-            className="primary-btn"
-            type="button"
-            onClick={() => setIsCreateOpen((prev) => !prev)}
-          >
-            {isCreateOpen ? "Cerrar formulario" : "Nuevo cliente"}
-          </button>
-        </section>
-
-        {isCreateOpen && (
-          <section className="section-card">
-            <h3 className="pnal-title">Nuevo cliente</h3>
-            {/* El formulario envía los datos al endpoint POST /customers del backend NestJS. */}
-            {/* Esa petición es procesada por TypeORM y guardada en data/database.sqlite. */}
-            <form onSubmit={handleCreateSubmit}>
-              <div className="form-grid">
-                <label>
-                  Nombre
-                  <input
-                    className="input margenes"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Nombre completo"
-                    required
-                  />
-                </label>
-
-                <label>
-                  Teléfono
-                  <input
-                    className="input margenes"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="600 123 456"
-                    required
-                  />
-                </label>
-
-                <label>
-                  Email
-                  <input
-                    className="input margenes"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="cliente@email.com"
-                    required
-                  />
-                </label>
-
-                <label>
-                  Negocio
-                  <input
-                    className="input margenes"
-                    value={formData.business}
-                    onChange={(e) => handleInputChange("business", e.target.value)}
-                    placeholder="Peluquería Nova"
-                    required
-                  />
-                </label>
-              </div>
-
-              <button className="primary-btn margenes" type="submit" disabled={isSaving}>
-                {isSaving ? "Guardando..." : "Guardar cliente"}
-              </button>
-            </form>
-          </section>
-        )}
-
-        <section className="section-card">
-          <div className="search-row">
-            <input
-              className="input"
-              placeholder="Buscar cliente..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button className="secondary-btn" type="button">
-              Filtrar
-            </button>
-          </div>
-        </section>
-
-        <section className="customer-grid">
-          {filteredCustomers.map((customer) => (
-            <CustomerCard key={`${customer.id}`} customer={customer} />
-          ))}
-        </section>
-      </div>
+      (c.name || "").toLowerCase().includes(term) ||
+      (c.phone || "").toLowerCase().includes(term) ||
+      (c.email || "").toLowerCase().includes(term) ||
+      (c.business || "").toLowerCase().includes(term)
     );
-  }
+  });
+
+  return (
+    <div className="page-stack">
+      <section className="page-hero">
+        <div>
+          <h2>Customer directory</h2>
+          <p>Gestión visual de clientes y próximas reservas.</p>
+        </div>
+        <button
+          className="primary-btn"
+          type="button"
+          onClick={() => setIsCreateOpen((prev) => !prev)}
+        >
+          {isCreateOpen ? "Cerrar formulario" : "Nuevo cliente"}
+        </button>
+      </section>
+
+      {isCreateOpen && (
+        <section className="section-card">
+          <h3 className="panel-title">Nuevo cliente</h3>
+          <form onSubmit={handleCreateSubmit}>
+            <div className="form-grid">
+              {(["name", "phone", "email", "business"] as const).map((field) => (
+                <label key={field}>
+                  {field.charAt(0).toUpperCase() + field.slice(1)}
+                  <input
+                    className="input margenes"
+                    value={formData[field]}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    placeholder={field}
+                    required={field !== "business"}
+                    type={field === "email" ? "email" : "text"}
+                  />
+                </label>
+              ))}
+            </div>
+            <button className="primary-btn margenes" type="submit" disabled={isSaving}>
+              {isSaving ? "Guardando..." : "Guardar cliente"}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <section className="section-card">
+        <div className="search-row">
+          <input
+            className="input"
+            placeholder="Buscar cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="secondary-btn" type="button">Filtrar</button>
+        </div>
+      </section>
+
+      {loading && <p className="table-feedback">Cargando clientes...</p>}
+      {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
+
+      <section className="customer-grid">
+        {filtered.map((customer) => (
+          <CustomerCard key={customer.id} customer={customer} />
+        ))}
+      </section>
+    </div>
+  );
+}
