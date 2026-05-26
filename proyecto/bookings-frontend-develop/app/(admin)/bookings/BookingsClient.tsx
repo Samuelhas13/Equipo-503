@@ -2,6 +2,7 @@
 
 // 1. Importamos useRef de React
 import { useMemo, useState, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 import type {
   Booking,
   BookingStatus,
@@ -13,6 +14,14 @@ import {
   deleteAppointment,
   updateAppointment,
 } from "@/lib/api";
+
+const BUSINESS_NAMES: Record<number, string> = {
+  1: "Peluquería Nova",
+  2: "Restaurante Marea",
+  3: "Barber Studio",
+  4: "Gimnasio Fit",
+  5: "Clínica Dental",
+};
 
 function StatusBadge({ status }: { status: BookingStatus }) {       // funcion que consiste en mostrar el estado de una reserva utilizando un label,
   const label =                                                     // es decir si una reserva tiene el estado pending en la pantalla mostrara el estado pendiente
@@ -42,6 +51,7 @@ export default function BookingsClient({
 }: {
   initialBookings: Booking[];
 }) {
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
   const getTodayString = () => {
@@ -109,15 +119,24 @@ export default function BookingsClient({
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return bookings;
-    return bookings.filter((booking) => booking.status === statusFilter);
-  }, [bookings, statusFilter]);
+  const roleFilteredBookings = useMemo(() => {
+    if (user?.role === "empresa") {
+      return bookings.filter((b) => b.businessId === user.businessId);
+    } else if (user?.role === "usuario") {
+      return bookings.filter((b) => b.customerId === user.customerId);
+    }
+    return bookings;
+  }, [bookings, user]);
 
-  const totalCount = bookings.length;
-  const pendingCount = bookings.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const paidCount = bookings.filter((b) => b.status === "paid").length;
+  const filteredBookings = useMemo(() => {
+    if (statusFilter === "all") return roleFilteredBookings;
+    return roleFilteredBookings.filter((booking) => booking.status === statusFilter);
+  }, [roleFilteredBookings, statusFilter]);
+
+  const totalCount = roleFilteredBookings.length;
+  const pendingCount = roleFilteredBookings.filter((b) => b.status === "pending").length;
+  const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
+  const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
 
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
@@ -151,13 +170,24 @@ export default function BookingsClient({
   function openCreateForm() {                                                               // esta funcion se ejecuta cuando pulsas nueva reserva
     setSuccessMessage(""); 
     setErrorMessage("");
-    setSuccessMessage("");
     setEditingBookingId(null);
     setDeleteTargetId(null);
     setCreatePersons(1);
     setSearchedCustomer(null);
     resetEditForm();
     setIsCreateOpen(true);
+
+    const initialCustomerId = user?.role === "usuario" ? (user.customerId || 1) : 1;
+    const initialBusinessId = user?.role === "empresa" ? (user.businessId || 1) : 1;
+
+    setCreateForm({
+      date: getTodayString(),
+      time: getCurrentTimeString(),
+      status: "pending",
+      customerId: initialCustomerId,
+      businessId: initialBusinessId,
+      serviceName: "",
+    });
 
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
@@ -397,48 +427,69 @@ export default function BookingsClient({
                 </select>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Cliente</label>
-                <div style={{ display: 'flex', gap: 8 }}>
+              {user?.role !== "usuario" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Cliente</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      value={createForm.customerId}
+                      onChange={(e) => {
+                        updateCreateForm("customerId", Number(e.target.value));
+                        setSearchedCustomer(null);
+                      }}
+                      placeholder="Customer ID"
+                      required
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      onClick={() => findCustomer(createForm.customerId)}
+                      disabled={searchingCustomer}
+                      style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
+                    >
+                      {searchingCustomer ? "Buscando..." : "Buscar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {user?.role === "admin" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Negocio</label>
                   <input
                     className="input"
                     type="number"
                     min={1}
-                    value={createForm.customerId}
-                    onChange={(e) => {
-                      updateCreateForm("customerId", Number(e.target.value));
-                      setSearchedCustomer(null);
-                    }}
-                    placeholder="Customer ID"
+                    value={createForm.businessId}
+                    onChange={(e) =>
+                      updateCreateForm("businessId", Number(e.target.value))
+                    }
+                    placeholder="Business ID"
                     required
-                    style={{ flex: 1 }}
                   />
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => findCustomer(createForm.customerId)}
-                    disabled={searchingCustomer}
-                    style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
-                  >
-                    {searchingCustomer ? "Buscando..." : "Buscar"}
-                  </button>
                 </div>
-              </div>
+              )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Negocio</label>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  value={createForm.businessId}
-                  onChange={(e) =>
-                    updateCreateForm("businessId", Number(e.target.value))
-                  }
-                  placeholder="Business ID"
-                  required
-                />
-              </div>
+              {user?.role === "usuario" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Comercio</label>
+                  <select
+                    className="select"
+                    value={createForm.businessId}
+                    onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
+                    required
+                    style={{ padding: "13px 16px" }}
+                  >
+                    {Object.entries(BUSINESS_NAMES).map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Personas (1-5)</label>
@@ -744,9 +795,9 @@ export default function BookingsClient({
                 <th>Hora</th>
                 <th>Servicio</th>
                 <th>Customer</th>
-                <th>Business</th>
+                <th>Comercio</th>
                 <th>Estado</th>
-                <th>Acciones</th>
+                {user?.role !== "usuario" && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -757,26 +808,28 @@ export default function BookingsClient({
                   <td>{booking.time}</td>
                   <td>{booking.serviceName}</td>
                   <td>{booking.customerId}</td>
-                  <td>{booking.businessId}</td>
+                  <td>{BUSINESS_NAMES[booking.businessId] || `#${booking.businessId}`}</td>
                   <td><StatusBadge status={booking.status} /></td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openEditForm(booking)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openDeleteModal(booking.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
+                  {user?.role !== "usuario" && (
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openEditForm(booking)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openDeleteModal(booking.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
