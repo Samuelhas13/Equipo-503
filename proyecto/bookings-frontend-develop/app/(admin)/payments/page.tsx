@@ -22,6 +22,8 @@ type PaymentRow = {
 };
 
 type PaymentForm = {
+  client: any;
+  business: any;
   appointmentId: string;
   amount: string;
   method: PaymentMethod;
