@@ -66,15 +66,12 @@ export default function BookingsClient({
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);    //Guarda el id de la reserva que se está editando.
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);        //Guarda el id de la reserva que el usuario quiere eliminar.
 
-<<<<<<< HEAD
   // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  const filteredBookings = useMemo(() => {
-=======
+
   const filteredBookings = useMemo(() => {                                          //Esto crea la lista de reservas filtradas.
->>>>>>> feature/payments-register-toggle
     if (statusFilter === "all") return bookings;
     return bookings.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
@@ -112,29 +109,20 @@ export default function BookingsClient({
     setEditForm(emptyForm);
   }
 
-<<<<<<< HEAD
   // 3. Modificamos la apertura para añadir el scroll
-  function openCreateForm() {
+  function openCreateForm() {                                                               // esta funcion se ejecuta cuando pulsas nueva reserva
+    setSuccessMessage(""); 
     setErrorMessage("");
-    setSuccessMessage("");
-    setEditingBookingId(null);
-    setDeleteTargetId(null);
-    resetEditForm();
-    setIsCreateOpen(true);
+    setErrorMessage("");                                                                 // borra mensajes de error
+    setEditingBookingId(null);                                                              // cancela cualquier edición activa
+    setDeleteTargetId(null);                                                                // cancela cualquier eliminación pendiente
+    resetEditForm();                                                                         // limpia el formulario de edición
+    setIsCreateOpen(true);                                                                      // abre el formulario de crear
 
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
-=======
-  function openCreateForm() {                                                      // esta funcion se ejecuta cuando pulsas nueva reserva
-    setErrorMessage("");                                                           // borra mensajes de error
-    setSuccessMessage("");                                                         // borra mensajes de éxito
-    setEditingBookingId(null);                                                     // cancela cualquier edición activa
-    setDeleteTargetId(null);                                                       // cancela cualquier eliminación pendiente
-    resetEditForm();                                                               // limpia el formulario de edición
-    setIsCreateOpen(true);                                                         // abre el formulario de crear
->>>>>>> feature/payments-register-toggle
   }
 
   function closeCreateForm() {                                                     // se ejecuta cuando borras mensajes de error
@@ -143,14 +131,10 @@ export default function BookingsClient({
     setIsCreateOpen(false);                                                        // cierra el formulario
   }
 
-<<<<<<< HEAD
   // 4. Modificamos la apertura de edición para añadir el scroll
-  function openEditForm(booking: Booking) {
-    setErrorMessage("");
-=======
+  
   function openEditForm(booking: Booking) {                                        // Esta funcion controla editar reservas y abrir/cerrar el modal de eliminar
     setErrorMessage("");                                                           // booking: Booking Recibe como parámetro una reserva completa:
->>>>>>> feature/payments-register-toggle
     setSuccessMessage("");
     setIsCreateOpen(false);                                                        // Cierra el formulario de crear reserva, por si estaba abierto.
     setDeleteTargetId(null);                                                       // Cierra o cancela cualquier intento de eliminar una reserva.
