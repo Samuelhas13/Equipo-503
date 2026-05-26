@@ -83,20 +83,25 @@ export default function BookingsClient({
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
-  // Reemplaza tus funciones update por estas versiones más simples y directas
-function updateCreateForm(key: keyof CreateBookingDto, value: any) {
-  setCreateForm((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-}
+  function updateCreateForm<K extends keyof CreateBookingDto>(
+    key: K,
+    value: CreateBookingDto[K]
+  ) {
+    setCreateForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
 
-function updateEditForm(key: keyof CreateBookingDto, value: any) {
-  setEditForm((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-}
+  function updateEditForm<K extends keyof CreateBookingDto>(
+    key: K,
+    value: CreateBookingDto[K]
+  ) {
+    setEditForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
 
   function resetCreateForm() {
     setCreateForm(emptyForm);
