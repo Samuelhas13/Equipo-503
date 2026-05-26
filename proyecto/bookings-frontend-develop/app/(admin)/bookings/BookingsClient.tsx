@@ -58,15 +58,14 @@ export default function BookingsClient({
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");   //Esto guarda qué filtro está seleccionado.
   const [loadingCreate, setLoadingCreate] = useState(false);                        //Sirven para saber si se está creando o editando una reserva.
-  const [loadingEdit, setLoadingEdit] = useState(false);                            
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);  //Guarda el id de la reserva que se está eliminando en ese momento.
   const [successMessage, setSuccessMessage] = useState("");                         //Guardan los mensajes que se enseñan al usuario.
-  const [errorMessage, setErrorMessage] = useState("");                             
+  const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);                          //Controla si el formulario de crear reserva está abierto o cerrado.
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);    //Guarda el id de la reserva que se está editando.
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);        //Guarda el id de la reserva que el usuario quiere eliminar.
 
-  // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
@@ -109,13 +108,13 @@ export default function BookingsClient({
   }
 
   // 3. Modificamos la apertura para añadir el scroll
-  function openCreateForm() {                                                      // esta funcion se ejecuta cuando pulsas nueva reserva
-    setErrorMessage("");                                                           // borra mensajes de error
-    setSuccessMessage("");                                                         // borra mensajes de éxito
-    setEditingBookingId(null);                                                     // cancela cualquier edición activa
-    setDeleteTargetId(null);                                                       // cancela cualquier eliminación pendiente
-    resetEditForm();                                                               // limpia el formulario de edición
-    setIsCreateOpen(true);                                                         // abre el formulario de crear
+  function openCreateForm() {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setEditingBookingId(null);
+    setDeleteTargetId(null);
+    resetEditForm();
+    setIsCreateOpen(true);
 
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
@@ -124,457 +123,458 @@ export default function BookingsClient({
   }
 
   function closeCreateForm() {                                                     // se ejecuta cuando borras mensajes de error
-    setErrorMessage("");                                                           // borra mensajes de error
-    resetCreateForm();                                                             // limpia el formulario de crear
-    setIsCreateOpen(false);                                                        // cierra el formulario
-  }
-
-  // 4. Modificamos la apertura de edición para añadir el scroll
-  function openEditForm(booking: Booking) {                                        // Esta funcion controla editar reservas y abrir/cerrar el modal de eliminar
-    setErrorMessage("");                                                           // booking: Booking Recibe como parámetro una reserva completa:
-    setSuccessMessage("");
-    setIsCreateOpen(false);                                                        // Cierra el formulario de crear reserva, por si estaba abierto.
-    setDeleteTargetId(null);                                                       // Cierra o cancela cualquier intento de eliminar una reserva.
-    setEditingBookingId(booking.id);                                               // Guarda el id de la reserva que se está editando.
-    setEditForm({                                                                  // Esto rellena el formulario de edición con los datos actuales de la reserva.
-      date: booking.date,
-      time: booking.time,
-      status: booking.status, 
-      customerId: booking.customerId,
-      businessId: booking.businessId,
-      serviceName: booking.serviceName,
-    });
-
-    // Desplazamiento suave hacia el formulario de edición
-    setTimeout(() => {
-      editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 0);
-  }
-
-  function closeEditForm() {                                                      // sirve para cerrar el formulario de edición
-    setErrorMessage("");
-    setEditingBookingId(null);                                                    // indica que ya no se está editando ninguna reserva
-    resetEditForm();
-  }
-
-  function openDeleteModal(id: number) {                                          // elimina el id de una reserva el recibe el id
-    setErrorMessage("");                                                          // y normalmente provoca que se abra un modal de confirmación 
-    setSuccessMessage("");
-    setDeleteTargetId(id);
-  }
-
-  function closeDeleteModal() {                                                  // cierra el modal de eliminar
-    setDeleteTargetId(null);
-  }
-
-  async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {      // esta funcion se ejecuta cuando envias el formulario de crear reserva
-    e.preventDefault();                                                         // evita que el formulario se recargue  cuando envias un formulario HTML
-    setLoadingCreate(true);
-    setSuccessMessage("");
-    setErrorMessage("");
-
-    try {
-      const created = await createAppointment(createForm);                    // Mandara los datos al backend para crear una resrva--
-      setBookings((prev) => [created, ...prev]);//pon la nueva reserva al principio     // --Si todo va bien el backend devuelve la reserva creada
-      resetCreateForm();
-      setIsCreateOpen(false);
-      setSuccessMessage("Reserva creada correctamente.");
-    } catch {
-      setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
-    } finally {
-      setLoadingCreate(false);
+      setErrorMessage("");                                                           // borra mensajes de error
+      resetCreateForm();                                                             // limpia el formulario de crear
+      setIsCreateOpen(false);                                                        // cierra el formulario
     }
-  }
 
-  async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {    // edita una reserva existente
-    e.preventDefault();
+    // 4. Modificamos la apertura de edición para añadir el scroll
+    function openEditForm(booking: Booking) {
+      setErrorMessage("");
+      setErrorMessage("");                                                           // booking: Booking Recibe como parámetro una reserva completa:
+      setSuccessMessage("");
+      setIsCreateOpen(false);                                                        // Cierra el formulario de crear reserva, por si estaba abierto.
+      setDeleteTargetId(null);                                                       // Cierra o cancela cualquier intento de eliminar una reserva.
+      setEditingBookingId(booking.id);                                               // Guarda el id de la reserva que se está editando.
+      setEditForm({                                                                  // Esto rellena el formulario de edición con los datos actuales de la reserva.
+        date: booking.date,
+        time: booking.time,
+        status: booking.status,
+        customerId: booking.customerId,
+        businessId: booking.businessId,
+        serviceName: booking.serviceName,
+      });
 
-    if (!editingBookingId) return;                                // comprueba si hay una reserva seleccionada para editar, editBookingId guarda el id de la reserva-
-                                                                  // si no hay ningun id la funcion se detiene con return
-    setLoadingEdit(true);
-    setSuccessMessage("");
-    setErrorMessage("");
+      // Desplazamiento suave hacia el formulario de edición
+      setTimeout(() => {
+        editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 0);
+    }
 
-    try {
-      const payload: UpdateBookingDto = {                         // el playload es el que se va a enviar al backend, contiene los nuevos datos
-        date: editForm.date,
-        time: editForm.time,
-        status: editForm.status,
-        serviceName: editForm.serviceName,
-      };
-
-      const updated = await updateAppointment(editingBookingId, payload);
-
-      setBookings((prev) =>                                               // actualiza la lista de reservas que se ve en la pantalla
-        prev.map((booking) =>
-          booking.id === editingBookingId ? updated : booking
-        )
-      );
-
-      setEditingBookingId(null);
+    function closeEditForm() {                                                      // sirve para cerrar el formulario de edición
+      setErrorMessage("");
+      setEditingBookingId(null);                                                    // indica que ya no se está editando ninguna reserva
       resetEditForm();
-      setSuccessMessage("Reserva actualizada correctamente.");
-    } catch {
-      setErrorMessage("No se pudo actualizar la reserva.");
-    } finally {
-      setLoadingEdit(false);
     }
-  }
 
-  async function confirmDelete() {                                           // esta funcion se ejecuta cuando se confirma que quiere eliminar una reserva 
-    if (deleteTargetId === null) return;
+    function openDeleteModal(id: number) {                                          // elimina el id de una reserva el recibe el id
+      setErrorMessage("");                                                          // y normalmente provoca que se abra un modal de confirmación 
+      setSuccessMessage("");
+      setDeleteTargetId(id);
+    }
 
-    setDeletingBookingId(deleteTargetId);
-    setSuccessMessage("");
-    setErrorMessage("");
+    function closeDeleteModal() {                                                  // cierra el modal de eliminar
+      setDeleteTargetId(null);
+    }
 
-    try {
-      await deleteAppointment(deleteTargetId);                             // llamada al backend para eliminar
-      setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
+    async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {      // esta funcion se ejecuta cuando envias el formulario de crear reserva
+      e.preventDefault();                                                         // evita que el formulario se recargue  cuando envias un formulario HTML
+      setLoadingCreate(true);
+      setSuccessMessage("");
+      setErrorMessage("");
 
-      if (editingBookingId === deleteTargetId) {                           // Si justo estabas editando la reserva que acabas de eliminar, se cierra el formulario de edición.
-        closeEditForm();
+      try {
+        const created = await createAppointment(createForm);                    // Mandara los datos al backend para crear una resrva--
+        setBookings((prev) => [created, ...prev]);//pon la nueva reserva al principio     // --Si todo va bien el backend devuelve la reserva creada
+        resetCreateForm();
+        setIsCreateOpen(false);
+        setSuccessMessage("Reserva creada correctamente.");
+      } catch {
+        setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
+      } finally {
+        setLoadingCreate(false);
       }
-
-      setSuccessMessage("Reserva eliminada correctamente.");
-      closeDeleteModal();
-    } catch {
-      setErrorMessage("No se pudo eliminar la reserva.");
-    } finally {
-      setDeletingBookingId(null);
     }
-  }
 
-  return (
-    <div className="booking-page page-stack">
-      <section className="page-hero booking-hero">
-        <div>
-          <h2>Bookings list</h2>
-          <p>Gestión de reservas conectada con la API.</p>
-        </div>
+    async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {    // edita una reserva existente
+      e.preventDefault();
 
-        <button className="primary-btn" type="button" onClick={openCreateForm}>
-          Nueva reserva
-        </button>
-      </section>
+      if (!editingBookingId) return;                                // comprueba si hay una reserva seleccionada para editar, editBookingId guarda el id de la reserva-
+      // si no hay ningun id la funcion se detiene con return
+      setLoadingEdit(true);
+      setSuccessMessage("");
+      setErrorMessage("");
 
-      <section className="kpi-grid">
-        <div className="kpi-card">
-          <p className="kpi-card__label">Total reservas</p>
-          <h3 className="kpi-card__value">{totalCount}</h3>
-          <p className="kpi-card__meta">Registros disponibles</p>
-        </div>
+      try {
+        const payload: UpdateBookingDto = {                         // el playload es el que se va a enviar al backend, contiene los nuevos datos
+          date: editForm.date,
+          time: editForm.time,
+          status: editForm.status,
+          serviceName: editForm.serviceName,
+        };
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Pendientes</p>
-          <h3 className="kpi-card__value">{pendingCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--warning">
-            Requieren seguimiento
-          </p>
-        </div>
+        const updated = await updateAppointment(editingBookingId, payload);
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Confirmadas</p>
-          <h3 className="kpi-card__value">{confirmedCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--positive">
-            Estado activo
-          </p>
-        </div>
+        setBookings((prev) =>                                               // actualiza la lista de reservas que se ve en la pantalla
+          prev.map((booking) =>
+            booking.id === editingBookingId ? updated : booking
+          )
+        );
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Pagadas</p>
-          <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">Reservas cerradas</p>
-        </div>
-      </section>
+        setEditingBookingId(null);
+        resetEditForm();
+        setSuccessMessage("Reserva actualizada correctamente.");
+      } catch {
+        setErrorMessage("No se pudo actualizar la reserva.");
+      } finally {
+        setLoadingEdit(false);
+      }
+    }
 
-      {isCreateOpen && (
-        /* 5. AÑADIDO: ref={createFormRef} al elemento section */
-        <section ref={createFormRef} className="section-card booking-form-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Nueva reserva</h3>
-            <button type="button" className="secondary-btn" onClick={closeCreateForm}>
-              Cancelar
-            </button>
+    async function confirmDelete() {                                           // esta funcion se ejecuta cuando se confirma que quiere eliminar una reserva 
+      if (deleteTargetId === null) return;
+
+      setDeletingBookingId(deleteTargetId);
+      setSuccessMessage("");
+      setErrorMessage("");
+
+      try {
+        await deleteAppointment(deleteTargetId);                             // llamada al backend para eliminar
+        setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
+
+        if (editingBookingId === deleteTargetId) {                           // Si justo estabas editando la reserva que acabas de eliminar, se cierra el formulario de edición.
+          closeEditForm();
+        }
+
+        setSuccessMessage("Reserva eliminada correctamente.");
+        closeDeleteModal();
+      } catch {
+        setErrorMessage("No se pudo eliminar la reserva.");
+      } finally {
+        setDeletingBookingId(null);
+      }
+    }
+
+    return (
+      <div className="booking-page page-stack">
+        <section className="page-hero booking-hero">
+          <div>
+            <h2>Bookings list</h2>
+            <p>Gestión de reservas conectada con la API.</p>
           </div>
 
-          <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
-            <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={createForm.date}
-                onChange={(e) => updateCreateForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={createForm.time}
-                onChange={(e) => updateCreateForm("time", e.target.value)}
-                required
-              />
-              <select
-                className="select"
-                value={createForm.status}
-                onChange={(e) =>
-                  updateCreateForm("status", e.target.value as BookingStatus)
-                }
-              >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.customerId}
-                onChange={(e) =>
-                  updateCreateForm("customerId", Number(e.target.value))
-                }
-                placeholder="Customer ID"
-                required
-              />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.businessId}
-                onChange={(e) =>
-                  updateCreateForm("businessId", Number(e.target.value))
-                }
-                placeholder="Business ID"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
-            </div>
-
-            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
-
-            <div className="message-row">
-              <button className="primary-btn" type="submit" disabled={loadingCreate}>
-                {loadingCreate ? "Guardando..." : "Crear reserva"}
-              </button>
-            </div>
-          </form>
+          <button className="primary-btn" type="button" onClick={openCreateForm}>
+            Nueva reserva
+          </button>
         </section>
-      )}
 
-      {editingBookingId !== null && (
-        /* 6. AÑADIDO: ref={editFormRef} al elemento section */
-        <section ref={editFormRef} className="section-card booking-form-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
-            <button type="button" className="secondary-btn" onClick={closeEditForm}>
-              Cancelar
-            </button>
+        <section className="kpi-grid">
+          <div className="kpi-card">
+            <p className="kpi-card__label">Total reservas</p>
+            <h3 className="kpi-card__value">{totalCount}</h3>
+            <p className="kpi-card__meta">Registros disponibles</p>
           </div>
 
-          <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
-            <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={editForm.date}
-                onChange={(e) => updateEditForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={editForm.time}
-                onChange={(e) => updateEditForm("time", e.target.value)}
-                required
-              />
-              <select
-                className="select"
-                value={editForm.status}
-                onChange={(e) =>
-                  updateEditForm("status", e.target.value as BookingStatus)
-                }
-              >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.customerId}
-                placeholder="Customer ID"
-                disabled
-                title="El Customer ID no se puede modificar una vez creada la reserva"
-              />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.businessId}
-                placeholder="Business ID"
-                disabled
-                title="El Business ID no se puede modificar una vez creada la reserva"
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
-            </div>
-
-            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
-
-            <div className="message-row">
-              <button className="primary-btn" type="submit" disabled={loadingEdit}>
-                {loadingEdit ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      {deleteTargetId !== null && (
-        <div
-          className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-modal-title"
-          aria-describedby="delete-modal-description"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeDeleteModal();
-          }}
-        >
-          <div className="modal-card">
-            <div className="modal-icon">!</div>
-            <h3 id="delete-modal-title" className="modal-title">
-              Eliminar reserva
-            </h3>
-            <p id="delete-modal-description" className="modal-text">
-              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
+          <div className="kpi-card">
+            <p className="kpi-card__label">Pendientes</p>
+            <h3 className="kpi-card__value">{pendingCount}</h3>
+            <p className="kpi-card__meta kpi-card__meta--warning">
+              Requieren seguimiento
             </p>
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={closeDeleteModal}
-              >
+          </div>
+
+          <div className="kpi-card">
+            <p className="kpi-card__label">Confirmadas</p>
+            <h3 className="kpi-card__value">{confirmedCount}</h3>
+            <p className="kpi-card__meta kpi-card__meta--positive">
+              Estado activo
+            </p>
+          </div>
+
+          <div className="kpi-card">
+            <p className="kpi-card__label">Pagadas</p>
+            <h3 className="kpi-card__value">{paidCount}</h3>
+            <p className="kpi-card__meta">Reservas cerradas</p>
+          </div>
+        </section>
+
+        {isCreateOpen && (
+          /* 5. AÑADIDO: ref={createFormRef} al elemento section */
+          <section ref={createFormRef} className="section-card booking-form-card">
+            <div className="panel-title-row">
+              <h3 className="panel-title">Nueva reserva</h3>
+              <button type="button" className="secondary-btn" onClick={closeCreateForm}>
                 Cancelar
               </button>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
+              <div className="form-grid">
+                <input
+                  className="input"
+                  type="date"
+                  value={createForm.date}
+                  onChange={(e) => updateCreateForm("date", e.target.value)}
+                  required
+                />
+                <input
+                  className="input"
+                  type="time"
+                  value={createForm.time}
+                  onChange={(e) => updateCreateForm("time", e.target.value)}
+                  required
+                />
+                <select
+                  className="select"
+                  value={createForm.status}
+                  onChange={(e) =>
+                    updateCreateForm("status", e.target.value as BookingStatus)
+                  }
+                >
+                  <option value="pending">Pendiente</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="paid">Pagada</option>
+                </select>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={createForm.customerId}
+                  onChange={(e) =>
+                    updateCreateForm("customerId", Number(e.target.value))
+                  }
+                  placeholder="Customer ID"
+                  required
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={createForm.businessId}
+                  onChange={(e) =>
+                    updateCreateForm("businessId", Number(e.target.value))
+                  }
+                  placeholder="Business ID"
+                  required
+                />
+                <input
+                  className="input input--full"
+                  type="text"
+                  value={createForm.serviceName}
+                  onChange={(e) => updateCreateForm("serviceName", e.target.value)}
+                  placeholder="Servicio"
+                  required
+                />
+              </div>
+
+              {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+
+              <div className="message-row">
+                <button className="primary-btn" type="submit" disabled={loadingCreate}>
+                  {loadingCreate ? "Guardando..." : "Crear reserva"}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {editingBookingId !== null && (
+          /* 6. AÑADIDO: ref={editFormRef} al elemento section */
+          <section ref={editFormRef} className="section-card booking-form-card">
+            <div className="panel-title-row">
+              <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
+              <button type="button" className="secondary-btn" onClick={closeEditForm}>
+                Cancelar
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
+              <div className="form-grid">
+                <input
+                  className="input"
+                  type="date"
+                  value={editForm.date}
+                  onChange={(e) => updateEditForm("date", e.target.value)}
+                  required
+                />
+                <input
+                  className="input"
+                  type="time"
+                  value={editForm.time}
+                  onChange={(e) => updateEditForm("time", e.target.value)}
+                  required
+                />
+                <select
+                  className="select"
+                  value={editForm.status}
+                  onChange={(e) =>
+                    updateEditForm("status", e.target.value as BookingStatus)
+                  }
+                >
+                  <option value="pending">Pendiente</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="paid">Pagada</option>
+                </select>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={editForm.customerId}
+                  placeholder="Customer ID"
+                  disabled
+                  title="El Customer ID no se puede modificar una vez creada la reserva"
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={editForm.businessId}
+                  placeholder="Business ID"
+                  disabled
+                  title="El Business ID no se puede modificar una vez creada la reserva"
+                />
+                <input
+                  className="input input--full"
+                  type="text"
+                  value={editForm.serviceName}
+                  onChange={(e) => updateEditForm("serviceName", e.target.value)}
+                  placeholder="Servicio"
+                  required
+                />
+              </div>
+
+              {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+
+              <div className="message-row">
+                <button className="primary-btn" type="submit" disabled={loadingEdit}>
+                  {loadingEdit ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {deleteTargetId !== null && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            aria-describedby="delete-modal-description"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeDeleteModal();
+            }}
+          >
+            <div className="modal-card">
+              <div className="modal-icon">!</div>
+              <h3 id="delete-modal-title" className="modal-title">
+                Eliminar reserva
+              </h3>
+              <p id="delete-modal-description" className="modal-text">
+                ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
+              </p>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={closeDeleteModal}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="danger-btn"
+                  onClick={confirmDelete}
+                  disabled={deletingBookingId === deleteTargetId}
+                >
+                  {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <section className="section-card booking-table-card">
+          <div className="panel-title-row">
+            <h3 className="panel-title">Reservas registradas</h3>
+            <div className="filter-row">
               <button
                 type="button"
-                className="danger-btn"
-                onClick={confirmDelete}
-                disabled={deletingBookingId === deleteTargetId}
+                className={`filter-pill ${statusFilter === "all" ? "filter-pill--active" : ""}`}
+                aria-pressed={statusFilter === "all"}
+                onClick={() => setStatusFilter("all")}
               >
-                {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+                Todas
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
+                aria-pressed={statusFilter === "pending"}
+                onClick={() => setStatusFilter("pending")}
+              >
+                Pendientes
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
+                aria-pressed={statusFilter === "confirmed"}
+                onClick={() => setStatusFilter("confirmed")}
+              >
+                Confirmadas
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
+                aria-pressed={statusFilter === "paid"}
+                onClick={() => setStatusFilter("paid")}
+              >
+                Pagadas
               </button>
             </div>
           </div>
-        </div>
-      )}
 
-      <section className="section-card booking-table-card">
-        <div className="panel-title-row">
-          <h3 className="panel-title">Reservas registradas</h3>
-          <div className="filter-row">
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "all" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "all"}
-              onClick={() => setStatusFilter("all")}
-            >
-              Todas
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "pending"}
-              onClick={() => setStatusFilter("pending")}
-            >
-              Pendientes
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "confirmed"}
-              onClick={() => setStatusFilter("confirmed")}
-            >
-              Confirmadas
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "paid"}
-              onClick={() => setStatusFilter("paid")}
-            >
-              Pagadas
-            </button>
-          </div>
-        </div>
+          {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
+          {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
-        {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
-        {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
-
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Servicio</th>
-                <th>Customer</th>
-                <th>Business</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBookings.map((booking) => (
-                <tr key={booking.id}>
-                  <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                  <td>{formatDate(booking.date)}</td>
-                  <td>{booking.time}</td>
-                  <td>{booking.serviceName}</td>
-                  <td>{booking.customerId}</td>
-                  <td>{booking.businessId}</td>
-                  <td><StatusBadge status={booking.status} /></td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openEditForm(booking)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openDeleteModal(booking.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Servicio</th>
+                  <th>Customer</th>
+                  <th>Business</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredBookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td style={{ fontWeight: 600 }}>{booking.id}</td>
+                    <td>{formatDate(booking.date)}</td>
+                    <td>{booking.time}</td>
+                    <td>{booking.serviceName}</td>
+                    <td>{booking.customerId}</td>
+                    <td>{booking.businessId}</td>
+                    <td><StatusBadge status={booking.status} /></td>
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openEditForm(booking)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openDeleteModal(booking.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      </section>
-    </div>
-  );
+        </section>
+      </div>
+    );
 }
