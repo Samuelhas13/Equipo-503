@@ -7,6 +7,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import basicAuth = require('express-basic-auth');
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -39,6 +40,19 @@ async function bootstrap() {
 
   // 5. Crea el documento Swagger y lo expone en la ruta '/api' (http://localhost:3000/api)
   const document = SwaggerModule.createDocument(app, config);
+
+  // Protege la ruta de Swagger con Basic Auth si se configuran credenciales en las variables de entorno
+  // Define SWAGGER_USER y SWAGGER_PASS en tu entorno (ej.: .env o variables del servidor)
+  if (process.env.SWAGGER_USER && process.env.SWAGGER_PASS) {
+    app.use(
+      '/api',
+      basicAuth({
+        challenge: true,
+        users: { [process.env.SWAGGER_USER]: process.env.SWAGGER_PASS },
+      }),
+    );
+  }
+
   SwaggerModule.setup('api', app, document);
 
   // 6. Define el puerto desde las variables de entorno o usa 3000 por defecto y arranca el servidor
