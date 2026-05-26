@@ -23,8 +23,6 @@ export interface UpdateBookingDto {
   date?: string;
   time?: string;
   status?: BookingStatus;
-  customerId?: number;
-  businessId?: number;
   serviceName?: string;
 }
 
