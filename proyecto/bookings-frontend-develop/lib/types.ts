@@ -1,13 +1,20 @@
-export type AppointmentStatus = "pending" | "confirmed" | "paid";
+// Sincronizado con AppointmentStatus del backend (appointment.entity.ts)
+export type BookingStatus =
+  | "pending"
+  | "confirmed"
+  | "paid"
+  | "canceled"
+  | "completed";
 
-export type Appointment = {
+export interface Booking {
   id: number;
   date: string;
   time: string;
-  status: AppointmentStatus;
+  status: BookingStatus;
   customerId: number;
   businessId: number;
   serviceName: string;
+<<<<<<< HEAD
 };
 // Tipo que representa un cliente tal y como llega desde el backend
 export type Customer = {
@@ -30,3 +37,47 @@ export type CreateCustomerDto = {
 // Tipo de datos para actualizar un cliente.
 // Partial permite enviar solo los campos que se quieran modificar.
 export type UpdateCustomerDto = Partial<CreateCustomerDto>;
+=======
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateBookingDto {
+  date: string;
+  time: string;
+  status?: BookingStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
+}
+
+export interface UpdateBookingDto {
+  date?: string;
+  time?: string;
+  status?: BookingStatus;
+  customerId?: number;
+  businessId?: number;
+  serviceName?: string;
+}
+
+// Customer — basado en la entidad Customer del backend
+export interface Customer {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  business?: string;
+  createdAt?: string;
+}
+
+// Payment — basado en la entidad Payment del backend
+export interface Payment {
+  id: number;
+  amount: number;
+  method: string;
+  status: "pending" | "paid";
+  appointmentId: number;
+  createdAt?: string;
+  appointment?: Booking;
+}
+>>>>>>> merge

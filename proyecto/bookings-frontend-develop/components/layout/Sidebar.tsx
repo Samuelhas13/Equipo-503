@@ -65,6 +65,7 @@ const defaultMenuItems: MenuItem[] = [
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
   { label: "Payments", href: "/payments", icon: "◌" },
+  { label: "Contacto", href: "/contacto", icon: "✉" },
 ];
 
 interface SidebarProps {
