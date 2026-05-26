@@ -90,6 +90,86 @@
   --message-error-border:    rgba(226, 75, 74, 0.20);
 }
 
+/*Dia 26/05 cambio de color tema claro oscuro*/
+
+/* ── NUEVA SECCIÓN: Variables sobreescritas para Modo Oscuro ── */
+html.dark {
+  /* Fondo y superficies (Invertidos para oscuridad) */
+  --bg:                       var(--purple-900);     /* Ahora el fondo es oscuro */
+  --surface:                  #1e1a4a;               /* Superficie oscura */
+  --surface-2:                var(--purple-800);     
+  --surface-translucent:      rgba(30, 26, 74, 0.92);
+  --surface-translucent-soft: rgba(30, 26, 74, 0.82);
+
+  /* Bordes */
+  --border:                   var(--purple-800);
+  --border-strong:            var(--purple-600);
+
+  /* Tipografía */
+  --text:                     var(--purple-50);      /* Texto claro */
+  --muted:                    var(--purple-200);
+  --muted-2:                  var(--purple-400);
+
+  /* Tokens de marca */
+  --primary:                  var(--purple-50);
+  --primary-soft:             var(--purple-800);
+  --accent:                   var(--purple-400);     /* Acento más brillante para contraste */
+
+  /* Sidebar (Si quieres que cambie en modo oscuro, si prefieres que se quede siempre oscuro déjalo igual) */
+  --sidebar-bg:               #131033;               /* Sidebar aún más profundo */
+  --sidebar-active-bg:        var(--purple-900);
+  --sidebar-text:             var(--purple-400);
+  --sidebar-text-active:      var(--purple-50);
+  
+  /* Sombras (Más sutiles en modo oscuro) */
+  --shadow-sm:                0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:                0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Estilos estructurales para el botón en la parte baja ── */
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: space-between; /* Empuja el contenido hacia los extremos */
+  background-color: var(--sidebar-bg);
+  padding: 1.5rem;
+  width: var(--sidebar-width);
+}
+
+.admin-sidebar__bottom {
+  margin-top: auto; /* Asegura empujar al fondo */
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-sidebar);
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--border-sidebar);
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
+}
+
+.theme-toggle-btn__icon {
+  font-size: 1.1rem;
+}
+
+
 * {
   box-sizing: border-box;
 }
@@ -1142,3 +1222,6 @@ body {
     display: none;
   }
 }
+
+/*boton de claro oscuro de sidebar*/
+
