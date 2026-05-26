@@ -49,18 +49,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 // APLICADO: Tipo MenuItem definido para mayor robustez con TypeScript.
 type MenuItem = {
   label: string;
   href: string;
   icon: string;
-  // Mejora futura: soportar badges para notificaciones, permisos de rol, etc.
 };
 
-// APLICADO: menuItems ahora es configurable vía props del componente.
-// Mejora: extraído a datos externos para hacer el componente más reutilizable.
-const defaultMenuItems: MenuItem[] = [
+const adminMenuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
@@ -68,8 +66,19 @@ const defaultMenuItems: MenuItem[] = [
   { label: "Contacto", href: "/contacto", icon: "✉" },
 ];
 
+const empresaMenuItems: MenuItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: "◫" },
+  { label: "Bookings", href: "/bookings", icon: "☰" },
+  { label: "Contacto", href: "/contacto", icon: "✉" },
+];
+
+const usuarioMenuItems: MenuItem[] = [
+  { label: "Mis Reservas", href: "/bookings", icon: "☰" },
+  { label: "Empresas", href: "/empresas", icon: "🏢" },
+  { label: "Contacto", href: "/contacto", icon: "✉" },
+];
+
 interface SidebarProps {
-  // APLICADO: Props para hacer el componente reutilizable en diferentes contextos.
   menuItems?: MenuItem[];
   onNavigate?: (href: string) => void;
   brandTitle?: string;
@@ -77,12 +86,38 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  menuItems = defaultMenuItems,
+  menuItems,
   onNavigate,
   brandTitle = "BookFlow",
-  brandSubtitle = "Admin workspace",
+  brandSubtitle,
 }: SidebarProps) {
+  const { user } = useAuth();
   const pathname = usePathname();
+
+  // Determine active menu items based on user role if not provided via props
+  let activeMenuItems = menuItems;
+  if (!activeMenuItems) {
+    if (user?.role === "usuario") {
+      activeMenuItems = usuarioMenuItems;
+    } else if (user?.role === "empresa") {
+      activeMenuItems = empresaMenuItems;
+    } else {
+      activeMenuItems = adminMenuItems;
+    }
+  }
+
+  // Determine brand subtitle based on user role if not provided
+  let activeBrandSubtitle = brandSubtitle;
+  if (!activeBrandSubtitle) {
+    if (user?.role === "usuario") {
+      activeBrandSubtitle = "Portal de Cliente";
+    } else if (user?.role === "empresa") {
+      activeBrandSubtitle = "Portal de Comercio";
+    } else {
+      activeBrandSubtitle = "Admin workspace";
+    }
+  }
+
   // Comentario: usePathname es apropiado para detectar la ruta activa, pero para rutas anidadas convendría usar `startsWith`.
   // APLICADO: Se utiliza validación con startsWith para soportar rutas anidadas (ej. /bookings/123 se considera activa si el item es /bookings)
 
@@ -92,13 +127,13 @@ export default function Sidebar({
       <div className="admin-sidebar__brand">
         <h2 className="admin-sidebar__title">{brandTitle}</h2>
         {/* APLICADO: Título dinámico configurable vía props para mayor reutilización del componente */}
-        <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
+        <p className="admin-sidebar__subtitle">{activeBrandSubtitle}</p>
         {/* APLICADO: Subtítulo dinámico configurable vía props */}
       </div>
 
       <nav className="admin-sidebar__nav" aria-label="Main navigation">
         {/* APLICADO: aria-label aplicado para describir el propósito de la navegación */}
-        {menuItems.map((item) => {
+        {activeMenuItems.map((item) => {
           // APLICADO: Detección de ruta activa mejorada usando startsWith para soportar rutas anidadas
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           

@@ -22,15 +22,13 @@
 "use client";
 
 import { ReactNode } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 // MEJORA APLICADA: Interfaz HeaderProps para mayor robustez y type-safety
 // Permite que el componente sea reutilizable en diferentes contextos con datos dinámicos
 interface HeaderProps {
-  // MEJORA: Título dinámico en lugar de texto hardcoded
   title?: string;
-  // MEJORA: Subtítulo dinámico en lugar de texto hardcoded
   subtitle?: string;
-  // MEJORA: Soporte para acciones del header (botones, menús, notificaciones)
   actions?: ReactNode;
 }
 
@@ -40,33 +38,42 @@ export default function Header({
   subtitle = "Plataforma de gestión de reservas y cobros",
   actions,
 }: HeaderProps) {
-  // Mejora: aceptar props para título y subtítulo dinámicos, en lugar de texto estático.
-  // Esto permitiría reutilizar el componente en otras secciones de la app.
+  const { user, logout } = useAuth();
+
   return (
     <header
       className="admin-header"
       role="banner"
-      // MEJORA APLICADA: role="banner" agregado para indicar que es el encabezado principal de la página
-      // Esto mejora la accesibilidad con lectores de pantalla y navegadores
     >
       {/* MEJORA APLICADA: Contenedor separado para título y subtítulo */}
-      {/* Esto permite mejor control del layout y separación de responsabilidades */}
       <div className="admin-header__content">
-        {/* Usar clases CSS en lugar de estilos inline puede mejorar el mantenimiento y evitar duplicación. */}
-        {/* MEJORA APLICADA: Título dinámico mediante props en lugar de hardcoded */}
         <h1 className="admin-header__title">{title}</h1>
-        {/* MEJORA APLICADA: Subtítulo dinámico mediante props en lugar de hardcoded */}
         <p className="admin-header__subtitle">{subtitle}</p>
-        {/* Posible mejora: agregar un botón de acción o breadcrumb si el dashboard tiene navegación secundaria. */}
       </div>
 
-      {/* MEJORA APLICADA: Sección de acciones para soportar menús de usuario, notificaciones, etc. */}
-      {actions && (
-        <div className="admin-header__actions" role="toolbar">
-          {/* MEJORA: role="toolbar" agregado para accesibilidad - indica que contiene controles interactivos */}
-          {actions}
-        </div>
-      )}
+      {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
+      <div className="admin-header__actions" role="toolbar">
+        {actions}
+        
+        {user && (
+          <div className="user-profile-badge">
+            <div className="admin-avatar">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="user-profile-info">
+              <span className="user-profile-name">{user.name}</span>
+              <span className="user-profile-role">{user.role}</span>
+            </div>
+            <button 
+              onClick={logout} 
+              className="logout-btn-header"
+              type="button"
+            >
+              Salir
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 }
