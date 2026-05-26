@@ -51,6 +51,9 @@ async function bootstrap() {
         users: { [process.env.SWAGGER_USER]: process.env.SWAGGER_PASS },
       }),
     );
+    console.log(`Swagger UI protegido por Basic Auth (user=${process.env.SWAGGER_USER})`);
+  } else {
+    console.log('Swagger UI sin protección. Define SWAGGER_USER y SWAGGER_PASS para activar Basic Auth.');
   }
 
   SwaggerModule.setup('api', app, document);
