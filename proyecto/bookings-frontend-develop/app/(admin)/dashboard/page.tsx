@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { getExportReportUrl } from "@/lib/api";
+import { useState, useEffect } from "react";
+import {
+  getAppointments,
+  getExportReportUrl,
+  type Booking,
+  type BookingStatus,
+} from "@/lib/api";
 
-type DashboardBookingStatus = "pending" | "confirmed" | "paid";
+type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
 
 type DashboardBooking = {
   time: string;
@@ -14,6 +19,7 @@ type DashboardBooking = {
 };
 
 // Imaginemos que aquí tienes una lista larga de reservas simuladas
+// NUEVO: allBookings ya no se usa, los datos vienen de la API. Se mantiene el tipo por compatibilidad
 const allBookings: DashboardBooking[] = [
   { time: "09:00", client: "María López", business: "Peluquería Nova", service: "Corte + peinado", status: "confirmed" },
   { time: "10:30", client: "Carlos Pérez", business: "Restaurante Marea", service: "Reserva para 4", status: "pending" },
@@ -23,8 +29,14 @@ const allBookings: DashboardBooking[] = [
 ];
 
 function Badge({ status }: { status: DashboardBookingStatus }) {
-  const label = status === "pending" ? "Pendiente" : status === "confirmed" ? "Confirmada" : "Pagada";
-  return <span className={`badge badge--${status}`}>{label}</span>;
+  const map: Record<DashboardBookingStatus, string> = {
+    pending: "Pendiente",
+    confirmed: "Confirmada",
+    paid: "Pagada",
+    canceled: "Cancelada",
+    completed: "Completada",
+  };
+  return <span className={`badge badge--${status}`}>{map[status] ?? status}</span>;
 }
 
 function KpiCard({ title, value, subtitle, variant }: { title: string; value: string; subtitle: string; variant?: "positive" | "warning"; }) {
@@ -37,12 +49,51 @@ function KpiCard({ title, value, subtitle, variant }: { title: string; value: st
   );
 }
 
+// NUEVO: helper para obtener la fecha de hoy en formato ISO "YYYY-MM-DD"
+function getTodayISO() {
+  return new Date().toISOString().split("T")[0];
+}
+
 export default function DashboardPage() {
   // 1. Estado para controlar si mostramos todas o solo una vista previa
   const [showAll, setShowAll] = useState(false);
 
+  // NUEVO: estado para los datos reales, carga y error
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // NUEVO: fetch al montar el componente
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getAppointments();
+        setBookings(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  // NUEVO: KPIs derivados de los datos reales
+  const today = getTodayISO();
+  const todayBookings = bookings.filter((b) => b.date === today);
+  const pendingBookings = bookings.filter((b) => b.status === "pending");
+  const paidBookings = bookings.filter((b) => b.status === "paid");
+
+  // NUEVO: siguiente reserva del día, ordenada por hora
+  const nextBooking = [...todayBookings].sort((a, b) =>
+    a.time.localeCompare(b.time)
+  )[0];
+
   // 2. Si showAll es falso, cortamos el array para mostrar solo las 2 primeras
-  const displayedBookings = showAll ? allBookings : allBookings.slice(0, 2);
+  // NUEVO: ahora usamos todayBookings en lugar de allBookings
+  const displayedBookings = showAll ? todayBookings : todayBookings.slice(0, 2);
 
   const handleExportReport = () => {
     window.location.href = getExportReportUrl();
@@ -58,11 +109,30 @@ export default function DashboardPage() {
         <button className="primary-btn" type="button" onClick={handleExportReport}>Export report</button>
       </section>
 
+     {/* NUEVO: los valores de los KpiCard son dinámicos, con "—" mientras carga */}
       <section className="kpi-grid">
-        <KpiCard title="Reservas hoy" value="24" subtitle="+5 respecto a ayer" variant="positive" />
-        <KpiCard title="Cobrado hoy" value="820 €" subtitle="18 pagos registrados" />
-        <KpiCard title="Pendientes" value="6" subtitle="Seguimiento necesario" variant="warning" />
-        <KpiCard title="Clientes activos" value="214" subtitle="Este mes" />
+        <KpiCard
+          title="Reservas hoy"
+          value={loading ? "—" : String(todayBookings.length)}
+          subtitle={loading ? "—" : `${todayBookings.filter(b => b.status === "confirmed").length} confirmadas`}
+          variant="positive"
+        />
+        <KpiCard
+          title="Pagadas hoy"
+          value={loading ? "—" : String(paidBookings.filter(b => b.date === today).length)}
+          subtitle={loading ? "—" : `de ${todayBookings.length} reservas totales hoy`}
+        />
+        <KpiCard
+          title="Pendientes"
+          value={loading ? "—" : String(pendingBookings.length)}
+          subtitle={loading ? "—" : `${bookings.filter(b => b.status === "confirmed").length} confirmadas en total`}
+          variant="warning"
+        />
+        <KpiCard
+          title="Total reservas"
+          value={loading ? "—" : String(bookings.length)}
+          subtitle={loading ? "—" : `${todayBookings.length} programadas hoy`}
+        />
       </section>
 
       <section className="dashboard-prueba-lg dashboard-prueba-responsive">
@@ -81,39 +151,56 @@ export default function DashboardPage() {
           </div>
           
           <div className="table-responsive">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Hora</th>
-                  <th>Cliente</th>
-                  <th>Comercio</th>
-                  <th>Servicio</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* 4. Mapeamos la variable filtrada en lugar del array estático */}
-                {displayedBookings.map((booking, index) => (
-                  <tr key={index}>
-                    <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                    <td>{booking.client}</td>
-                    <td>{booking.business}</td>
-                    <td>{booking.service}</td>
-                    <td>
-                      <Badge status={booking.status} />
-                    </td>
+            {/* NUEVO: estados de carga y error antes de renderizar la tabla */}
+            {loading && <p className="table-feedback">Cargando reservas...</p>}
+            {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
+            {!loading && !error && todayBookings.length === 0 && (
+              <p className="table-feedback">No hay reservas para hoy.</p>
+            )}
+
+            {!loading && !error && todayBookings.length > 0 && (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Comercio</th>
+                    <th>Servicio</th>
+                    <th>Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {/* 4. Mapeamos la variable filtrada en lugar del array estático */}
+                  {/* NUEVO: usamos los campos de Booking de la API */}
+                  {displayedBookings.map((booking) => (
+                    <tr key={booking.id}>
+                      <td style={{ fontWeight: 600 }}>{booking.time}</td>
+                      <td>#{booking.customerId}</td>
+                      <td>#{booking.businessId}</td>
+                      <td>{booking.serviceName}</td>
+                      <td>
+                        <Badge status={booking.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
         <div className="info-stack dashboard-cartas-lg">
+          {/* NUEVO: datos dinámicos desde la API */}
           <div className="info-box">
             <p className="info-box__eyebrow">Siguiente reserva</p>
-            <p className="info-box__title">María López</p>
-            <p className="info-box__text">09:00 · Peluquería Nova</p>
+            {nextBooking ? (
+              <>
+                <p className="info-box__title">Cliente #{nextBooking.customerId}</p>
+                <p className="info-box__text">{nextBooking.time} · {nextBooking.serviceName}</p>
+              </>
+            ) : (
+              <p className="info-box__text">Sin reservas hoy</p>
+            )}
           </div>
           <div className="info-box">
             <p className="info-box__eyebrow">Comercio destacado</p>
@@ -122,7 +209,7 @@ export default function DashboardPage() {
           </div>
           <div className="info-box">
             <p className="info-box__eyebrow">Recordatorios</p>
-            <p className="info-box__title">4 confirmaciones pendientes</p>
+            <p className="info-box__title">{pendingBookings.length} confirmaciones pendientes</p>
             <p className="info-box__text">Revisión recomendada esta mañana</p>
           </div>
         </div>
