@@ -1,65 +1,58 @@
-/**
- * El archivo main.ts es el punto de entrada principal de la aplicación backend.
- * Se encarga de inicializar la instancia de la aplicación NestJS, configurar
- * validaciones globales (Pipes), establecer la configuración de CORS, inicializar
- * la documentación de Swagger y levantar el servidor en el puerto especificado.
- */
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import basicAuth = require('express-basic-auth');
 import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import basicAuth from 'express-basic-auth';
 
 async function bootstrap() {
-  // 1. Crea la instancia de la aplicación NestJS utilizando el módulo raíz (AppModule)
   const app = await NestFactory.create(AppModule);
 
-  // 2. Configuración de CORS: Permite que el frontend pueda consumir esta API sin ser bloqueado por el navegador
-  app.enableCors({
-    origin: process.env.FRONTEND_URL
-      ? [process.env.FRONTEND_URL]
-      : ['http://localhost:3000', 'http://localhost:3001'],
-  });
+  // Generamos una palabra aleatoria cada vez que el servidor arranca o se refresca
+  const palabras = ['Frontend2026', 'NestJS_Secure', 'Token_Alpha', 'Booking_Master', 'Crypto_Safe'];
+  const palabraAleatoria = palabras[Math.floor(Math.random() * palabras.length)];
 
-  // 3. Configuración de validación global: Obliga a que todas las peticiones cumplan las reglas de los DTOs
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Elimina automáticamente del payload cualquier propiedad que no esté en el DTO
-      transform: true, // Convierte los datos entrantes (ej. strings) a los tipos definidos en el DTO (ej. numbers, booleans)
-      forbidNonWhitelisted: true, // Lanza un error si el usuario envía una propiedad no permitida en lugar de solo ignorarla
-    }),
-  );
+  // 1. CORS - permitir peticiones del frontend
+  app.enableCors();
 
-  // 4. Configuración de Swagger: Genera automáticamente la documentación visual de los endpoints de la API
+  // 2. Proteger solo el Swagger con basicAuth
+  app.use('/api-docs', basicAuth({
+    challenge: true,
+    users: { 'admin': 'password123' },
+    unauthorizedResponse: 'Requiere autenticación estricta.',
+  }));
+
+  // 3. CONFIGURACIÓN DE SWAGGER
   const config = new DocumentBuilder()
-    .setTitle('Booking Management API')
-    .setDescription('API MVP para gestión de reservas de comercios')
+    .setTitle('API de Reservas')
+    .setDescription(`🔑 **Tu palabra secreta generada para esta sesión es:** \`${palabraAleatoria}\`. Cópiala y pégala en el botón **Authorize** de abajo.`)
     .setVersion('1.0')
-    .addBearerAuth() // Añade el candado en la UI de Swagger preparándolo para futura autenticación por token
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: `Escribe aquí la palabra aleatoria actual: ${palabraAleatoria}`,
+        in: 'header',
+      },
+      'token-login',
+    )
     .build();
 
-  // 5. Crea el documento Swagger y lo expone en la ruta '/api' (http://localhost:3000/api)
   const document = SwaggerModule.createDocument(app, config);
 
-  // Protege la ruta de Swagger con Basic Auth si se configuran credenciales en las variables de entorno
-  // Define SWAGGER_USER y SWAGGER_PASS en tu entorno (ej.: .env o variables del servidor)
-  if (process.env.SWAGGER_USER && process.env.SWAGGER_PASS) {
-    app.use(
-      '/api',
-      basicAuth({
-        challenge: true,
-        users: { [process.env.SWAGGER_USER]: process.env.SWAGGER_PASS },
-      }),
-    );
-    console.log(`Swagger UI protegido por Basic Auth (user=${process.env.SWAGGER_USER})`);
-  } else {
-    console.log('Swagger UI sin protección. Define SWAGGER_USER y SWAGGER_PASS para activar Basic Auth.');
-  }
+  // 4. Redirigir la raíz al Swagger
+  app.getHttpAdapter().get('/', (req: any, res: any) => {
+    res.redirect('/api-docs');
+  });
 
-  SwaggerModule.setup('api', app, document);
+  // 5. Montar el Swagger
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      docExpansion: 'none',
+    }
+  });
 
-  // 6. Define el puerto desde las variables de entorno o usa 3000 por defecto y arranca el servidor
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(process.env.PORT || 3000);
+  console.log(`Servidor protegido en ejecución.`);
 }
 bootstrap();
