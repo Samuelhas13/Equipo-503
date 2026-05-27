@@ -19,7 +19,7 @@ export class PaymentsService {
     private readonly paymentsRepository: Repository<Payment>,
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
-  ) {}
+  ) { }
 
   /**
    * Obtiene todos los pagos registrados.
@@ -28,7 +28,7 @@ export class PaymentsService {
   findAll() {
     return this.paymentsRepository.find({
       order: { date: 'ASC' },
-      relations: ['appointment', 'customer'], // Incluye las relaciones en la respuesta
+      relations: { appointment: true, customer: true }, // Incluye las relaciones en la respuesta
     });
   }
 
@@ -41,7 +41,7 @@ export class PaymentsService {
   async findOne(id: number) {
     const payment = await this.paymentsRepository.findOne({
       where: { id },
-      relations: ['appointment', 'customer'],
+      relations: { appointment: true, customer: true },
     });
 
     if (!payment) {

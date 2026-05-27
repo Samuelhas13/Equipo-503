@@ -17,7 +17,7 @@ export class AppointmentsService {
     // Inyecta el repositorio de TypeORM para la entidad Appointment, lo que permite interactuar con la tabla
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
-  ) {}
+  ) { }
 
   /**
    * Obtiene una lista paginada de todas las reservas.
@@ -125,7 +125,7 @@ export class AppointmentsService {
    */
   async exportToExcel(): Promise<Buffer> {
     const appointments = await this.appointmentsRepository.find({
-      relations: ['customer'],
+      relations: { customer: true },
       order: { date: 'ASC', time: 'ASC' },
     });
 

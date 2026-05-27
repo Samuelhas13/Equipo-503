@@ -16,10 +16,10 @@ import { PaymentsModule } from './payments/payments.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+
     // TypeOrmModule.forRoot: Conecta la aplicación con la base de datos (SQLite en este caso)
     TypeOrmModule.forRoot({
-      type: 'sqlite', // Motor de BD
+      type: 'better-sqlite3', // Motor de BD
       database: process.env.DATABASE_URL || 'data/database.sqlite', // Ruta al archivo de la base de datos
       autoLoadEntities: true, // Carga automáticamente todas las entidades decoradas con @Entity()
       // synchronize: true crea o altera las tablas automáticamente en base a las entidades (Peligroso en producción real)
@@ -30,4 +30,4 @@ import { PaymentsModule } from './payments/payments.module';
     PaymentsModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
