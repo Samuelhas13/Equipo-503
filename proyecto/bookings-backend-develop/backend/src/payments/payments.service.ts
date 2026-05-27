@@ -3,9 +3,10 @@
  * Contiene la lógica de negocio para la gestión de cobros/pagos.
  * Interactúa con la base de datos a través del repositorio TypeORM de Payment.
  */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
@@ -16,6 +17,8 @@ export class PaymentsService {
     // Inyecta el repositorio para interactuar con la tabla de 'payment'
     @InjectRepository(Payment)
     private readonly paymentsRepository: Repository<Payment>,
+    @InjectRepository(Appointment)
+    private readonly appointmentsRepository: Repository<Appointment>,
   ) {}
 
   /**
@@ -53,8 +56,33 @@ export class PaymentsService {
    * @param createPaymentDto Objeto con los datos del pago
    * @returns El pago guardado en base de datos
    */
-  create(createPaymentDto: CreatePaymentDto) {
-    // Aquí se podría añadir validación para ver si el appointmentId existe
+  async create(createPaymentDto: CreatePaymentDto) {
+    const appointment = await this.appointmentsRepository.findOneBy({
+      id: createPaymentDto.appointmentId,
+    });
+
+    if (!appointment) {
+      throw new BadRequestException(
+        `No existe la reserva con id ${createPaymentDto.appointmentId}`,
+      );
+    }
+
+    if (createPaymentDto.customerId !== appointment.customerId) {
+      throw new BadRequestException(
+        'El cliente del pago debe coincidir con el cliente de la reserva asociada.',
+      );
+    }
+
+    const existingPayment = await this.paymentsRepository.findOneBy({
+      appointmentId: createPaymentDto.appointmentId,
+    });
+
+    if (existingPayment) {
+      throw new BadRequestException(
+        `Ya existe un cobro registrado para la reserva ${createPaymentDto.appointmentId}`,
+      );
+    }
+
     const payment = this.paymentsRepository.create(createPaymentDto);
     return this.paymentsRepository.save(payment);
   }

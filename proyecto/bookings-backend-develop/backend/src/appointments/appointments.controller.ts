@@ -13,7 +13,9 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
@@ -41,6 +43,23 @@ export class AppointmentsController {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
     return this.appointmentsService.findAll(pageNum, limitNum);
+  }
+
+  @Get('export')
+  @ApiOkResponse({ description: 'Reporte de reservas exportado a Excel (.xlsx)' })
+  async exportExcel(@Res() res: Response) {
+    const buffer = await this.appointmentsService.exportToExcel();
+    
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="reporte_reservas.xlsx"',
+    );
+    
+    res.send(buffer);
   }
 
   @Get(':id')
