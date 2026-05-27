@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 
 type MenuItem = {
   label: string;
@@ -11,23 +10,11 @@ type MenuItem = {
   icon: string;
 };
 
-const adminMenuItems: MenuItem[] = [
+const defaultMenuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
   { label: "Payments", href: "/payments", icon: "◌" },
-  { label: "Contacto", href: "/contacto", icon: "✉" },
-];
-
-const empresaMenuItems: MenuItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: "◫" },
-  { label: "Bookings", href: "/bookings", icon: "☰" },
-  { label: "Contacto", href: "/contacto", icon: "✉" },
-];
-
-const usuarioMenuItems: MenuItem[] = [
-  { label: "Mis Reservas", href: "/bookings", icon: "☰" },
-  { label: "Empresas", href: "/empresas", icon: "🏢" },
   { label: "Contacto", href: "/contacto", icon: "✉" },
 ];
 
@@ -39,16 +26,18 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  menuItems,
+  menuItems = defaultMenuItems,
   onNavigate,
   brandTitle = "BookFlow",
-  brandSubtitle,
+  brandSubtitle = "Admin workspace",
 }: SidebarProps) {
-  const { user } = useAuth();
   const pathname = usePathname();
-
+  
   // Estado para controlar el tema (claro por defecto)
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // NUEVO: Estado para controlar si el sidebar está expandido o colapsado
+  const [isOpen, setIsOpen] = useState(true);
 
   // Sincronizar el estado con localStorage y la clase en el HTML al montar el componente
   useEffect(() => {
@@ -77,41 +66,37 @@ export default function Sidebar({
     }
   };
 
-  // Determine active menu items based on user role if not provided via props
-  let activeMenuItems = menuItems;
-  if (!activeMenuItems) {
-    if (user?.role === "usuario") {
-      activeMenuItems = usuarioMenuItems;
-    } else if (user?.role === "empresa") {
-      activeMenuItems = empresaMenuItems;
-    } else {
-      activeMenuItems = adminMenuItems;
-    }
-  }
-
-  // Determine brand subtitle based on user role if not provided
-  let activeBrandSubtitle = brandSubtitle;
-  if (!activeBrandSubtitle) {
-    if (user?.role === "usuario") {
-      activeBrandSubtitle = "Portal de Cliente";
-    } else if (user?.role === "empresa") {
-      activeBrandSubtitle = "Portal de Comercio";
-    } else {
-      activeBrandSubtitle = "Admin workspace";
-    }
-  }
+  // NUEVO: Función para alternar la visibilidad del sidebar
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <aside className="admin-sidebar" role="navigation">
-      {/* Contenedor Superior: Brand y Navegación */}
+    <aside 
+      // Añadimos una clase dinámica para cuando esté cerrado (`admin-sidebar--collapsed`)
+      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`} 
+      role="navigation"
+    >
+      {/* Contenedor Superior: Brand, Botón y Navegación */}
       <div className="admin-sidebar__top">
-        <div className="admin-sidebar__brand">
-          <h2 className="admin-sidebar__title">{brandTitle}</h2>
-          <p className="admin-sidebar__subtitle">{activeBrandSubtitle}</p>
+        <div className="admin-sidebar__brand-container">
+          <div className="admin-sidebar__brand">
+            <h2 className="admin-sidebar__title">{brandTitle}</h2>
+            <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
+          </div>
+          
+          {/* NUEVO: Botón para colapsar/expandir */}
+          <button 
+            onClick={toggleSidebar}
+            className="admin-sidebar__toggle-btn admin-sidebar-boton--collapsed color-boton"
+            aria-label={isOpen ? "Contraer menú" : "Expandir menú"}
+          > 
+            {isOpen ? "◀" : "▶"}
+          </button>
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
-          {activeMenuItems.map((item) => {
+          {menuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             
             const handleClick = () => {
