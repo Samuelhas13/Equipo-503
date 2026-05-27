@@ -1,14 +1,13 @@
 "use client";
 
-// 1. Importamos useRef de React
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import type {
   Booking,
   BookingStatus,
   CreateBookingDto,
   UpdateBookingDto,
-} from "@/lib/api";
+} from "@/lib/types";
 import {
   createAppointment,
   deleteAppointment,
@@ -23,17 +22,23 @@ const BUSINESS_NAMES: Record<number, string> = {
   5: "Clínica Dental",
 };
 
-function StatusBadge({ status }: { status: BookingStatus }) {       // funcion que consiste en mostrar el estado de una reserva utilizando un label,
-  const label =                                                     // es decir si una reserva tiene el estado pending en la pantalla mostrara el estado pendiente
-    status === "pending"
-      ? "Pendiente"
-      : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
-
-  return <span className={`badge badge--${status}`}>{label}</span>;
+// ─── StatusBadge ──────────────────────────────────────────────────────────────
+// MODIFICADO: StatusBadge ahora cubre todos los estados del backend usando un map tipado.
+// Antes usaba ternarios encadenados que dejaban fuera "canceled" y "completed".
+function StatusBadge({ status }: { status: BookingStatus }) {
+  // Map completo de status → etiqueta legible en español
+  const map: Record<BookingStatus, string> = {
+    pending:   "Pendiente",
+    confirmed: "Confirmada",
+    paid:      "Pagada",
+    canceled:  "Cancelada",
+    completed: "Completada",
+  };
+  return <span className={`badge badge--${status}`}>{map[status] ?? status}</span>;
 }
 
+// ─── formatDate ───────────────────────────────────────────────────────────────
+// Formatea una fecha ISO "YYYY-MM-DD" a formato local "dd/mm/yyyy".
 function formatDate(date: string) {
   try {
     return new Intl.DateTimeFormat("es-ES", {
@@ -46,6 +51,117 @@ function formatDate(date: string) {
   }
 }
 
+// ─── KpiCard — Variante D ──────────────────────────────────────────────────────
+// NUEVO: Componente KpiCard rediseñado con la Variante D, mismo que usa dashboard/page.tsx.
+interface KpiCardColor {
+  // Color del borde lateral izquierdo y de las barras del histograma
+  bar: string;
+  // Fondo del badge de tendencia
+  trendBg: string;
+  // Color del texto del badge de tendencia
+  trendText: string;
+}
+
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  trend: string;
+  color: KpiCardColor;
+  activity: number[];
+}
+
+function KpiCard({ title, value, trend, color, activity }: KpiCardProps) {
+  const barsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!barsRef.current) return;
+
+    const container = barsRef.current;
+    const max = Math.max(...activity);
+
+    const bars = container.querySelectorAll<HTMLDivElement>(".kpi-d__dot");
+    setTimeout(() => {
+      bars.forEach((bar, i) => {
+        const v = activity[i] ?? 0;
+        const heightPx = Math.round((v / max) * 24 + 4);
+        const opacity = v === max ? 1 : v > max * 0.7 ? 0.65 : 0.3;
+        bar.style.height = `${heightPx}px`;
+        bar.style.opacity = String(opacity);
+      });
+    }, 150);
+  }, [activity]);
+
+  return (
+    <div className="kpi-card kpi-card--variant-d">
+      <div
+        className="kpi-card__accent"
+        style={{ background: color.bar }}
+        aria-hidden="true"
+      />
+
+      <div className="kpi-card__head" style={{ justifyContent: "flex-end" }}>
+        <span
+          className="kpi-card__trend-badge"
+          style={{ background: color.trendBg, color: color.trendText }}
+        >
+          {trend}
+        </span>
+      </div>
+
+      <p className="kpi-card__label">{title}</p>
+      <p className="kpi-card__value">{value}</p>
+
+      <div className="kpi-card__dots" ref={barsRef} aria-hidden="true">
+        {activity.map((_, i) => (
+          <div
+            key={i}
+            className="kpi-d__dot"
+            style={{
+              background: color.bar,
+              opacity: 0.25,
+              height: "4px",
+              flex: 1,
+              borderRadius: "2px 2px 0 0",
+              transition: "height 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.8s ease",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const KPI_COLORS: Record<string, KpiCardColor> = {
+  teal: {
+    bar:       "#1D9E75",
+    trendBg:   "#E1F5EE",
+    trendText: "#085041",
+  },
+  amber: {
+    bar:       "#EF9F27",
+    trendBg:   "#FAEEDA",
+    trendText: "#412402",
+  },
+  green: {
+    bar:       "#22C55E",
+    trendBg:   "#DCFCE7",
+    trendText: "#14532D",
+  },
+  purple: {
+    bar:       "#7F77DD",
+    trendBg:   "#EEEDFE",
+    trendText: "#26215C",
+  },
+};
+
+const ACTIVITY_DATA = {
+  total:     [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  pending:   [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  confirmed: [40, 55, 35, 70, 60, 80, 75, 90, 65, 85, 70, 95, 80, 100],
+  paid:      [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+};
+
+// ─── BookingsClient ───────────────────────────────────────────────────────────
 export default function BookingsClient({
   initialBookings,
 }: {
@@ -81,15 +197,15 @@ export default function BookingsClient({
   const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
   const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
 
-  const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");   //Esto guarda qué filtro está seleccionado.
-  const [loadingCreate, setLoadingCreate] = useState(false);                        //Sirven para saber si se está creando o editando una reserva.
+  const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
+  const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
-  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);  //Guarda el id de la reserva que se está eliminando en ese momento.
-  const [successMessage, setSuccessMessage] = useState("");                         //Guardan los mensajes que se enseñan al usuario.
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);                          //Controla si el formulario de crear reserva está abierto o cerrado.
-  const [editingBookingId, setEditingBookingId] = useState<number | null>(null);    //Guarda el id de la reserva que se está editando.
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);        //Guarda el id de la reserva que el usuario quiere eliminar.
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const [searchedCustomer, setSearchedCustomer] = useState<{ id: number; name: string; email: string; phone: string } | null>(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
@@ -138,36 +254,25 @@ export default function BookingsClient({
   const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
   const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
 
+  // ─── Helpers de formulario ─────────────────────────────────────────────────
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
   ) {
-    setCreateForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setCreateForm((prev) => ({ ...prev, [key]: value }));
   }
 
   function updateEditForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
   ) {
-    setEditForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setEditForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function resetCreateForm() {
-    setCreateForm(emptyForm);
-  }
+  function resetCreateForm() { setCreateForm(emptyForm); }
+  function resetEditForm()   { setEditForm(emptyForm); }
 
-  function resetEditForm() {
-    setEditForm(emptyForm);
-  }
-
-  // 3. Modificamos la apertura para añadir el scroll
-  function openCreateForm() {                                                               // esta funcion se ejecuta cuando pulsas nueva reserva
+  function openCreateForm() {
     setSuccessMessage(""); 
     setErrorMessage("");
     setEditingBookingId(null);
@@ -189,19 +294,18 @@ export default function BookingsClient({
       serviceName: "",
     });
 
-    // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
   }
 
+  // ─── Handlers async ────────────────────────────────────────────────────────
   function closeCreateForm() {
     setErrorMessage("");
     resetCreateForm();
     setIsCreateOpen(false);
   }
 
-  // 4. Modificamos la apertura de edición para añadir el scroll
   function openEditForm(booking: Booking) {
     setErrorMessage("");
     setSuccessMessage("");
@@ -209,7 +313,6 @@ export default function BookingsClient({
     setDeleteTargetId(null);
     setEditingBookingId(booking.id);
 
-    // Intentar extraer el número de personas del nombre del servicio
     let cleanServiceName = booking.serviceName;
     let parsedPersons = 1;
     const match = booking.serviceName.match(/(.*) \((\d+) personas?\)/);
@@ -228,7 +331,6 @@ export default function BookingsClient({
       serviceName: cleanServiceName,
     });
 
-    // Desplazamiento suave hacia el formulario de edición
     setTimeout(() => {
       editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
@@ -246,9 +348,7 @@ export default function BookingsClient({
     setDeleteTargetId(id);
   }
 
-  function closeDeleteModal() {
-    setDeleteTargetId(null);
-  }
+  function closeDeleteModal() { setDeleteTargetId(null); }
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -279,7 +379,6 @@ export default function BookingsClient({
 
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     if (!editingBookingId) return;
     setLoadingEdit(true);
     setSuccessMessage("");
@@ -297,9 +396,7 @@ export default function BookingsClient({
       const updated = await updateAppointment(editingBookingId, payload);
 
       setBookings((prev) =>
-        prev.map((booking) =>
-          booking.id === editingBookingId ? updated : booking
-        )
+        prev.map((booking) => booking.id === editingBookingId ? updated : booking)
       );
 
       setEditingBookingId(null);
@@ -323,9 +420,7 @@ export default function BookingsClient({
       await deleteAppointment(deleteTargetId);
       setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
 
-      if (editingBookingId === deleteTargetId) {
-        closeEditForm();
-      }
+      if (editingBookingId === deleteTargetId) closeEditForm();
 
       setSuccessMessage("Reserva eliminada correctamente.");
       closeDeleteModal();
@@ -336,6 +431,7 @@ export default function BookingsClient({
     }
   }
 
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="booking-page page-stack">
       <section className="page-hero booking-hero">
@@ -350,37 +446,44 @@ export default function BookingsClient({
       </section>
 
       <section className="kpi-grid">
-        <div className="kpi-card">
-          <p className="kpi-card__label">Total reservas</p>
-          <h3 className="kpi-card__value">{totalCount}</h3>
-          <p className="kpi-card__meta">Registros disponibles</p>
-        </div>
+        {/* Total reservas — teal */}
+        <KpiCard
+          title="Total reservas"
+          value={totalCount}
+          trend="registros disponibles"
+          color={KPI_COLORS.teal}
+          activity={ACTIVITY_DATA.total}
+        />
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Pendientes</p>
-          <h3 className="kpi-card__value">{pendingCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--warning">
-            Requieren seguimiento
-          </p>
-        </div>
+        {/* Pendientes — amber */}
+        <KpiCard
+          title="Pendientes"
+          value={pendingCount}
+          trend="requieren seguimiento"
+          color={KPI_COLORS.amber}
+          activity={ACTIVITY_DATA.pending}
+        />
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Confirmadas</p>
-          <h3 className="kpi-card__value">{confirmedCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--positive">
-            Estado activo
-          </p>
-        </div>
+        {/* Confirmadas — green */}
+        <KpiCard
+          title="Confirmadas"
+          value={confirmedCount}
+          trend="estado activo"
+          color={KPI_COLORS.green}
+          activity={ACTIVITY_DATA.confirmed}
+        />
 
-        <div className="kpi-card">
-          <p className="kpi-card__label">Pagadas</p>
-          <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">Reservas cerradas</p>
-        </div>
+        {/* Pagadas — purple (color de marca) */}
+        <KpiCard
+          title="Pagadas"
+          value={paidCount}
+          trend="reservas cerradas"
+          color={KPI_COLORS.purple}
+          activity={ACTIVITY_DATA.paid}
+        />
       </section>
 
       {isCreateOpen && (
-        /* 5. AÑADIDO: ref={createFormRef} al elemento section */
         <section ref={createFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Nueva reserva</h3>
@@ -574,7 +677,6 @@ export default function BookingsClient({
       )}
 
       {editingBookingId !== null && (
-        /* 6. AÑADIDO: ref={editFormRef} al elemento section */
         <section ref={editFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
@@ -704,6 +806,7 @@ export default function BookingsClient({
         </section>
       )}
 
+      {/* Modal de confirmación de borrado */}
       {deleteTargetId !== null && (
         <div
           className="modal-backdrop"
@@ -724,11 +827,7 @@ export default function BookingsClient({
               ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
             </p>
             <div className="modal-actions">
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={closeDeleteModal}
-              >
+              <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
                 Cancelar
               </button>
               <button
@@ -747,44 +846,24 @@ export default function BookingsClient({
       <section className="section-card booking-table-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
+          {/* Filtros por estado */}
           <div className="filter-row">
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "all" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "all"}
-              onClick={() => setStatusFilter("all")}
-            >
-              Todas
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "pending"}
-              onClick={() => setStatusFilter("pending")}
-            >
-              Pendientes
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "confirmed"}
-              onClick={() => setStatusFilter("confirmed")}
-            >
-              Confirmadas
-            </button>
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "paid"}
-              onClick={() => setStatusFilter("paid")}
-            >
-              Pagadas
-            </button>
+            {(["all", "pending", "confirmed", "paid"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`filter-pill ${statusFilter === f ? "filter-pill--active" : ""}`}
+                aria-pressed={statusFilter === f}
+                onClick={() => setStatusFilter(f)}
+              >
+                {{ all: "Todas", pending: "Pendientes", confirmed: "Confirmadas", paid: "Pagadas" }[f]}
+              </button>
+            ))}
           </div>
         </div>
 
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
-        {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
+        {errorMessage   ? <div className="message-error"   style={{ marginBottom: 12 }}>{errorMessage}</div>   : null}
 
         <div className="table-responsive">
           <table className="data-table">
@@ -835,7 +914,6 @@ export default function BookingsClient({
             </tbody>
           </table>
         </div>
-
       </section>
     </div>
   );
