@@ -1,25 +1,30 @@
 import type {
   Booking,
+  BookingStatus,
   CreateBookingDto,
   UpdateBookingDto,
   Customer,
+  CreateCustomerDto,
+  UpdateCustomerDto,
   Payment,
+  PaymentMethod,
+  PaymentStatus,
+  CreatePaymentDto,
 } from "./types";
 
-// Re-exportamos los tipos que ya usan los page.tsx existentes
-export type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto, Customer, Payment } from "./types";
-
-export type PaymentMethod = "card" | "cash" | "bizum" | "pending";
-export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
-
-export interface CreatePaymentDto {
-  amount: number;
-  date: string;
-  status: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  customerId: number;
-  appointmentId: number;
-}
+export type {
+  Booking,
+  BookingStatus,
+  CreateBookingDto,
+  UpdateBookingDto,
+  Customer,
+  CreateCustomerDto,
+  UpdateCustomerDto,
+  Payment,
+  PaymentMethod,
+  PaymentStatus,
+  CreatePaymentDto,
+} from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -69,7 +74,7 @@ export async function getCustomers(): Promise<Customer[]> {
 }
 
 export async function createCustomer(
-  data: Omit<Customer, "id" | "createdAt">
+  data: CreateCustomerDto
 ): Promise<Customer> {
   const res = await fetch(`${API_URL}/customers`, {
     method: "POST",
@@ -101,6 +106,39 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
     const errorData = await res.json().catch(() => null);
     const message = errorData?.message || "Error al crear el pago";
     throw new Error(message);
+  }
+
+  return res.json();
+}
+
+// Actualiza un cliente existente usando su id
+export async function updateCustomer(
+  id: number,
+  data: UpdateCustomerDto
+): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al actualizar el cliente");
+  }
+
+  return res.json();
+}
+
+// Elimina un cliente existente usando su id
+export async function deleteCustomer(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar el cliente");
   }
 
   return res.json();
