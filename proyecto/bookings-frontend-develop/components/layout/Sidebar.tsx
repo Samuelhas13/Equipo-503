@@ -42,13 +42,16 @@ export default function Sidebar({
   menuItems,
   onNavigate,
   brandTitle = "BookFlow",
-  brandSubtitle,
+  brandSubtitle = "Portal de Administración",
 }: SidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
 
   // Estado para controlar el tema (claro por defecto)
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // NUEVO: Estado para controlar si el sidebar está expandido o colapsado
+  const [isOpen, setIsOpen] = useState(true);
 
   // Sincronizar el estado con localStorage y la clase en el HTML al montar el componente
   useEffect(() => {
@@ -101,13 +104,34 @@ export default function Sidebar({
     }
   }
 
+  // NUEVO: Función para alternar la visibilidad del sidebar
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+
   return (
-    <aside className="admin-sidebar" role="navigation">
-      {/* Contenedor Superior: Brand y Navegación */}
+    <aside 
+      // Añadimos una clase dinámica para cuando esté cerrado (`admin-sidebar--collapsed`)
+      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`} 
+      role="navigation"
+    >
+      {/* Contenedor Superior: Brand, Botón y Navegación */}
       <div className="admin-sidebar__top">
-        <div className="admin-sidebar__brand">
-          <h2 className="admin-sidebar__title">{brandTitle}</h2>
-          <p className="admin-sidebar__subtitle">{activeBrandSubtitle}</p>
+        <div className="admin-sidebar__brand-container">
+          <div className="admin-sidebar__brand">
+            <h2 className="admin-sidebar__title">{brandTitle}</h2>
+            <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
+          </div>
+          {/* NUEVO: Botón para colapsar/expandir */}
+          <button 
+            onClick={toggleSidebar}
+            className="admin-sidebar__toggle-btn admin-sidebar-boton--collapsed color-boton"
+            aria-label={isOpen ? "Contraer menú" : "Expandir menú"}
+          > 
+            {isOpen ? "◀" : "▶"}
+          </button>
+
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
