@@ -168,7 +168,7 @@ html.dark {
 .theme-toggle-btn__icon {
   font-size: 1.1rem;
 }
-
+/*Fin boton claro/oscuro*/
 
 * {
   box-sizing: border-box;
@@ -647,6 +647,152 @@ body {
 .kpi-card__meta--warning {
   color: var(--warning-text);
 }
+
+/*Dia 27/05 implementacion de estilos para kpi de dashboard*/
+
+/* ==========================================
+   KPI CARD — VARIANTE D
+   Estructura:
+     - Borde lateral izquierdo de color (indicador de categoría)
+     - Cabecera: icono en caja de color suave + badge de tendencia
+     - Label + valor numérico grande
+     - Mini histograma de barras animado (actividad reciente)
+   Convenciones: BEM + variables CSS del tema púrpura BookFlow
+   ========================================== */
+
+/* Contenedor principal de la variante D.
+   Sobrescribe el padding del .kpi-card base para dar sitio
+   al borde lateral y al histograma inferior sin padding. */
+.kpi-card--variant-d {
+  /* Eliminamos el padding inferior porque el histograma llega
+     hasta el borde de la tarjeta (efecto visual de "encaje"). */
+  padding: 20px 20px 0;
+  /* Necesario para que el borde lateral y el histograma salgan
+     del contenedor sin overflow visible. */
+  overflow: hidden;
+  position: relative;
+  /* Transición suave al hacer hover sobre la tarjeta completa */
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card--variant-d:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* Borde lateral izquierdo de color.
+   Posicionado de forma absoluta para que no afecte al flujo del contenido.
+   El color se aplica desde el componente React via style={{ background: color.bar }}.
+   Sin border-radius porque solo está presente en el lado izquierdo. */
+.kpi-card--variant-d .kpi-card__accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+/* Cabecera: icono en caja + badge de tendencia alineados en extremos opuestos */
+.kpi-card--variant-d .kpi-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* Caja del icono: fondo de color suave + tamaño fijo.
+   El color de fondo y del icono se aplican desde React via style={{}}.
+   Usamos --radius-sm para coherencia con el resto de elementos redondeados del sistema. */
+.kpi-card--variant-d .kpi-card__icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+/* Badge de tendencia: pastilla pequeña en la esquina superior derecha.
+   El color se aplica desde React. Texto corto (ej. "+3 hoy", "50%"). */
+.kpi-card--variant-d .kpi-card__trend-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* Label: texto secundario encima del valor.
+   Reutilizamos la variable --muted del tema para consistencia. */
+.kpi-card--variant-d .kpi-card__label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+
+/* Valor principal: número grande con tracking negativo para aspecto moderno.
+   Sobrescribe los valores del .kpi-card base para ajustar espaciado vertical
+   respecto al histograma de abajo. */
+.kpi-card--variant-d .kpi-card__value {
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 0 0 14px;
+}
+
+/* Contenedor del mini histograma de barras.
+   - Altura fija de 28px para que las barras tengan espacio de animación.
+   - padding-bottom: 0 porque las barras llegan al fondo de la tarjeta.
+   - overflow: hidden para que las barras no salgan del contenedor. */
+.kpi-card--variant-d .kpi-card__dots {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+  /* Las barras arrancan desde el borde inferior de la tarjeta */
+  margin: 0 -20px;
+  padding: 0 20px;
+  overflow: hidden;
+}
+
+/* Barra individual del histograma.
+   - Estado inicial: 4px de alto y opacidad 0.25 (antes de la animación JS).
+   - La animación de altura y opacidad se aplica desde el useEffect del componente.
+   - transition definida aquí para que CSS la interpole suavemente. */
+.kpi-d__dot {
+  flex: 1;
+  min-height: 4px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.8s ease;
+}
+
+/* ── Badges adicionales para los estados "canceled" y "completed" ──
+   Se añaden aquí porque el dashboard/page.tsx ya usa DashboardBookingStatus
+   completo con estos dos valores. Sin estos estilos, los badges de cancelada
+   y completada aparecerían sin color de fondo ni texto legible. */
+
+/* Cancelada: rojo suave — mismo token de error del sistema */
+.badge--canceled {
+  background: var(--message-error-bg);
+  color: var(--error);
+}
+
+/* Completada: púrpura suave — tono de marca, indica finalización exitosa */
+.badge--completed {
+  background: var(--purple-50);
+  color: var(--purple-800);
+}
+
+/* ── Responsive: en móvil las tarjetas ocupan 1 columna ──
+   La clase .kpi-grid ya tiene la media query de 1200px en globals.css
+   que pasa a 2 columnas. Aquí solo añadimos el caso de 920px donde
+   ya se fuerza a 1 columna (ya existe en globals.css, no se duplica). */
+
 
 /*Formato para dashboard responsive*/
 .dashboard-prueba {
@@ -1222,6 +1368,3 @@ body {
     display: none;
   }
 }
-
-/*boton de claro oscuro de sidebar*/
-
