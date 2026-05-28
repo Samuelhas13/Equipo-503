@@ -32,7 +32,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export async function getAppointments(): Promise<Booking[]> {
   const res = await fetch(`${API_URL}/appointments`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener las reservas");
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error ${res.status}: ${errorText}`);
+  }
   return res.json();
 }
 
@@ -82,6 +85,37 @@ export async function createCustomer(
   return res.json();
 }
 
+// Actualiza un cliente existente usando su id
+export async function updateCustomer(
+  id: number,
+  data: UpdateCustomerDto
+): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al actualizar el cliente");
+  }
+
+  return res.json();
+}
+
+// Elimina un cliente existente usando su id
+export async function deleteCustomer(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar el cliente");
+  }
+
+  return res.json();
+}
+
 // ─── PAYMENTS ─────────────────────────────────────────────────
 
 export async function getPayments(): Promise<Payment[]> {
@@ -103,39 +137,6 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
     const errorData = await res.json().catch(() => null);
     const message = errorData?.message || "Error al crear el pago";
     throw new Error(message);
-  }
-
-  return res.json();
-}
-
-// Actualiza un cliente existente usando su id
-export async function updateCustomer(
-  id: number,
-  data: UpdateCustomerDto
-): Promise<Customer> {
-  const res = await fetch(`${API_URL}/customers/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al actualizar el cliente");
-  }
-
-  return res.json();
-}
-
-// Elimina un cliente existente usando su id
-export async function deleteCustomer(id: number): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/customers/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al eliminar el cliente");
   }
 
   return res.json();

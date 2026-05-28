@@ -35,7 +35,7 @@ interface HeaderProps {
 
 // MEJORA APLICADA: Props con valores por defecto para mantener compatibilidad
 export default function Header({
-  title = "Bookings Admin",
+  title = "Turnia gendix",
   subtitle = "Plataforma de gestión de reservas y cobros",
   actions,
 }: HeaderProps) {

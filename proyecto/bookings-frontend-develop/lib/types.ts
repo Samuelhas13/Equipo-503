@@ -14,7 +14,7 @@ export interface Booking {
   customerId: number;
   businessId: number;
   serviceName: string;
-createdAt?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 

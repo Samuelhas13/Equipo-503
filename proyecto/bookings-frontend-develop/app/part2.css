@@ -6,7 +6,6 @@
    - Tipografía Manrope conservada
    - Estructura, comentarios y lógica 100% originales
 */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* ── Paleta púrpura ──────────────────────────────── */
@@ -19,7 +18,7 @@
   --purple-900: #26215C;
 
   /* ── Fondo y superficies ────────────────────────── */
-  --bg:                      #F5F4FB;              /* Gris lavanda claro - fondos de secciones */
+  --bg:                      var(--purple-200);     /* Gris lavanda claro - fondos de secciones */
   --surface:                 #FFFFFF;              /* Blanco puro - paneles y tarjetas */
   --surface-2:               var(--purple-50);     /* Superficie alternativa suave */
   --surface-translucent:     rgba(255, 255, 255, 0.92); /* Superficie translúcida para componentes flotantes */
@@ -90,13 +89,14 @@
   --message-error-border:    rgba(226, 75, 74, 0.20);
 }
 
+/*Dia 26/05 cambio de color tema claro oscuro*/
+
 /* ── NUEVA SECCIÓN: Variables sobreescritas para Modo Oscuro ── */
-/* Día 26/05 cambio de color tema claro oscuro */
 html.dark {
   /* Fondo y superficies (Invertidos para oscuridad) */
   --bg:                       var(--purple-900);     /* Ahora el fondo es oscuro */
   --surface:                  #1e1a4a;               /* Superficie oscura */
-  --surface-2:                var(--purple-800);
+  --surface-2:                var(--purple-800);     
   --surface-translucent:      rgba(30, 26, 74, 0.92);
   --surface-translucent-soft: rgba(30, 26, 74, 0.82);
 
@@ -119,17 +119,61 @@ html.dark {
   --sidebar-active-bg:        var(--purple-900);
   --sidebar-text:             var(--purple-400);
   --sidebar-text-active:      var(--purple-50);
-
+  
   /* Sombras (Más sutiles en modo oscuro) */
   --shadow-sm:                0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md:                0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* ── Estilos estructurales para el botón en la parte baja ── */
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: space-between; /* Empuja el contenido hacia los extremos */
+  background-color: var(--sidebar-bg);
+  padding: 1.5rem;
+  width: var(--sidebar-width);
+}
+
+.admin-sidebar__bottom {
+  margin-top: auto; /* Asegura empujar al fondo */
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-sidebar);
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--border-sidebar);
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
+}
+
+.theme-toggle-btn__icon {
+  font-size: 1.1rem;
+}
+/*Fin boton claro/oscuro*/
+
 * {
   box-sizing: border-box;
 }
 
-/* Principal: tipografía global, quita márgenes y padding, aplica color de fondo */
+/*-Principal, pone la tipografía global ademas que quita margenes y padding, aplica el color del fondo*/
 html,
 body {
   margin: 0;
@@ -152,12 +196,12 @@ textarea {
   /* APLICADO: Se agregó textarea al selector para heredar tipografía en formularios largos */
 }
 
-/* Pone el min-height del body al 100% de la ventana */
+/*Pone el min-height del body al 100% de la ventana */
 body {
   min-height: 100vh;
 }
 
-/* Haz que el contenedor principal ocupe todo el espacio disponible */
+/*Haz que el contenedor principal ocupe todo el espacio disponible */
 .admin-shell {
   display: flex;
   min-height: 100vh;
@@ -173,18 +217,14 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  /* ── Estilos estructurales para el botón en la parte baja ── */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Empuja el contenido hacia los extremos */
 }
 
-/* Añade un margen inferior al logo de la barra lateral */
+/*Añade un margen inferior al logo de la barra lateral */
 .admin-sidebar__brand {
   margin-bottom: 28px;
 }
 
-/* Da formato al título de la barra lateral */
+/*Da formato al título de la barra lateral */
 .admin-sidebar__title {
   font-size: 24px;
   font-weight: 700;
@@ -193,14 +233,14 @@ body {
   color: var(--sidebar-brand);
 }
 
-/* Da formato al subtítulo de la barra lateral */
+/*Da formato al subtítulo de la barra lateral */
 .admin-sidebar__subtitle {
   margin: 6px 0 0;
   color: var(--sidebar-section-label);
   font-size: 14px;
 }
 
-/* Navegación de la barra lateral */
+/*Navegación de la barra lateral */
 .admin-sidebar__nav {
   display: flex;
   flex-direction: column;
@@ -222,7 +262,7 @@ body {
   border-left: 3px solid transparent;
 }
 
-/* Añade cierto efecto al pasar el mouse por encima de los enlaces */
+/*Añade cierto efecto al pasar el mouse por encima de los enlaces */
 .admin-sidebar__link:hover,
 .admin-sidebar__link--hoverable:hover {
   /* MEJORA APLICADA (18/05/2026): Efecto hover mejorado con múltiples cambios visuales para mejor feedback de usuario */
@@ -232,7 +272,7 @@ body {
   transition: background 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
 }
 
-/* Añade estilo para el enlace activo */
+/*Añade estilo para el enlace activo*/
 .admin-sidebar__link--active {
   /* MEJORA APLICADA (18/05/2026): Estado activo más destacado con cambios visuales más pronunciados */
   background: var(--sidebar-active-bg);
@@ -271,39 +311,7 @@ body {
   letter-spacing: -0.02em;
 }
 
-.admin-sidebar__bottom {
-  margin-top: auto; /* Asegura empujar al fondo */
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-sidebar);
-}
-
-.theme-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: var(--sidebar-hover-bg);
-  border: 1px solid var(--border-sidebar);
-  border-radius: var(--radius-sm);
-  color: var(--sidebar-text);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.theme-toggle-btn:hover {
-  background: var(--sidebar-active-bg);
-  color: var(--sidebar-text-active);
-}
-
-.theme-toggle-btn__icon {
-  font-size: 1.1rem;
-}
-
-/* Hace que el contenedor principal ocupe todo el espacio disponible */
+/*hace que el contenedor principal ocupe todo el espacio disponible*/
 .admin-main {
   flex: 1;
   display: flex;
@@ -331,7 +339,7 @@ body {
   min-width: 0;
 }
 
-/* Pone formato al título de la cabecera */
+/*Pone formato al título de la cabecera */
 .admin-header__title {
   margin: 0;
   font-size: 28px;
@@ -341,7 +349,7 @@ body {
   color: var(--text);
 }
 
-/* Añade formato al subtítulo de la cabecera */
+/*Añade formato al subtítulo de la cabecera */
 .admin-header__subtitle {
   margin: 6px 0 0;
   color: var(--muted);
@@ -349,7 +357,7 @@ body {
   line-height: 1.4;
 }
 
-/* Formato para las acciones en la cabecera */
+/*Formato para las acciones en la cabecera */
 .admin-header__actions {
   display: flex;
   align-items: center;
@@ -370,12 +378,12 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Espacio entre el contenido y el borde */
+/*espacio entre el contenido y el borde*/
 .admin-content {
   padding: 24px 18px 18px;
 }
 
-/* Posiciona los elementos en la pila de páginas */
+/*posiciona los elementos en la pila de páginas*/
 .page-stack {
   display: flex;
   flex-direction: column;
@@ -388,7 +396,7 @@ body {
   gap: 28px;
 }
 
-/* Forma para las tarjetas de superficie */
+/*Forma para las tarjetas de superficie */
 .surface-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -396,7 +404,7 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Forma para las tarjetas de sección */
+/*Forma para las tarjetas de sección */
 .section-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -412,7 +420,7 @@ body {
   /* MEJORA APLICADA: Estilo distintivo para formularios y tablas en la página de bookings */
 }
 
-/* Modificación de las tablas, mejoras responsive para móvil para la página de bookings */
+/*Modificacion de las tablas, mejoras responsive para movil para la pagina de bookings*/
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -478,6 +486,38 @@ body {
   flex-wrap: wrap;
 }
 
+@media (max-width: 768px) {
+  .booking-table-card {
+    padding: 16px;
+  }
+
+  .panel-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .data-table th,
+  .data-table td {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .table-actions {
+    flex-direction: column;
+  }
+
+  .table-actions .secondary-btn {
+    width: 100%;
+  }
+}
+
 /* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
 .page-hero {
   display: flex;
@@ -533,7 +573,7 @@ body {
   transform: translateY(0);
 }
 
-/* Botón secundario */
+/* botón secundario */
 .secondary-btn {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -565,7 +605,7 @@ body {
   gap: 16px;
 }
 
-/* Formato para las tarjetas de KPI */
+/* Formato para las tarjetas de KPI de los botones */
 .kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -607,6 +647,8 @@ body {
   color: var(--warning-text);
 }
 
+/*Dia 27/05 implementacion de estilos para kpi de dashboard*/
+
 /* ==========================================
    KPI CARD — VARIANTE D
    Estructura:
@@ -615,7 +657,6 @@ body {
      - Label + valor numérico grande
      - Mini histograma de barras animado (actividad reciente)
    Convenciones: BEM + variables CSS del tema púrpura BookFlow
-   Día 27/05 implementación de estilos para kpi de dashboard
    ========================================== */
 
 /* Contenedor principal de la variante D.
@@ -731,7 +772,8 @@ body {
 
 /* ── Badges adicionales para los estados "canceled" y "completed" ──
    Se añaden aquí porque el dashboard/page.tsx ya usa DashboardBookingStatus
-   completo con estos dos valores. */
+   completo con estos dos valores. Sin estos estilos, los badges de cancelada
+   y completada aparecerían sin color de fondo ni texto legible. */
 
 /* Cancelada: rojo suave — mismo token de error del sistema */
 .badge--canceled {
@@ -745,7 +787,13 @@ body {
   color: var(--purple-800);
 }
 
-/* Formato para dashboard responsive */
+/* ── Responsive: en móvil las tarjetas ocupan 1 columna ──
+   La clase .kpi-grid ya tiene la media query de 1200px en globals.css
+   que pasa a 2 columnas. Aquí solo añadimos el caso de 920px donde
+   ya se fuerza a 1 columna (ya existe en globals.css, no se duplica). */
+
+
+/*Formato para dashboard responsive*/
 .dashboard-prueba {
   display: flex;
   gap: 16px;
@@ -1002,6 +1050,42 @@ body {
   flex: 1;
 }
 
+@media (max-width: 1200px) {
+  .kpi-grid,
+  .customer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Los puntos de quiebre son útiles pero el contenido intermedio puede necesitar ajustes adicionales. */
+@media (max-width: 920px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .form-grid,
+  .kpi-grid,
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-hero,
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* Formato para estados focus-visible con outline de marca */
 .filter-pill:focus-visible,
 .primary-btn:focus-visible,
@@ -1102,10 +1186,11 @@ body {
   cursor: not-allowed;
 }
 
-/* Margen para los elementos */
+/* margen para los elementos */
 .margenes {
   margin: 8px;
 }
+
 
 /* ==========================================
    ESTILOS DEL FOOTER (Responsivo)
@@ -1162,344 +1247,24 @@ body {
   border: 1px solid var(--border);
 }
 
-/* ==========================================
-   ESTILOS DE AUTH / LOGIN Y CARGA
-   ========================================== */
+/* --- Media Query para tablets y pantallas grandes (Footer) --- */
+@media (min-width: 768px) {
+  .admin-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
 
-.loading-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  background: var(--bg);
-  color: var(--text);
-  gap: 16px;
+  .admin-footer__content {
+    flex-direction: row;
+    gap: 2rem;
+  }
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid var(--purple-100);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.login-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 24px;
-  background: radial-gradient(circle at 10% 20%, var(--purple-900) 0%, #17143a 90%);
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Decoraciones de fondo brillantes */
-.login-container::before {
-  content: "";
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(127, 119, 221, 0.15) 0%, transparent 70%);
-  top: -100px;
-  right: -100px;
-  z-index: 1;
-}
-
-.login-container::after {
-  content: "";
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(83, 74, 215, 0.12) 0%, transparent 70%);
-  bottom: -150px;
-  left: -150px;
-  z-index: 1;
-}
-
-.login-card {
-  width: min(100%, 500px);
-  background: rgba(38, 33, 92, 0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(206, 203, 246, 0.15);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.login-header {
-  text-align: center;
-}
-
-.login-brand {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--purple-50);
-  margin-bottom: 8px;
-}
-
-.login-tagline {
-  color: var(--purple-100);
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.login-label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--purple-100);
-}
-
-.login-input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(206, 203, 246, 0.25);
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  transition: all 0.2s ease;
-}
-
-.login-input:focus {
-  outline: none;
-  border-color: var(--purple-200);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 4px rgba(127, 117, 221, 0.25);
-}
-
-.login-btn {
-  border: none;
-  background: var(--accent);
-  color: white;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(83, 74, 183, 0.3);
-  transition: all 0.2s ease;
-}
-
-.login-btn:hover {
-  background: var(--purple-400);
-  transform: translateY(-1px);
-}
-
-.login-btn:active {
-  transform: translateY(0);
-}
-
-.quick-login-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.quick-login-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--purple-200);
-  text-align: center;
-  margin-bottom: 4px;
-}
-
-.quick-login-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.quick-login-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(206, 203, 246, 0.1);
-  border-radius: 12px;
-  padding: 12px 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quick-login-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--purple-200);
-  transform: translateY(-2px);
-}
-
-.quick-login-role {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--purple-200);
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.quick-login-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 /* ==========================================
-   ESTILOS DE DIRECTORIO DE EMPRESAS
+   MÓVIL / PANTALLAS PEQUEÑAS (Por defecto)
    ========================================== */
-
-.business-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.business-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.business-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--purple-200);
-}
-
-.business-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--primary-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.business-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.business-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.business-category {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--primary-soft);
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.business-desc {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.5;
-  flex-grow: 1;
-}
-
-.business-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.business-actions button {
-  width: 100%;
-}
-
-/* Estilos de cabecera de perfil */
-.user-profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 12px 4px 4px;
-  background: var(--surface-2);
-  border-radius: 999px;
-  border: 1px solid var(--border);
-}
-
-.user-profile-info {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.user-profile-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.2;
-}
-
-.user-profile-role {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  line-height: 1.2;
-}
-
-.logout-btn-header {
-  background: transparent;
-  border: none;
-  color: var(--error);
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: background 0.2s ease;
-}
-
-.logout-btn-header:hover {
-  background: rgba(226, 75, 74, 0.08);
-}
-
-/* ==========================================
-   LAYOUT PRINCIPAL (Móvil primero)
-   ========================================== */
-
 .admin-layout {
   display: flex;
   flex-direction: column;
@@ -1565,42 +1330,10 @@ body {
   z-index: 998;
 }
 
+
 /* ==========================================
-   MEDIA QUERIES
+   ESCRITORIO / PANTALLAS GRANDES (>= 768px)
    ========================================== */
-
-@media (max-width: 768px) {
-  .booking-table-card {
-    padding: 16px;
-  }
-
-  .panel-title-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .data-table th,
-  .data-table td {
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-
-  .table-actions {
-    flex-direction: column;
-  }
-
-  .table-actions .secondary-btn {
-    width: 100%;
-  }
-}
-
 @media (min-width: 768px) {
   .admin-header {
     order: -1;
@@ -1624,101 +1357,14 @@ body {
   }
 
   .admin-sidebar {
-    position: sticky;
-    top: 0;
-    height: 100vh;
+    position: relative;
+    height: auto;
     transform: translateX(0);
-    z-index: 10;
+    z-index: 1;
   }
 
   .admin-layout__overlay {
     display: none;
   }
-
-  .admin-footer {
-    flex-direction: row;
-    justify-content: space-between;
-    text-align: left;
-  }
-
-  .admin-footer__content {
-    flex-direction: row;
-    gap: 2rem;
-  }
 }
 
-@media (max-width: 1200px) {
-  .kpi-grid,
-  .customer-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 920px) {
-  .admin-shell {
-    flex-direction: column;
-  }
-
-  .admin-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .form-grid,
-  .kpi-grid,
-  .customer-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .page-hero,
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-/*Mejoras al boton de sidebar para meter y sacar el componente */
-/* Contenedor del título y el botón juntos */
-.admin-sidebar__brand-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-/* Transición suave para el ancho del sidebar */
-.admin-sidebar {
-  width: 260px;
-  transition: width 0.3s ease;
-  overflow: hidden; /* Evita que el texto desborde al achicarse */
-}
-.color-boton {
-  background-color: var(--purple-800);
-  border-radius: 20%;
-  color : white;
-}
-
-.admin-sidebar-boton--collapsed {
-  justify-content: center; /* Centra el botón cuando el sidebar está colapsado */
-  align-items: center;
-  margin-left: 10px;
-
-}
-
-
-/* Cuando el sidebar esté colapsado */
-.admin-sidebar--collapsed {
-  width: 85px; /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
-}
-
-/* Ocultar el texto del título, subtítulo, etiquetas de menú y tema cuando esté colapsado */
-.admin-sidebar--collapsed .admin-sidebar__brand,
-.admin-sidebar--collapsed .admin-sidebar__label,
-.admin-sidebar--collapsed .theme-toggle-btn__label,
-.admin-sidebar--collapsed .admin-sidebar__subtitle {
-  display: none; 
-}
