@@ -1,55 +1,91 @@
-/**
- * CustomersController.
- * Define las rutas (endpoints) REST para manejar clientes (CRUD completo).
- * Se encarga de recibir las peticiones HTTP y delegar la ejecución a CustomersService.
- */
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer } from './customer.entity';
 
-@ApiTags('customers') // Agrupa estos endpoints bajo la etiqueta 'customers' en la documentación Swagger
+@ApiTags('customers')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('customers')
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) { }
+  constructor(private readonly customersService: CustomersService) {}
 
-  // 1. Endpoint POST para crear cliente
+  // admin + empresa → listado completo de clientes
+  @Get()
+  @Roles('admin', 'empresa')
+  @ApiOkResponse({
+    description: 'Listado completo de clientes',
+    type: [Customer],
+  })
+  findAll() {
+    return this.customersService.findAll();
+  }
+
+  // todos los roles → un usuario puede consultar su propio perfil
+  @Get(':id')
+  @Roles('admin', 'empresa', 'usuario')
+  @ApiOkResponse({ description: 'Detalle de un cliente', type: Customer })
+  @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.customersService.findOne(id);
+  }
+
+  // admin + empresa → pueden dar de alta clientes
   @Post()
-  @ApiCreatedResponse({ description: 'Cliente creado exitosamente', type: Customer })
+  @Roles('admin', 'empresa')
+  @ApiCreatedResponse({
+    description: 'Cliente creado exitosamente',
+    type: Customer,
+  })
   @ApiConflictResponse({ description: 'El email del cliente ya existe' })
   @ApiBadRequestResponse({ description: 'Datos de cliente inválidos' })
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customersService.create(createCustomerDto);
   }
 
-  // 2. Endpoint GET para obtener todos los clientes
-  @Get()
-  @ApiOkResponse({ description: 'Listado completo de clientes', type: [Customer] })
-  findAll() {
-    return this.customersService.findAll();
-  }
-
-  // 3. Endpoint GET/:id para obtener un solo cliente
-  @Get(':id')
-  @ApiOkResponse({ description: 'Detalle de un cliente específico', type: Customer })
-  @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.findOne(id);
-  }
-
-  // 4. Endpoint PATCH/:id para modificar parcialmente a un cliente
+  // admin + empresa → pueden modificar datos de clientes
   @Patch(':id')
-  @ApiOkResponse({ description: 'Cliente modificado correctamente', type: Customer })
+  @Roles('admin', 'empresa')
+  @ApiOkResponse({
+    description: 'Cliente modificado correctamente',
+    type: Customer,
+  })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
   @ApiBadRequestResponse({ description: 'Datos de modificación inválidos' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateCustomerDto: UpdateCustomerDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateCustomerDto: UpdateCustomerDto,
+  ) {
     return this.customersService.update(id, updateCustomerDto);
   }
 
-  // 5. Endpoint DELETE/:id para borrar un cliente
+  // solo admin → eliminar cliente
   @Delete(':id')
+  @Roles('admin')
   @ApiOkResponse({ description: 'Cliente eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
   remove(@Param('id', ParseIntPipe) id: number) {
