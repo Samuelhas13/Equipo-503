@@ -15,6 +15,7 @@ const adminMenuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
+  { label: "Businesses", href: "/businesses", icon: "▤" },
   { label: "Payments", href: "/payments", icon: "◌" },
   { label: "Contacto", href: "/contacto", icon: "✉" },
 ];
@@ -49,7 +50,7 @@ export default function Sidebar({
 
   // Estado para controlar el tema (claro por defecto)
   const [isDarkMode, setIsDarkMode] = useState(false);
-  
+
   // NUEVO: Estado para controlar si el sidebar está expandido o colapsado
   const [isOpen, setIsOpen] = useState(true);
 
@@ -57,7 +58,7 @@ export default function Sidebar({
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
+
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
@@ -111,9 +112,9 @@ export default function Sidebar({
 
 
   return (
-    <aside 
+    <aside
       // Añadimos una clase dinámica para cuando esté cerrado (`admin-sidebar--collapsed`)
-      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`} 
+      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`}
       role="navigation"
     >
       {/* Contenedor Superior: Brand, Botón y Navegación */}
@@ -124,11 +125,11 @@ export default function Sidebar({
             <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
           </div>
           {/* NUEVO: Botón para colapsar/expandir */}
-          <button 
+          <button
             onClick={toggleSidebar}
             className="admin-sidebar__toggle-btn admin-sidebar-boton--collapsed color-boton"
             aria-label={isOpen ? "Contraer menú" : "Expandir menú"}
-          > 
+          >
             {isOpen ? "◀" : "▶"}
           </button>
 
@@ -137,7 +138,7 @@ export default function Sidebar({
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
           {activeMenuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            
+
             const handleClick = () => {
               onNavigate?.(item.href);
             };
@@ -164,8 +165,8 @@ export default function Sidebar({
 
       {/* Contenedor Inferior: Botón de cambio de tema funcional */}
       <div className="admin-sidebar__bottom">
-        <button 
-          onClick={toggleTheme} 
+        <button
+          onClick={toggleTheme}
           className="theme-toggle-btn"
           aria-label={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
         >

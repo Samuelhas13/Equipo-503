@@ -10,6 +10,9 @@ import type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  Business,
+  CreateBusinessDto,
+  UpdateBusinessDto,
 } from "./types";
 
 export type {
@@ -24,6 +27,9 @@ export type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  Business,
+  CreateBusinessDto,
+  UpdateBusinessDto,
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -145,3 +151,44 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
 export function getExportReportUrl(): string {
   return `${API_URL}/appointments/export`;
 }
+
+// ─── BUSINESSES ───────────────────────────────────────────────
+
+export async function getBusinesses(): Promise<Business[]> {
+  const res = await fetch(`${API_URL}/businesses`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener las empresas");
+  return res.json();
+}
+
+export async function createBusiness(
+  data: CreateBusinessDto
+): Promise<Business> {
+  const res = await fetch(`${API_URL}/businesses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear la empresa");
+  return res.json();
+}
+
+export async function updateBusiness(
+  id: number,
+  data: UpdateBusinessDto
+): Promise<Business> {
+  const res = await fetch(`${API_URL}/businesses/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar la empresa");
+  return res.json();
+}
+
+export async function deleteBusiness(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/businesses/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Error al eliminar la empresa");
+  return res.json();
+}
