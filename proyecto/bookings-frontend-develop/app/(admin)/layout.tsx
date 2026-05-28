@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import Sidebar from "../../components/layout/Sidebar";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export default function AdminLayout({
   children,
@@ -17,6 +18,7 @@ export default function AdminLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
+     <LanguageProvider>
     <div className={`admin-layout ${isSidebarOpen ? "sidebar-open" : ""}`}>
       
       {/* 1. Pasamos el botón al Header mediante la prop 'actions' */}
@@ -51,5 +53,6 @@ export default function AdminLayout({
         </div>
       </div>
     </div>
+    </LanguageProvider>
   );
 }
