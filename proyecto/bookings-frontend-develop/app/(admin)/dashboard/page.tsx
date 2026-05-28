@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   getAppointments,
   getExportReportUrl,
@@ -387,29 +387,26 @@ export default function DashboardPage() {
           activity={ACTIVITY_DATA.bookings}
           loading={loading}
         />
-
         <KpiCard
           title={texts[language].paidToday}
           value={paidBookings.filter((b) => b.date === today).length}
-          trend={`${todayBookings.length} ${texts[language].totalToday}`}
+          trend={`de ${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
           color={KPI_COLORS.blue}
           activity={ACTIVITY_DATA.paid}
           loading={loading}
         />
-
         <KpiCard
           title={texts[language].pending}
           value={pendingBookings.length}
-          trend={texts[language].confirmedTotal}
+          trend={texts[language].pendingConfirmations}
           color={KPI_COLORS.amber}
           activity={ACTIVITY_DATA.pending}
           loading={loading}
         />
-
         <KpiCard
           title={texts[language].totalBookings}
           value={filteredBookings.length}
-          trend={`${todayBookings.length} ${texts[language].scheduledToday}`}
+          trend={`${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
           color={KPI_COLORS.purple}
           activity={ACTIVITY_DATA.total}
           loading={loading}

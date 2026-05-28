@@ -170,135 +170,81 @@ export default function BookingsClient({
   initialBookings: Booking[];
 }) {
   const { user } = useAuth();
+  const { language } = useLanguage();
 
-  // Obtenemos el idioma global para traducir los textos de bookings
-const { language } = useLanguage();
-
-// Textos de la página bookings en español e inglés
-const texts = {
-  es: {
-    title: "Lista de reservas",
-    subtitle: "Gestión de reservas conectada con la API.",
-    newBooking: "Nueva reserva",
-    totalBookings: "Total reservas",
-    pending: "Pendientes",
-    confirmed: "Confirmadas",
-    paid: "Pagadas",
-    availableRecords: "Registros disponibles",
-    needsFollowUp: "Requieren seguimiento",
-    activeStatus: "Estado activo",
-    closedBookings: "Reservas cerradas",
-    newBookingTitle: "Nueva reserva",
-    editBookingTitle: "Editar reserva",
-    cancel: "Cancelar",
-    date: "Fecha",
-    time: "Hora",
-    status: "Estado",
-    pendingOption: "Pendiente",
-    confirmedOption: "Confirmada",
-    paidOption: "Pagada",
-    customerId: "ID Cliente",
-    businessId: "ID Negocio",
-    business: "Comercio",
-    people: "Personas (1-5)",
-    service: "Servicio",
-    search: "Buscar",
-    searching: "Buscando...",
-    customerFound: "Cliente seleccionado encontrado:",
-    name: "Nombre",
-    phone: "Teléfono",
-    createBooking: "Crear reserva",
-    creating: "Guardando...",
-    saveChanges: "Guardar cambios",
-    saving: "Guardando...",
-    registeredBookings: "Reservas registradas",
-    all: "Todas",
-    id: "ID",
-    customer: "Customer",
-    actions: "Acciones",
-    edit: "Editar",
-    delete: "Eliminar",
-    deleteTitle: "Eliminar reserva",
-    deleteText: "¿Seguro que quieres eliminar la reserva",
-    deleteWarning: "Esta acción no se puede deshacer.",
-    deleting: "Eliminando...",
-  },
-  en: {
-    title: "Bookings list",
-    subtitle: "Booking management connected to the API.",
-    newBooking: "New booking",
-    totalBookings: "Total bookings",
-    pending: "Pending",
-    confirmed: "Confirmed",
-    paid: "Paid",
-    availableRecords: "Available records",
-    needsFollowUp: "Needs follow-up",
-    activeStatus: "Active status",
-    closedBookings: "Closed bookings",
-    newBookingTitle: "New booking",
-    editBookingTitle: "Edit booking",
-    cancel: "Cancel",
-    date: "Date",
-    time: "Time",
-    status: "Status",
-    pendingOption: "Pending",
-    confirmedOption: "Confirmed",
-    paidOption: "Paid",
-    customerId: "Customer ID",
-    businessId: "Business ID",
-    business: "Business",
-    people: "People (1-5)",
-    service: "Service",
-    search: "Search",
-    searching: "Searching...",
-    customerFound: "Selected customer found:",
-    name: "Name",
-    phone: "Phone",
-    createBooking: "Create booking",
-    creating: "Saving...",
-    saveChanges: "Save changes",
-    saving: "Saving...",
-    registeredBookings: "Registered bookings",
-    all: "All",
-    id: "ID",
-    customer: "Customer",
-    actions: "Actions",
-    edit: "Edit",
-    delete: "Delete",
-    deleteTitle: "Delete booking",
-    deleteText: "Are you sure you want to delete booking",
-    deleteWarning: "This action cannot be undone.",
-    deleting: "Deleting...",
-  },
-};
+  const texts = {
+    es: {
+      title: "Panel de Reservas",
+      subtitle: "Gestiona las citas, clientes y estados de tu negocio.",
+      newBooking: "Nueva reserva",
+      totalBookings: "Total reservas",
+      availableRecords: "registros disponibles",
+      pending: "Pendientes",
+      needsFollowUp: "requiere seguimiento",
+      confirmed: "Confirmadas",
+      activeStatus: "citas activas",
+      paid: "Pagadas",
+      closedBookings: "transacciones completadas",
+      date: "Fecha",
+      time: "Hora",
+      status: "Estado",
+      customerId: "ID Cliente",
+      businessId: "ID Negocio",
+      business: "Comercio",
+      people: "Personas (1-5)",
+      service: "Servicio",
+      customerFound: "Cliente encontrado",
+      name: "Nombre",
+      phone: "Teléfono",
+      editBookingTitle: "Editar reserva",
+      cancel: "Cancelar",
+      pendingOption: "Pendiente",
+      confirmedOption: "Confirmada",
+      paidOption: "Pagada",
+      edit: "Editar",
+    },
+    en: {
+      title: "Bookings Dashboard",
+      subtitle: "Manage your business appointments, customers, and statuses.",
+      newBooking: "New Booking",
+      totalBookings: "Total Bookings",
+      availableRecords: "available records",
+      pending: "Pending",
+      needsFollowUp: "needs follow-up",
+      confirmed: "Confirmed",
+      activeStatus: "active appointments",
+      paid: "Paid",
+      closedBookings: "completed transactions",
+      date: "Date",
+      time: "Time",
+      status: "Status",
+      customerId: "Customer ID",
+      businessId: "Business ID",
+      business: "Business",
+      people: "People (1-5)",
+      service: "Service",
+      customerFound: "Customer found",
+      name: "Name",
+      phone: "Phone",
+      editBookingTitle: "Edit Booking",
+      cancel: "Cancel",
+      pendingOption: "Pending",
+      confirmedOption: "Confirmed",
+      paidOption: "Paid",
+      edit: "Edit",
+    },
+  };
 
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
-  const getTodayString = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
-
-const getCurrentTimeString = () => {
-  const today = new Date();
-  const hours = String(today.getHours()).padStart(2, "0");
-  const minutes = String(today.getMinutes()).padStart(2, "0");
-
-  return `${hours}:${minutes}`;
-};
-
   const emptyForm: CreateBookingDto = {
-  date: getTodayString(),
-  time: getCurrentTimeString(),
-  status: "pending",
-  customerId: 1,
-  businessId: 1,
-  serviceName: "",
-};
+    date: "",
+    time: "",
+    status: "pending",
+    customerId: 1,
+    businessId: 1,
+    serviceName: "",
+  };
 
   const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
   const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
@@ -399,6 +345,7 @@ const getCurrentTimeString = () => {
       businessId: initialBusinessId,
       serviceName: "",
     });
+
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -544,58 +491,62 @@ const getCurrentTimeString = () => {
           <p>{texts[language].subtitle}</p>
         </div>
 
-        <button className="primary-btn" type="button" onClick={openCreateForm}>
-         {texts[language].newBooking}
-        </button>
+        {user?.role !== "empresa" && (
+          <button className="primary-btn" type="button" onClick={openCreateForm}>
+            {texts[language].newBooking}
+          </button>
+        )}
       </section>
 
-      <section className="kpi-grid">
-        <KpiCard
-          title={texts[language].totalBookings}
-          value={totalCount}
-          trend={texts[language].availableRecords}
-          color={KPI_COLORS.teal}
-          activity={ACTIVITY_DATA.total}
-        />
+      {/* Ocultamos las tarjetas KPI si el rol es un cliente convencional */}
+      {user?.role !== "usuario" && (
+        <section className="kpi-grid">
+          <KpiCard
+            title={texts[language].totalBookings}
+            value={totalCount}
+            trend={texts[language].availableRecords}
+            color={KPI_COLORS.teal}
+            activity={ACTIVITY_DATA.total}
+          />
 
-        <KpiCard
-          title={texts[language].pending}
-          value={pendingCount}
-          trend={texts[language].needsFollowUp}
-          color={KPI_COLORS.amber}
-          activity={ACTIVITY_DATA.pending}
-        />
+          <KpiCard
+            title={texts[language].pending}
+            value={pendingCount}
+            trend={texts[language].needsFollowUp}
+            color={KPI_COLORS.amber}
+            activity={ACTIVITY_DATA.pending}
+          />
 
-        <KpiCard
-          title={texts[language].confirmed}
-          value={confirmedCount}
-          trend={texts[language].activeStatus}
-          color={KPI_COLORS.green}
-          activity={ACTIVITY_DATA.confirmed}
-        />
+          <KpiCard
+            title={texts[language].confirmed}
+            value={confirmedCount}
+            trend={texts[language].activeStatus}
+            color={KPI_COLORS.green}
+            activity={ACTIVITY_DATA.confirmed}
+          />
 
-        <KpiCard
-          title={texts[language].paid}
-          value={paidCount}
-          trend={texts[language].closedBookings}
-          color={KPI_COLORS.purple}
-          activity={ACTIVITY_DATA.paid}
-        />
-      </section>
+          <KpiCard
+            title={texts[language].paid}
+            value={paidCount}
+            trend={texts[language].closedBookings}
+            color={KPI_COLORS.purple}
+            activity={ACTIVITY_DATA.paid}
+          />
+        </section>
+      )}
 
       {isCreateOpen && (
         <section ref={createFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">{texts[language].newBookingTitle}</h3>
+            <h3 className="panel-title">Nueva reserva</h3>
             <button type="button" className="secondary-btn" onClick={closeCreateForm}>
-              {texts[language].cancel}
+              Cancelar
             </button>
           </div>
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-
                 <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].date}</label>
                 <input
                   className="input"
@@ -625,9 +576,9 @@ const getCurrentTimeString = () => {
                     updateCreateForm("status", e.target.value as BookingStatus)
                   }
                 >
-                 <option value="pending">{texts[language].pendingOption}</option>
-                <option value="confirmed">{texts[language].confirmedOption}</option>
-                <option value="paid">{texts[language].paidOption}</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="paid">Pagada</option>
                 </select>
               </div>
               
@@ -655,7 +606,7 @@ const getCurrentTimeString = () => {
                       disabled={searchingCustomer}
                       style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
                     >
-                      {searchingCustomer ? texts[language].searching : texts[language].search}
+                      {searchingCustomer ? "Buscando..." : "Buscar"}
                     </button>
                   </div>
                 </div>
@@ -766,13 +717,13 @@ const getCurrentTimeString = () => {
                     <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone}</span>
                   </div>
                 </div>
-          )}
+            )}
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
             <div className="message-row">
               <button className="primary-btn" type="submit" disabled={loadingCreate}>
-                {loadingCreate ? texts[language].creating : texts[language].createBooking}
+                {loadingCreate ? "Guardando..." : "Crear reserva"}
               </button>
             </div>
           </form>
@@ -785,14 +736,13 @@ const getCurrentTimeString = () => {
     <h3 className="panel-title">
       {texts[language].editBookingTitle} #{editingBookingId}
     </h3>
+
     <button type="button" className="secondary-btn" onClick={closeEditForm}>
       {texts[language].cancel}
     </button>
   </div>
-
-
-  <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
-    <div className="form-grid">
+          <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
+            <div className="form-grid">
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
           {texts[language].date}
@@ -923,15 +873,15 @@ const getCurrentTimeString = () => {
       </div>
     </div>
 
-    {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
-    <div className="message-row">
-      <button className="primary-btn" type="submit" disabled={loadingEdit}>
-        {loadingEdit ? texts[language].saving : texts[language].saveChanges}
-      </button>
-    </div>
-  </form>
-</section>
+            <div className="message-row">
+              <button className="primary-btn" type="submit" disabled={loadingEdit}>
+                {loadingEdit ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        </section>
       )}
 
       {deleteTargetId !== null && (
@@ -997,24 +947,26 @@ const getCurrentTimeString = () => {
                   <td>{booking.customerId}</td>
                   <td>{BUSINESS_NAMES[booking.businessId] || `#${booking.businessId}`}</td>
                   <td><StatusBadge status={booking.status} /></td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openEditForm(booking)}
-                      >
-                        {texts[language].edit}
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => openDeleteModal(booking.id)}
-                      >
-                        {texts[language].delete}
-                      </button>
-                    </div>
-                  </td>
+                  {user?.role !== "usuario" && (
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openEditForm(booking)}
+                        >
+                          {texts[language].edit}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openDeleteModal(booking.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

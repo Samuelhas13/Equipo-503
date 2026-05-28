@@ -1,4 +1,4 @@
-import type {
+export type {
   Booking,
   BookingStatus,
   CreateBookingDto,
