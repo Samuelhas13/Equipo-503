@@ -1110,6 +1110,99 @@ html.dark .business-calendar,
   color: var(--status-paid-text);
 }
 
+/* ─── RESPONSIVE: OPTIMIZACIÓN PARA MÓVILES ─── */
+@media (max-width: 767px) {
+  .business-calendar {
+    padding: 16px; /* Menos espacio interno */
+  }
+
+  .calendar-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .calendar-grid {
+    gap: 4px; /* Reducimos la separación en móviles */
+  }
+
+  .calendar-day-name {
+    font-size: 0.75rem;
+    padding-bottom: 4px;
+  }
+
+  .calendar-cell {
+    min-height: 55px; /* Altura más baja para que quepa todo el mes en pantalla */
+    padding: 4px;
+    justify-content: space-between;
+    position: relative;
+    cursor: pointer;
+  }
+
+  /* Si la celda está seleccionada por el usuario en móvil */
+  .calendar-cell--selected {
+    border-color: var(--cal-text-title) !important;
+    background: var(--cal-btn-bg);
+  }
+
+  .calendar-date-number {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+  }
+
+  /* Ocultamos el texto largo de los eventos en el grid móvil */
+  .calendar-events-container {
+    max-height: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  /* Transformamos las píldoras de texto en círculos/puntos indicadores */
+  .calendar-event-pill {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border-radius: 50%;
+    text-indent: -9999px; /* Esconde el texto */
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  /* ─── NUEVA SECCIÓN: LISTA DE EVENTOS DEL DÍA SELECCIONADO ─── */
+  .mobile-active-day-events {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cal-cell-border);
+  }
+
+  .mobile-active-day-events h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.95rem;
+    color: var(--cal-text-title);
+  }
+
+  .mobile-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-event-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+}
+
+/* En ordenadores ocultamos la lista de eventos inferiores */
+@media (min-width: 768px) {
+  .mobile-active-day-events {
+    display: none;
+  }
+}
 
 /* ==========================================================================
    11. PANEL (títulos y controles de sección)

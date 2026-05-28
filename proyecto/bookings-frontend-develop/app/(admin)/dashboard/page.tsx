@@ -126,14 +126,18 @@ function getTodayISO() {
 }
 
 // ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
-// 1. Nos aseguramos de que la interfaz esté declarada e incluya el tipo correcto
 interface BusinessCalendarProps {
   bookings: Booking[];
 }
 
-// 2. El sub-componente ahora reconocerá perfectamente las propiedades (props)
 function BusinessCalendar({ bookings }: BusinessCalendarProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  
+  /* CAMBIO RESPONSIVE: Añadimos un estado para saber qué día está seleccionado. 
+    Por defecto toma el día de hoy en formato ISO (YYYY-MM-DD). Esto permite que
+    en pantallas de móvil podamos renderizar la lista detallada abajo al pulsar sobre un día.
+  */
+  const [selectedDateISO, setSelectedDateISO] = useState<string>(getTodayISO());
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -170,6 +174,24 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
     return map;
   }, [bookings]);
 
+  /* CAMBIO RESPONSIVE: Memorizamos las citas correspondientes al día seleccionado 
+    para pasárselas a la lista del visor inferior táctil en móviles.
+  */
+  const selectedDayBookings = useMemo(() => {
+    const dayList = bookingsByDateMap[selectedDateISO] || [];
+    return [...dayList].sort((a, b) => a.time.localeCompare(b.time));
+  }, [bookingsByDateMap, selectedDateISO]);
+
+  /* CAMBIO RESPONSIVE: Genera un string legible tipo "28 de mayo" para el encabezado 
+    de la lista de citas del día seleccionado en móvil.
+  */
+  const formattedSelectedDate = useMemo(() => {
+    const parts = selectedDateISO.split("-");
+    if (parts.length !== 3) return "";
+    const [,, dStr] = parts;
+    return `${parseInt(dStr, 10)} de ${monthNames[month]}`;
+  }, [selectedDateISO, month, monthNames]);
+
   return (
     <div className="business-calendar">
       <div className="calendar-header">
@@ -197,9 +219,18 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
           
           const dayBookings = bookingsByDateMap[isoKey] || [];
           const isToday = isoKey === getTodayISO();
+          
+          /* CAMBIO RESPONSIVE: Validamos si este día coincide con el seleccionado por el usuario */
+          const isSelected = isoKey === selectedDateISO;
 
           return (
-            <div key={isoKey} className={`calendar-cell ${isToday ? "calendar-cell--today" : ""}`}>
+            <div 
+              key={isoKey} 
+              /* CAMBIO RESPONSIVE: Guardamos la fecha al hacer click (ideal para interacción táctil) */
+              onClick={() => setSelectedDateISO(isoKey)}
+              /* CAMBIO RESPONSIVE: Añadimos la clase condicional 'calendar-cell--selected' */
+              className={`calendar-cell ${isToday ? "calendar-cell--today" : ""} ${isSelected ? "calendar-cell--selected" : ""}`}
+            >
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
                 {dayBookings.sort((a, b) => a.time.localeCompare(b.time)).map((b) => (
@@ -216,6 +247,28 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
           );
         })}
       </div>
+
+      {/* CAMBIO RESPONSIVE: Añadimos este bloque contenedor de la lista inferior. 
+        Por CSS (media queries que implementamos previamente) estará oculto en desktop y 
+        se mostrará sólo en móviles, haciendo el flujo del dashboard ultra utilizable.
+      */}
+      <div className="mobile-active-day-events">
+        <h4>Reservas para el {formattedSelectedDate}:</h4>
+        {selectedDayBookings.length === 0 ? (
+          <p style={{ fontSize: "0.85rem", color: "var(--cal-text-muted)", margin: 0 }}>
+            No hay citas agendadas para este día.
+          </p>
+        ) : (
+          <div className="mobile-event-list">
+            {selectedDayBookings.map((b) => (
+              <div key={b.id} className={`mobile-event-item event-status--${b.status}`}>
+                <strong>{b.time}</strong>
+                <span>{b.serviceName}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -230,7 +283,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // NUEVO ESTADO: Controla si la empresa visualiza el "predeterminado" (listado de hoy) o el "calendario"
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
 
   useEffect(() => {
@@ -287,7 +339,6 @@ export default function DashboardPage() {
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
         
-        {/* MODIFICACIÓN: Contenedor con botones de acción dinámica según el rol y modo */}
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {user?.role === "empresa" && (
             <button 
@@ -337,9 +388,6 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* MODIFICACIÓN: Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
-        Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards).
-      */}
       {user?.role === "empresa" && viewMode === "calendar" ? (
         <section className="section-card" style={{ width: "100%" }}>
           <div className="panel-title-row" style={{ marginBottom: "16px" }}>
