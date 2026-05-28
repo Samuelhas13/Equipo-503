@@ -38,7 +38,7 @@ export class AppointmentsController {
 
   // admin + empresa → ven el listado completo
   @Get()
-  @Roles('admin', 'empresa')
+  @Roles('admin', 'empresa', 'usuario')
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const pageNum = page ? parseInt(page, 10) : 1;

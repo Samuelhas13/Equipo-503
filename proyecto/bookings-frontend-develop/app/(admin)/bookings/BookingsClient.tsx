@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import type {
@@ -261,18 +263,17 @@ export default function BookingsClient({
     const initialCustomerId = user?.role === "usuario" ? (user.customerId || 1) : 1;
     const initialBusinessId = user?.role === "empresa" ? (user.businessId || 1) : 1;
 
-    // TODO: restore getTodayString() and getCurrentTimeString() properly if they exist, or remove if unused in the original code. 
-    // They are missing from the imports. Let's just keep them as is and hope they are defined somewhere or we'll fix it if it breaks.
-    // Wait, let's look closer... getTodayString and getCurrentTimeString are not defined in the file. 
-    // Ah, wait. I should use the correct values. Let's use empty strings if they don't exist, or keep the original. 
-    setCreateForm({
-      date: "",
-      time: "",
-      status: "pending",
-      customerId: initialCustomerId,
-      businessId: initialBusinessId,
-      serviceName: "",
-    });
+      // Set default date to tomorrow for regular users
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      setCreateForm({
+        date: tomorrowStr,
+        time: "",
+        status: "pending",
+        customerId: initialCustomerId,
+        businessId: initialBusinessId,
+        serviceName: "",
+      }); 
 
     // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
@@ -336,17 +337,48 @@ export default function BookingsClient({
     setSuccessMessage("");
     setErrorMessage("");
 
-    try {
-      const created = await createAppointment(createForm);
-      setBookings((prev) => [created, ...prev]);
-      resetCreateForm();
-      setIsCreateOpen(false);
-      setSuccessMessage("Reserva creada correctamente.");
-    } catch {
-      setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
-    } finally {
-      setLoadingCreate(false);
-    }
+      // Validation for usuarios: date must be tomorrow (only for role "usuario")
+      if (user?.role === "usuario") {
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        if (createForm.date !== tomorrowStr) {
+          setErrorMessage("La fecha debe ser el día de mañana.");
+          setLoadingCreate(false);
+          return;
+        }
+      }
+     const [hStr, mStr] = createForm.time.split(":");
+     const h = Number(hStr);
+     const m = Number(mStr);
+     const totalM = h * 60 + m;
+     const validStep = m % 30 === 0;
+     const inMorning = totalM >= 8 * 60 && totalM <= 14 * 60;
+     const inAfternoon = totalM >= 16 * 60 && totalM <= 19 * 60;
+     if (!validStep || !(inMorning || inAfternoon)) {
+       setErrorMessage(
+         "La hora debe ser en intervalos de 30 min entre 08:00‑14:00 o 16:00‑20:00."
+       );
+       setLoadingCreate(false);
+       return;
+     }
+
+      // Validate selected business exists
+      if (!BUSINESS_NAMES[createForm.businessId]) {
+        setErrorMessage('Seleccione un comercio válido.');
+        setLoadingCreate(false);
+        return;
+      }
+      try {
+       const created = await createAppointment(createForm);
+       setBookings((prev) => [created, ...prev]);
+       resetCreateForm();
+       setIsCreateOpen(false);
+       setSuccessMessage("Reserva creada correctamente.");
+     } catch {
+       setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
+     } finally {
+       setLoadingCreate(false);
+     }
   }
 
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -358,6 +390,20 @@ export default function BookingsClient({
     setErrorMessage("");
 
     try {
+
+      const [hStr, mStr] = editForm.time.split(":");
+      const h = Number(hStr);
+      const m = Number(mStr);
+      const totalM = h * 60 + m;
+      const validStep = m % 15 === 0;
+      const inMorning = totalM >= 8 * 60 && totalM <= 14 * 60;
+      const inAfternoon = totalM >= 16 * 60 && totalM <= 20 * 60;
+      if (!validStep || !(inMorning || inAfternoon)) {
+        setErrorMessage("La hora debe ser en intervalos de 15 min entre 08:00‑14:00 o 16:00‑19:00.");
+        setLoadingEdit(false);
+        return;
+      }
+
       const payload: UpdateBookingDto = {
         date: editForm.date,
         time: editForm.time,
@@ -502,17 +548,20 @@ export default function BookingsClient({
                 placeholder="Customer ID"
                 required
               />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.businessId}
-                onChange={(e) =>
-                  updateCreateForm("businessId", Number(e.target.value))
-                }
-                placeholder="Business ID"
-                required
-              />
+               <select
+                 className="select"
+                 value={createForm.businessId}
+                 onChange={(e) =>
+                   updateCreateForm("businessId", Number(e.target.value))
+                 }
+                 required
+               >
+                 {Object.entries(BUSINESS_NAMES).map(([id, name]) => (
+                   <option key={id} value={Number(id)}>
+                     {name}
+                   </option>
+                 ))}
+               </select>
               <input
                 className="input input--full"
                 type="text"
