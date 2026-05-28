@@ -227,6 +227,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // NUEVO ESTADO: Controla si la empresa visualiza el "predeterminado" (listado de hoy) o el "calendario"
+  const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
+
   useEffect(() => {
     if (user?.role === "usuario") {
       router.push("/bookings");
@@ -280,7 +283,20 @@ export default function DashboardPage() {
           <h2>Dashboard overview</h2>
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
-        <button className="primary-btn" type="button" onClick={handleExportReport}>Export report</button>
+        
+        {/* MODIFICACIÓN: Contenedor con botones de acción dinámica según el rol y modo */}
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {user?.role === "empresa" && (
+            <button 
+              className="secondary-btn" 
+              type="button" 
+              onClick={() => setViewMode(viewMode === "default" ? "calendar" : "default")}
+            >
+              {viewMode === "default" ? "📅 Ver Calendario" : "📋 Ver Predeterminado"}
+            </button>
+          )}
+          <button className="primary-btn" type="button" onClick={handleExportReport}>Export report</button>
+        </div>
       </section>
 
       <section className="kpi-grid">
@@ -318,22 +334,24 @@ export default function DashboardPage() {
         />
       </section>
 
-      <section className="dashboard-prueba-lg dashboard-prueba-responsive">
-        {/* INTERCAMBIO DINÁMICO: Si es empresa monta el Calendario, si es Admin la tabla */}
-        {user?.role === "empresa" ? (
-          <div className="section-card" style={{ flex: 1 }}>
-            <div className="panel-title-row" style={{ marginBottom: "16px" }}>
-              <h3 className="panel-title">Calendario Mensual de Citas</h3>
-            </div>
-            {loading ? (
-              <p className="table-feedback">Cargando agenda...</p>
-            ) : error ? (
-              <p className="table-feedback table-feedback--error">{error}</p>
-            ) : (
-              <BusinessCalendar bookings={filteredBookings} />
-            )}
+      {/* MODIFICACIÓN: Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
+        Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards).
+      */}
+      {user?.role === "empresa" && viewMode === "calendar" ? (
+        <section className="section-card" style={{ width: "100%" }}>
+          <div className="panel-title-row" style={{ marginBottom: "16px" }}>
+            <h3 className="panel-title">Calendario Mensual de Citas</h3>
           </div>
-        ) : (
+          {loading ? (
+            <p className="table-feedback">Cargando agenda...</p>
+          ) : error ? (
+            <p className="table-feedback table-feedback--error">{error}</p>
+          ) : (
+            <BusinessCalendar bookings={filteredBookings} />
+          )}
+        </section>
+      ) : (
+        <section className="dashboard-prueba-lg dashboard-prueba-responsive">
           <div className="section-card">
             <div className="panel-title-row">
               <h3 className="panel-title">Próximas reservas</h3>
@@ -381,32 +399,32 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-        )}
 
-        <div className="info-stack dashboard-cartas-lg">
-          <div className="info-box">
-            <p className="info-box__eyebrow">Siguiente reserva</p>
-            {nextBooking ? (
-              <>
-                <p className="info-box__title">Cliente #{nextBooking.customerId}</p>
-                <p className="info-box__text">{nextBooking.time} · {nextBooking.serviceName}</p>
-              </>
-            ) : (
-              <p className="info-box__text">Sin reservas hoy</p>
-            )}
+          <div className="info-stack dashboard-cartas-lg">
+            <div className="info-box">
+              <p className="info-box__eyebrow">Siguiente reserva</p>
+              {nextBooking ? (
+                <>
+                  <p className="info-box__title">Cliente #{nextBooking.customerId}</p>
+                  <p className="info-box__text">{nextBooking.time} · {nextBooking.serviceName}</p>
+                </>
+              ) : (
+                <p className="info-box__text">Sin reservas hoy</p>
+              )}
+            </div>
+            <div className="info-box">
+              <p className="info-box__eyebrow">{user?.role === "empresa" ? "Mi Comercio" : "Comercio destacado"}</p>
+              <p className="info-box__title">{user?.role === "empresa" ? user.name : "Restaurante Marea"}</p>
+              <p className="info-box__text">{user?.role === "empresa" ? `${todayBookings.length} reservas hoy` : "6 reservas hoy"}</p>
+            </div>
+            <div className="info-box">
+              <p className="info-box__eyebrow">Recordatorios</p>
+              <p className="info-box__title">{pendingBookings.length} confirmaciones pendientes</p>
+              <p className="info-box__text">Revisión recomendada esta mañana</p>
+            </div>
           </div>
-          <div className="info-box">
-            <p className="info-box__eyebrow">{user?.role === "empresa" ? "Mi Comercio" : "Comercio destacado"}</p>
-            <p className="info-box__title">{user?.role === "empresa" ? user.name : "Restaurante Marea"}</p>
-            <p className="info-box__text">{user?.role === "empresa" ? `${todayBookings.length} reservas hoy` : "6 reservas hoy"}</p>
-          </div>
-          <div className="info-box">
-            <p className="info-box__eyebrow">Recordatorios</p>
-            <p className="info-box__title">{pendingBookings.length} confirmaciones pendientes</p>
-            <p className="info-box__text">Revisión recomendada esta mañana</p>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
