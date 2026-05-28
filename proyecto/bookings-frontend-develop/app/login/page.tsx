@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, UserRole, MOCK_USERS } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); // UI only
-  const [role, setRole] = useState<UserRole>("admin");
-  const [extraId, setExtraId] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +21,9 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const success = await login(email, role, extraId ? Number(extraId) : undefined);
+      const success = await login(email, password);
       if (!success) {
-        setError("Las credenciales ingresadas no son válidas.");
+        setError("El correo electrónico o la contraseña ingresados no son correctos.");
       }
     } catch (err) {
       setError("Ocurrió un error al intentar iniciar sesión.");
@@ -34,13 +32,17 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (userEmail: string, userRole: UserRole, customId?: number) => {
+  const handleQuickLogin = async (userEmail: string) => {
     setLoading(true);
     setError(null);
     try {
-      await login(userEmail, userRole, customId);
+      const success = await login(userEmail, "123456");
+      if (!success) {
+        setError("Error al realizar el inicio de sesión rápido.");
+      }
     } catch (err) {
       setError("Error al realizar el inicio de sesión rápido.");
+    } finally {
       setLoading(false);
     }
   };
@@ -60,25 +62,6 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="login-form">
-          <label className="login-label">
-            Rol de Acceso
-            <select
-              className="login-input"
-              value={role}
-              onChange={(e) => {
-                setRole(e.target.value as UserRole);
-                // Clear inputs if switching roles to avoid confusion
-                setEmail("");
-                setExtraId("");
-              }}
-              style={{ background: "#211a4f" }}
-            >
-              <option value="admin">Administrador (Admin)</option>
-              <option value="empresa">Comercio / Negocio (Empresa)</option>
-              <option value="usuario">Cliente Particular (Usuario)</option>
-            </select>
-          </label>
-
           <label className="login-label">
             Email
             <input
@@ -102,19 +85,6 @@ export default function LoginPage() {
             />
           </label>
 
-          {role !== "admin" && (
-            <label className="login-label">
-              ID Personalizado (Opcional)
-              <input
-                type="number"
-                className="login-input"
-                value={extraId}
-                onChange={(e) => setExtraId(e.target.value === "" ? "" : Number(e.target.value))}
-                placeholder={role === "empresa" ? "ID de Empresa (ej. 1)" : "ID de Cliente (ej. 1)"}
-              />
-            </label>
-          )}
-
           <button type="submit" className="login-btn" disabled={loading}>
             {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
@@ -125,7 +95,7 @@ export default function LoginPage() {
           <div className="quick-login-grid">
             <div
               className="quick-login-card"
-              onClick={() => handleQuickLogin("admin@bookflow.com", "admin")}
+              onClick={() => handleQuickLogin("admin@bookflow.com")}
             >
               <span style={{ fontSize: "20px" }}>🛡️</span>
               <div className="quick-login-role">Admin</div>
@@ -134,7 +104,7 @@ export default function LoginPage() {
 
             <div
               className="quick-login-card"
-              onClick={() => handleQuickLogin("nova@bookflow.com", "empresa", 1)}
+              onClick={() => handleQuickLogin("nova@bookflow.com")}
             >
               <span style={{ fontSize: "20px" }}>💇</span>
               <div className="quick-login-role">Empresa 1</div>
@@ -143,7 +113,7 @@ export default function LoginPage() {
 
             <div
               className="quick-login-card"
-              onClick={() => handleQuickLogin("juan@bookflow.com", "usuario", 1)}
+              onClick={() => handleQuickLogin("juan@bookflow.com")}
             >
               <span style={{ fontSize: "20px" }}>👤</span>
               <div className="quick-login-role">Usuario 1</div>
@@ -155,7 +125,7 @@ export default function LoginPage() {
             <div style={{ visibility: "hidden" }}></div>
             <div
               className="quick-login-card"
-              onClick={() => handleQuickLogin("marea@bookflow.com", "empresa", 2)}
+              onClick={() => handleQuickLogin("marea@bookflow.com")}
             >
               <span style={{ fontSize: "20px" }}>🍲</span>
               <div className="quick-login-role">Empresa 2</div>
@@ -163,7 +133,7 @@ export default function LoginPage() {
             </div>
             <div
               className="quick-login-card"
-              onClick={() => handleQuickLogin("maria@bookflow.com", "usuario", 2)}
+              onClick={() => handleQuickLogin("maria@bookflow.com")}
             >
               <span style={{ fontSize: "20px" }}>👤</span>
               <div className="quick-login-role">Usuario 2</div>

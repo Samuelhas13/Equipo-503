@@ -16,7 +16,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, role: UserRole, extraId?: number) => Promise<boolean>;
+  login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -75,40 +75,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, role: UserRole, extraId?: number): Promise<boolean> => {
-    // Simple client-side mock authentication logic
-    const matched = MOCK_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role
-    );
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password: password || "" }),
+      });
 
-    if (matched) {
-      const newUser: User = {
-        id: matched.role === "admin" ? 999 : (matched.businessId || matched.customerId || 1),
-        name: matched.name,
-        email: matched.email,
-        role: matched.role,
-        businessId: matched.businessId,
-        customerId: matched.customerId,
-      };
+      if (!res.ok) {
+        return false;
+      }
 
-      setUser(newUser);
-      localStorage.setItem("bookflow_user", JSON.stringify(newUser));
+      const loggedUser: User = await res.json();
+      setUser(loggedUser);
+      localStorage.setItem("bookflow_user", JSON.stringify(loggedUser));
       return true;
+    } catch (e) {
+      console.error("Login request failed", e);
+      return false;
     }
-
-    // Fallback/Custom credentials for testing other IDs manually
-    const generatedUser: User = {
-      id: extraId || 100,
-      name: role === "empresa" ? `Comercio #${extraId || 100}` : `Cliente #${extraId || 100}`,
-      email: email,
-      role: role,
-      businessId: role === "empresa" ? (extraId || 100) : undefined,
-      customerId: role === "usuario" ? (extraId || 100) : undefined,
-    };
-
-    setUser(generatedUser);
-    localStorage.setItem("bookflow_user", JSON.stringify(generatedUser));
-    return true;
   };
 
   const logout = () => {

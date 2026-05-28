@@ -9,7 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer } from './customer.entity';
 import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
-import { Payment } from 'src/payments/payment.entity';
+import { Payment } from '../payments/payment.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Customer, Payment])], // Registra la entidad de base de datos

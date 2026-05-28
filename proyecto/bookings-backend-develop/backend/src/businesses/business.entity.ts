@@ -27,6 +27,10 @@ export class Business {
   @Column({ nullable: true })
   description: string;
 
+  @ApiProperty({ example: '123456', description: 'Contraseña de la empresa' })
+  @Column({ default: '123456' })
+  password: string;
+
   @ApiProperty({ example: '2026-05-14T08:00:00Z', description: 'Fecha de creación' })
   @CreateDateColumn()
   createdAt: Date;
