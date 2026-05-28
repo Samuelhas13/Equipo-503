@@ -125,9 +125,15 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-// ─── NUEVO COMPONENTE: BusinessCalendar ──────────────────────────────────────
-function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+// ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
+// 1. Nos aseguramos de que la interfaz esté declarada e incluya el tipo correcto
+interface BusinessCalendarProps {
+  bookings: Booking[];
+}
+
+// 2. El sub-componente ahora reconocerá perfectamente las propiedades (props)
+function BusinessCalendar({ bookings }: BusinessCalendarProps) {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -137,14 +143,12 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
   ];
 
-  // Estructuración de la matriz de días del mes
   const daysInMonth = useMemo(() => {
     const firstDayIndex = new Date(year, month, 1).getDay();
-    // Adaptar índice para que empiece en lunes (0: domingo -> mover al final)
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const totalDays = new Date(year, month + 1, 0).getDate();
     
-    const cells = [];
+    const cells: (number | null)[] = [];
     for (let i = 0; i < adjustedFirstDay; i++) {
       cells.push(null);
     }
@@ -157,7 +161,6 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
   const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-  // Agrupación ágil de citas indexadas por la fecha respectiva
   const bookingsByDateMap = useMemo(() => {
     const map: Record<string, Booking[]> = {};
     bookings.forEach((b) => {
@@ -171,7 +174,8 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
     <div className="business-calendar">
       <div className="calendar-header">
         <h3>{monthNames[month]} {year}</h3>
-        <div style={{ display: "flex", gap: "8px" }}>
+        
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button onClick={handlePrevMonth} className="calendar-nav-btn" type="button">◀</button>
           <button onClick={handleNextMonth} className="calendar-nav-btn" type="button">▶</button>
         </div>
@@ -187,7 +191,6 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
             return <div key={`empty-${index}`} className="calendar-cell calendar-cell--empty" />;
           }
 
-          // Construcción exacta de la clave ISO "YYYY-MM-DD" local
           const dayString = String(day).padStart(2, "0");
           const monthString = String(month + 1).padStart(2, "0");
           const isoKey = `${year}-${monthString}-${dayString}`;
@@ -199,7 +202,7 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
             <div key={isoKey} className={`calendar-cell ${isToday ? "calendar-cell--today" : ""}`}>
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
-                {dayBookings.sort((a,b) => a.time.localeCompare(b.time)).map((b) => (
+                {dayBookings.sort((a, b) => a.time.localeCompare(b.time)).map((b) => (
                   <div 
                     key={b.id} 
                     className={`calendar-event-pill event-status--${b.status}`}

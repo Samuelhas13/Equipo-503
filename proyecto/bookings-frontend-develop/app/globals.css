@@ -943,11 +943,63 @@ textarea {
    ESTILOS COMPLEMENTARIOS PARA EL CALENDARIO DE RESERVAS (EMPRESA)
    ========================================================================== */
 
+/* Variables por defecto: MODO CLARO (Se aplica de forma nativa) */
 .business-calendar {
-  background: var(--card-background, #1e1b4b); /* Se adapta a tus colores oscuros */
+  --cal-bg: #ffffff;
+  --cal-text-title: #1e1b4b;
+  --cal-text-muted: #64748b;
+  --cal-text-date: #334155;
+  --cal-btn-bg: #e2e8f0;
+  --cal-btn-hover: #cbd5e1;
+  --cal-btn-text: #1e1b4b;
+  --cal-cell-bg: #f8fafc;
+  --cal-cell-border: #e2e8f0;
+  --cal-cell-today-border: #433bff;
+  --cal-cell-today-bg: rgba(67, 59, 255, 0.08);
+  --cal-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+  /* Píldoras de estado optimizadas para contraste en Modo Claro */
+  --status-pending-bg: #fef3c7;
+  --status-pending-text: #b45309;
+  --status-confirmed-bg: #dcfce7;
+  --status-confirmed-text: #15803d;
+  --status-paid-bg: #e0e7ff;
+  --status-paid-text: #433bff;
+}
+
+/* Variables cuando el Sidebar activa el MODO OSCURO (.dark) en el HTML */
+html.dark .business-calendar, 
+.dark .business-calendar {
+  --cal-bg: var(--card-background, #1e1b4b);
+  --cal-text-title: #ffffff;
+  --cal-text-muted: #94a3b8;
+  --cal-text-date: #cbd5e1;
+  --cal-btn-bg: #2e2a72;
+  --cal-btn-hover: #433bff;
+  --cal-btn-text: #ffffff;
+  --cal-cell-bg: rgba(255, 255, 255, 0.03);
+  --cal-cell-border: rgba(255, 255, 255, 0.05);
+  --cal-cell-today-border: #433bff;
+  --cal-cell-today-bg: rgba(67, 59, 255, 0.05);
+  --cal-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* Píldoras de estado optimizadas para contraste en Modo Oscuro */
+  --status-pending-bg: #ef9f27;
+  --status-pending-text: #412402;
+  --status-confirmed-bg: #22c55e;
+  --status-confirmed-text: #14532d;
+  --status-paid-bg: #7f77dd;
+  --status-paid-text: #ffffff;
+}
+
+/* ─── ESTRUCTURA DEL CALENDARIO (Usa las variables automáticamente) ─── */
+.business-calendar {
+  background: var(--cal-bg);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--cal-shadow);
+  /* Transición suave para que el cambio de color no sea brusco */
+  transition: background 0.3s ease, box-shadow 0.3s ease; 
 }
 
 .calendar-header {
@@ -960,25 +1012,25 @@ textarea {
 .calendar-header h3 {
   margin: 0;
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--cal-text-title);
   text-transform: capitalize;
+  transition: color 0.3s ease;
 }
 
 .calendar-nav-btn {
-  background: #2e2a72;
+  background: var(--cal-btn-bg);
   border: none;
-  color: white;
+  color: var(--cal-btn-text);
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
 
 .calendar-nav-btn:hover {
-  background: #433bff;
+  background: var(--cal-btn-hover);
 }
 
-/* Rejilla de días */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -988,20 +1040,21 @@ textarea {
 .calendar-day-name {
   text-align: center;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--cal-text-muted);
   padding-bottom: 8px;
   font-size: 0.9rem;
+  transition: color 0.3s ease;
 }
 
 .calendar-cell {
   min-height: 100px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--cal-cell-bg);
+  border: 1px solid var(--cal-cell-border);
   border-radius: 8px;
   padding: 6px;
   display: flex;
   flex-direction: column;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .calendar-cell--empty {
@@ -1010,18 +1063,18 @@ textarea {
 }
 
 .calendar-cell--today {
-  border-color: #433bff;
-  background: rgba(67, 59, 255, 0.05);
+  border-color: var(--cal-cell-today-border);
+  background: var(--cal-cell-today-bg);
 }
 
 .calendar-date-number {
   font-weight: bold;
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: var(--cal-text-date);
   margin-bottom: 6px;
+  transition: color 0.3s ease;
 }
 
-/* Contenedor interno de eventos */
 .calendar-events-container {
   display: flex;
   flex-direction: column;
@@ -1030,33 +1083,31 @@ textarea {
   max-height: 80px;
 }
 
-/* Etiquetas de citas de las empresas */
 .calendar-event-pill {
   font-size: 0.75rem;
   padding: 3px 6px;
   border-radius: 4px;
-  color: white;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
   font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Colores de las píldoras según el estado que maneja tu NestJS */
 .event-status--pending {
-  background-color: #ef9f27;
-  color: #412402;
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
 }
 
 .event-status--confirmed {
-  background-color: #22c55e;
-  color: #14532d;
+  background-color: var(--status-confirmed-bg);
+  color: var(--status-confirmed-text);
 }
 
 .event-status--paid {
-  background-color: #7f77dd;
-  color: #fff;
+  background-color: var(--status-paid-bg);
+  color: var(--status-paid-text);
 }
 
 
