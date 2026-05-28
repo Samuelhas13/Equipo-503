@@ -1681,3 +1681,44 @@ body {
     align-items: stretch;
   }
 }
+/*Mejoras al boton de sidebar para meter y sacar el componente */
+/* Contenedor del título y el botón juntos */
+.admin-sidebar__brand-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+/* Transición suave para el ancho del sidebar */
+.admin-sidebar {
+  width: 260px;
+  transition: width 0.3s ease;
+  overflow: hidden; /* Evita que el texto desborde al achicarse */
+}
+.color-boton {
+  background-color: var(--purple-800);
+  border-radius: 20%;
+  color : white;
+}
+
+.admin-sidebar-boton--collapsed {
+  justify-content: center; /* Centra el botón cuando el sidebar está colapsado */
+  align-items: center;
+  margin-left: 10px;
+
+}
+
+
+/* Cuando el sidebar esté colapsado */
+.admin-sidebar--collapsed {
+  width: 85px; /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
+}
+
+/* Ocultar el texto del título, subtítulo, etiquetas de menú y tema cuando esté colapsado */
+.admin-sidebar--collapsed .admin-sidebar__brand,
+.admin-sidebar--collapsed .admin-sidebar__label,
+.admin-sidebar--collapsed .theme-toggle-btn__label,
+.admin-sidebar--collapsed .admin-sidebar__subtitle {
+  display: none; 
+}
