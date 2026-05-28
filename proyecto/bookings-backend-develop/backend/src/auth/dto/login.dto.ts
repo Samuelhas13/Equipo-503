@@ -6,4 +6,8 @@ export class LoginDto {
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
   @IsNotEmpty({ message: 'El correo electrónico es requerido' })
   email: string;
+
+  @ApiProperty({ example: '123456', description: 'Contraseña del usuario' })
+  @IsNotEmpty({ message: 'La contraseña es requerida' })
+  password: string;
 }

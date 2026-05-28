@@ -87,6 +87,7 @@ async function bootstrap() {
     business.email = spec.email;
     business.phone = spec.phone;
     business.description = spec.description;
+    business.password = '123456';
     const saved = await businessRepo.save(business);
     businesses.push(saved);
     console.log(`   - Creada empresa específica: ${saved.name} [${saved.category}]`);
@@ -100,6 +101,7 @@ async function bootstrap() {
     business.email = `contacto@${business.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
     business.phone = `+34 6${faker.string.numeric(8)}`;
     business.description = faker.company.catchPhrase();
+    business.password = '123456';
     
     const savedBusiness = await businessRepo.save(business);
     businesses.push(savedBusiness);
@@ -122,6 +124,7 @@ async function bootstrap() {
     customer.phone = spec.phone;
     customer.business = null as any;
     customer.nextBooking = null as any;
+    customer.password = '123456';
     const saved = await customerRepo.save(customer);
     customers.push(saved);
     console.log(`   - Creado cliente específico: ${saved.name}`);
@@ -134,6 +137,7 @@ async function bootstrap() {
     customer.phone = `+34 6${faker.string.numeric(8)}`;
     customer.business = faker.helpers.arrayElement([faker.company.name(), null]) as any;
     customer.nextBooking = null as any; // Se calculará después o se mantendrá como opcional
+    customer.password = '123456';
 
     const savedCustomer = await customerRepo.save(customer);
     customers.push(savedCustomer);

@@ -21,9 +21,9 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const success = await login(email);
+      const success = await login(email, password);
       if (!success) {
-        setError("El correo electrónico ingresado no está registrado.");
+        setError("El correo electrónico o la contraseña ingresados no son correctos.");
       }
     } catch (err) {
       setError("Ocurrió un error al intentar iniciar sesión.");
@@ -36,7 +36,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const success = await login(userEmail);
+      const success = await login(userEmail, "123456");
       if (!success) {
         setError("Error al realizar el inicio de sesión rápido.");
       }

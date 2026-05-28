@@ -16,7 +16,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string) => Promise<boolean>;
+  login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string): Promise<boolean> => {
+  const login = async (email: string, password?: string): Promise<boolean> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const res = await fetch(`${API_URL}/auth/login`, {
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password: password || "" }),
       });
 
       if (!res.ok) {
