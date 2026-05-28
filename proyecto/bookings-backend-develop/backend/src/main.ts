@@ -23,7 +23,7 @@ async function bootstrap() {
   // 3. CONFIGURACIÓN DE SWAGGER
   const config = new DocumentBuilder()
     .setTitle('API de Reservas')
-    .setDescription(`🔑 **Tu palabra secreta generada para esta sesión es:** \`${palabraAleatoria}\`. Cópiala y pégala en el botón **Authorize** de abajo.`)
+    .setDescription('API para gestionar reservas, clientes y autenticación en el sistema de reservas.')
     .setVersion('1.0')
     .addBearerAuth(
       {

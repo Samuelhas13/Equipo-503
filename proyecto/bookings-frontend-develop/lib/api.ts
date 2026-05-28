@@ -46,10 +46,24 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
     headers: authHeaders(options.headers as Record<string, string>),
   });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.message || `Error ${res.status}: ${res.statusText}`);
+if (!res.ok) {
+  const body = await res.json().catch(() => null);
+
+  if (res.status === 401) {
+    throw new Error("No has iniciado sesión.");
   }
+
+  if (res.status === 403) {
+    throw new Error(
+      body?.message ||
+      "No tienes permisos para acceder a este recurso."
+    );
+  }
+
+  throw new Error(
+    body?.message || `Error ${res.status}: ${res.statusText}`
+  );
+}
 
   return res.json();
 }

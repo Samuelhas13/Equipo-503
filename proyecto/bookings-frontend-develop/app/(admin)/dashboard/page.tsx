@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-// Importamos la función y los tipos desde la capa de API
 import {
   getAppointments,
   getExportReportUrl,
@@ -11,29 +10,8 @@ import {
   type BookingStatus,
 } from "@/lib/api";
 
-// MODIFICADO: DashboardBookingStatus ahora incluye todos los estados posibles del backend.
-// Antes solo tenía "pending" | "confirmed" | "paid", lo que causaba errores de tipo
-// cuando el backend devolvía "canceled" o "completed".
 type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
 
-type DashboardBooking = {
-  time: string;
-  client: string;
-  business: string;
-  service: string;
-  status: DashboardBookingStatus;
-};
-
-// allBookings ya no se usa, los datos vienen de la API. Se mantiene el tipo por compatibilidad
-const allBookings: DashboardBooking[] = [
-  { time: "09:00", client: "María López", business: "Peluquería Nova", service: "Corte + peinado", status: "confirmed" },
-  { time: "10:30", client: "Carlos Pérez", business: "Restaurante Marea", service: "Reserva para 4", status: "pending" },
-  { time: "12:00", client: "Lucía Sánchez", business: "Barber Studio", service: "Corte caballero", status: "paid" },
-  { time: "14:00", client: "Alejandro Ruiz", business: "Gimnasio Fit", service: "Entrenamiento", status: "confirmed" },
-  { time: "16:30", client: "Ana Gómez", business: "Clínica Dental", service: "Revisión", status: "pending" },
-];
-
-// MODIFICADO: Badge ahora cubre todos los estados del backend usando un map tipado.
 function Badge({ status }: { status: DashboardBookingStatus }) {
   const map: Record<DashboardBookingStatus, string> = {
     pending: "Pendiente",
@@ -46,13 +24,9 @@ function Badge({ status }: { status: DashboardBookingStatus }) {
 }
 
 // ─── KpiCard — Variante D ──────────────────────────────────────────────────────
-// NUEVO: Componente KpiCard rediseñado con la Variante D.
 interface KpiCardColor {
-  // Color del borde lateral izquierdo y de las barras del histograma
   bar: string;
-  // Fondo del badge de tendencia
   trendBg: string;
-  // Color del texto del badge de tendencia
   trendText: string;
 }
 
@@ -133,28 +107,11 @@ function KpiCard({
   );
 }
 
-// ─── Configuración de las tarjetas KPI ────────────────────────────────────────
 const KPI_COLORS: Record<string, KpiCardColor> = {
-  teal: {
-    bar: "#1D9E75",
-    trendBg: "#E1F5EE",
-    trendText: "#085041",
-  },
-  blue: {
-    bar: "#378ADD",
-    trendBg: "#E6F1FB",
-    trendText: "#042C53",
-  },
-  amber: {
-    bar: "#EF9F27",
-    trendBg: "#FAEEDA",
-    trendText: "#412402",
-  },
-  purple: {
-    bar: "#7F77DD",
-    trendBg: "#EEEDFE",
-    trendText: "#26215C",
-  },
+  teal: { bar: "#1D9E75", trendBg: "#E1F5EE", trendText: "#085041" },
+  blue: { bar: "#378ADD", trendBg: "#E6F1FB", trendText: "#042C53" },
+  amber: { bar: "#EF9F27", trendBg: "#FAEEDA", trendText: "#412402" },
+  purple: { bar: "#7F77DD", trendBg: "#EEEDFE", trendText: "#26215C" },
 };
 
 const ACTIVITY_DATA = {
@@ -168,6 +125,99 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
+// ─── NUEVO COMPONENTE: BusinessCalendar ──────────────────────────────────────
+function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const monthNames = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
+
+  // Estructuración de la matriz de días del mes
+  const daysInMonth = useMemo(() => {
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    // Adaptar índice para que empiece en lunes (0: domingo -> mover al final)
+    const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    
+    const cells = [];
+    for (let i = 0; i < adjustedFirstDay; i++) {
+      cells.push(null);
+    }
+    for (let day = 1; day <= totalDays; day++) {
+      cells.push(day);
+    }
+    return cells;
+  }, [year, month]);
+
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Agrupación ágil de citas indexadas por la fecha respectiva
+  const bookingsByDateMap = useMemo(() => {
+    const map: Record<string, Booking[]> = {};
+    bookings.forEach((b) => {
+      if (!map[b.date]) map[b.date] = [];
+      map[b.date].push(b);
+    });
+    return map;
+  }, [bookings]);
+
+  return (
+    <div className="business-calendar">
+      <div className="calendar-header">
+        <h3>{monthNames[month]} {year}</h3>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button onClick={handlePrevMonth} className="calendar-nav-btn" type="button">◀</button>
+          <button onClick={handleNextMonth} className="calendar-nav-btn" type="button">▶</button>
+        </div>
+      </div>
+
+      <div className="calendar-grid">
+        {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
+          <div key={d} className="calendar-day-name">{d}</div>
+        ))}
+
+        {daysInMonth.map((day, index) => {
+          if (day === null) {
+            return <div key={`empty-${index}`} className="calendar-cell calendar-cell--empty" />;
+          }
+
+          // Construcción exacta de la clave ISO "YYYY-MM-DD" local
+          const dayString = String(day).padStart(2, "0");
+          const monthString = String(month + 1).padStart(2, "0");
+          const isoKey = `${year}-${monthString}-${dayString}`;
+          
+          const dayBookings = bookingsByDateMap[isoKey] || [];
+          const isToday = isoKey === getTodayISO();
+
+          return (
+            <div key={isoKey} className={`calendar-cell ${isToday ? "calendar-cell--today" : ""}`}>
+              <span className="calendar-date-number">{day}</span>
+              <div className="calendar-events-container">
+                {dayBookings.sort((a,b) => a.time.localeCompare(b.time)).map((b) => (
+                  <div 
+                    key={b.id} 
+                    className={`calendar-event-pill event-status--${b.status}`}
+                    title={`[${b.time}] Servicio: ${b.serviceName}`}
+                  >
+                    {b.time} - {b.serviceName}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── COMPONENTE RAÍZ PRINCIPAL ───────────────────────────────────────────────
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -177,14 +227,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Guard: redirect usuario to /bookings
   useEffect(() => {
     if (user?.role === "usuario") {
       router.push("/bookings");
     }
   }, [user, router]);
 
-  // Fetch al montar el componente
   useEffect(() => {
     async function load() {
       try {
@@ -201,15 +249,15 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  // Filter bookings based on role
-  const filteredBookings = bookings.filter((b) => {
-    if (user?.role === "empresa") {
-      return b.businessId === user.businessId;
-    }
-    return true;
-  });
+  const filteredBookings = useMemo(() => {
+    return bookings.filter((b) => {
+      if (user?.role === "empresa") {
+        return b.businessId === user.businessId;
+      }
+      return true;
+    });
+  }, [bookings, user]);
 
-  // KPIs derivados de los datos reales filtrados
   const today = getTodayISO();
   const todayBookings = filteredBookings.filter((b) => b.date === today);
   const pendingBookings = filteredBookings.filter((b) => b.status === "pending");
@@ -271,54 +319,69 @@ export default function DashboardPage() {
       </section>
 
       <section className="dashboard-prueba-lg dashboard-prueba-responsive">
-        <div className="section-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Próximas reservas</h3>
-
-            <button
-              className="panel-subtle-link"
-              type="button"
-              onClick={() => setShowAll(!showAll)}
-            >
-              {showAll ? "Ver menos" : "Ver todas"}
-            </button>
-          </div>
-
-          <div className="table-responsive">
-            {loading && <p className="table-feedback">Cargando reservas...</p>}
-            {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
-            {!loading && !error && todayBookings.length === 0 && (
-              <p className="table-feedback">No hay reservas para hoy.</p>
+        {/* INTERCAMBIO DINÁMICO: Si es empresa monta el Calendario, si es Admin la tabla */}
+        {user?.role === "empresa" ? (
+          <div className="section-card" style={{ flex: 1 }}>
+            <div className="panel-title-row" style={{ marginBottom: "16px" }}>
+              <h3 className="panel-title">Calendario Mensual de Citas</h3>
+            </div>
+            {loading ? (
+              <p className="table-feedback">Cargando agenda...</p>
+            ) : error ? (
+              <p className="table-feedback table-feedback--error">{error}</p>
+            ) : (
+              <BusinessCalendar bookings={filteredBookings} />
             )}
+          </div>
+        ) : (
+          <div className="section-card">
+            <div className="panel-title-row">
+              <h3 className="panel-title">Próximas reservas</h3>
+              <button
+                className="panel-subtle-link"
+                type="button"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? "Ver menos" : "Ver todas"}
+              </button>
+            </div>
 
-            {!loading && !error && todayBookings.length > 0 && (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Hora</th>
-                    <th>Cliente</th>
-                    <th>Comercio</th>
-                    <th>Servicio</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedBookings.map((booking) => (
-                    <tr key={booking.id}>
-                      <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                      <td>#{booking.customerId}</td>
-                      <td>#{booking.businessId}</td>
-                      <td>{booking.serviceName}</td>
-                      <td>
-                        <Badge status={booking.status} />
-                      </td>
+            <div className="table-responsive">
+              {loading && <p className="table-feedback">Cargando reservas...</p>}
+              {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
+              {!loading && !error && todayBookings.length === 0 && (
+                <p className="table-feedback">No hay reservas para hoy.</p>
+              )}
+
+              {!loading && !error && todayBookings.length > 0 && (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Cliente</th>
+                      <th>Comercio</th>
+                      <th>Servicio</th>
+                      <th>Estado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {displayedBookings.map((booking) => (
+                      <tr key={booking.id}>
+                        <td style={{ fontWeight: 600 }}>{booking.time}</td>
+                        <td>#{booking.customerId}</td>
+                        <td>#{booking.businessId}</td>
+                        <td>{booking.serviceName}</td>
+                        <td>
+                          <Badge status={booking.status as DashboardBookingStatus} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="info-stack dashboard-cartas-lg">
           <div className="info-box">
