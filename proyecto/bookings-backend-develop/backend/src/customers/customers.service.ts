@@ -19,6 +19,15 @@ export class CustomersService {
   ) { }
 
   /**
+   * Busca un cliente por su correo electrónico.
+   * @param email Correo del cliente a buscar
+   * @returns La entidad Customer o null si no se encuentra
+   */
+  async findByEmail(email: string): Promise<Customer | null> {
+    return this.customersRepository.findOneBy({ email });
+  }
+
+  /**
    * Obtiene todos los clientes registrados.
    * @returns Lista de clientes ordenados del más reciente al más antiguo
    */

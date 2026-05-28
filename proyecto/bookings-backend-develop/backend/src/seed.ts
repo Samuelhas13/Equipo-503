@@ -28,6 +28,10 @@ const CATEGORIES_WITH_SERVICES = [
     name: 'Veterinaria & Mascotas',
     services: ['Consulta veterinaria general', 'Vacunación anual', 'Peluquería canina', 'Limpieza dental para mascotas'],
   },
+  {
+    name: 'Gastronomía & Restauración',
+    services: ['Cena menú degustación', 'Almuerzo ejecutivo', 'Reserva de mesa', 'Brunch especial'],
+  },
 ];
 
 const TIME_SLOTS = [
@@ -58,6 +62,35 @@ async function bootstrap() {
   // 2. Crear Empresas (Businesses)
   console.log('🏢 Generando empresas...');
   const businesses: Business[] = [];
+
+  const specificBusinesses = [
+    {
+      name: 'Peluquería Nova',
+      category: 'Peluquería & Estética',
+      email: 'nova@bookflow.com',
+      phone: '+34 600 123 456',
+      description: 'Cortes, peinados y tratamientos capilares de vanguardia.',
+    },
+    {
+      name: 'Restaurante Marea',
+      category: 'Gastronomía & Restauración',
+      email: 'marea@bookflow.com',
+      phone: '+34 600 987 654',
+      description: 'Gastronomía marina y de autor frente al mar.',
+    },
+  ];
+
+  for (const spec of specificBusinesses) {
+    const business = new Business();
+    business.name = spec.name;
+    business.category = spec.category;
+    business.email = spec.email;
+    business.phone = spec.phone;
+    business.description = spec.description;
+    const saved = await businessRepo.save(business);
+    businesses.push(saved);
+    console.log(`   - Creada empresa específica: ${saved.name} [${saved.category}]`);
+  }
   
   for (let i = 0; i < CATEGORIES_WITH_SERVICES.length; i++) {
     const catInfo = CATEGORIES_WITH_SERVICES[i];
@@ -70,14 +103,31 @@ async function bootstrap() {
     
     const savedBusiness = await businessRepo.save(business);
     businesses.push(savedBusiness);
-    console.log(`   - Creada empresa: ${savedBusiness.name} [${savedBusiness.category}]`);
+    console.log(`   - Creada empresa aleatoria: ${savedBusiness.name} [${savedBusiness.category}]`);
   }
 
   // 3. Crear Clientes (Customers)
   console.log('👥 Generando clientes...');
   const customers: Customer[] = [];
+
+  const specificCustomers = [
+    { name: 'Juan Pérez', email: 'juan@bookflow.com', phone: '+34 600 111 222' },
+    { name: 'María López', email: 'maria@bookflow.com', phone: '+34 600 333 444' },
+  ];
+
+  for (const spec of specificCustomers) {
+    const customer = new Customer();
+    customer.name = spec.name;
+    customer.email = spec.email;
+    customer.phone = spec.phone;
+    customer.business = null as any;
+    customer.nextBooking = null as any;
+    const saved = await customerRepo.save(customer);
+    customers.push(saved);
+    console.log(`   - Creado cliente específico: ${saved.name}`);
+  }
   
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 18; i++) {
     const customer = new Customer();
     customer.name = faker.person.fullName();
     customer.email = `cliente_${i}_${faker.string.alphanumeric(4).toLowerCase()}@example.com`;

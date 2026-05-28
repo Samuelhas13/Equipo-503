@@ -13,6 +13,15 @@ export class BusinessesService {
   ) {}
 
   /**
+   * Busca una empresa por su correo electrónico.
+   * @param email Correo de la empresa a buscar
+   * @returns La entidad Business o null si no se encuentra
+   */
+  async findByEmail(email: string): Promise<Business | null> {
+    return this.businessesRepository.findOneBy({ email });
+  }
+
+  /**
    * Obtiene todas las empresas registradas.
    */
   findAll() {
