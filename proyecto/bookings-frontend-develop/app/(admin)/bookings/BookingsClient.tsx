@@ -3,6 +3,7 @@
 // 1. Importamos useRef de React
 import { useMemo, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import type {
   Booking,
   BookingStatus,
@@ -52,6 +53,108 @@ export default function BookingsClient({
   initialBookings: Booking[];
 }) {
   const { user } = useAuth();
+
+  // Obtenemos el idioma global para traducir los textos de bookings
+const { language } = useLanguage();
+
+// Textos de la página bookings en español e inglés
+const texts = {
+  es: {
+    title: "Lista de reservas",
+    subtitle: "Gestión de reservas conectada con la API.",
+    newBooking: "Nueva reserva",
+    totalBookings: "Total reservas",
+    pending: "Pendientes",
+    confirmed: "Confirmadas",
+    paid: "Pagadas",
+    availableRecords: "Registros disponibles",
+    needsFollowUp: "Requieren seguimiento",
+    activeStatus: "Estado activo",
+    closedBookings: "Reservas cerradas",
+    newBookingTitle: "Nueva reserva",
+    editBookingTitle: "Editar reserva",
+    cancel: "Cancelar",
+    date: "Fecha",
+    time: "Hora",
+    status: "Estado",
+    pendingOption: "Pendiente",
+    confirmedOption: "Confirmada",
+    paidOption: "Pagada",
+    customerId: "ID Cliente",
+    businessId: "ID Negocio",
+    business: "Comercio",
+    people: "Personas (1-5)",
+    service: "Servicio",
+    search: "Buscar",
+    searching: "Buscando...",
+    customerFound: "Cliente seleccionado encontrado:",
+    name: "Nombre",
+    phone: "Teléfono",
+    createBooking: "Crear reserva",
+    creating: "Guardando...",
+    saveChanges: "Guardar cambios",
+    saving: "Guardando...",
+    registeredBookings: "Reservas registradas",
+    all: "Todas",
+    id: "ID",
+    customer: "Customer",
+    actions: "Acciones",
+    edit: "Editar",
+    delete: "Eliminar",
+    deleteTitle: "Eliminar reserva",
+    deleteText: "¿Seguro que quieres eliminar la reserva",
+    deleteWarning: "Esta acción no se puede deshacer.",
+    deleting: "Eliminando...",
+  },
+  en: {
+    title: "Bookings list",
+    subtitle: "Booking management connected to the API.",
+    newBooking: "New booking",
+    totalBookings: "Total bookings",
+    pending: "Pending",
+    confirmed: "Confirmed",
+    paid: "Paid",
+    availableRecords: "Available records",
+    needsFollowUp: "Needs follow-up",
+    activeStatus: "Active status",
+    closedBookings: "Closed bookings",
+    newBookingTitle: "New booking",
+    editBookingTitle: "Edit booking",
+    cancel: "Cancel",
+    date: "Date",
+    time: "Time",
+    status: "Status",
+    pendingOption: "Pending",
+    confirmedOption: "Confirmed",
+    paidOption: "Paid",
+    customerId: "Customer ID",
+    businessId: "Business ID",
+    business: "Business",
+    people: "People (1-5)",
+    service: "Service",
+    search: "Search",
+    searching: "Searching...",
+    customerFound: "Selected customer found:",
+    name: "Name",
+    phone: "Phone",
+    createBooking: "Create booking",
+    creating: "Saving...",
+    saveChanges: "Save changes",
+    saving: "Saving...",
+    registeredBookings: "Registered bookings",
+    all: "All",
+    id: "ID",
+    customer: "Customer",
+    actions: "Actions",
+    edit: "Edit",
+    delete: "Delete",
+    deleteTitle: "Delete booking",
+    deleteText: "Are you sure you want to delete booking",
+    deleteWarning: "This action cannot be undone.",
+    deleting: "Deleting...",
+  },
+};
+
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
   const getTodayString = () => {
@@ -340,42 +443,42 @@ export default function BookingsClient({
     <div className="booking-page page-stack">
       <section className="page-hero booking-hero">
         <div>
-          <h2>Bookings list</h2>
-          <p>Gestión de reservas conectada con la API.</p>
+          <h2>{texts[language].title}</h2>
+          <p>{texts[language].subtitle}</p>
         </div>
 
         <button className="primary-btn" type="button" onClick={openCreateForm}>
-          Nueva reserva
+         {texts[language].newBooking}
         </button>
       </section>
 
       <section className="kpi-grid">
         <div className="kpi-card">
-          <p className="kpi-card__label">Total reservas</p>
+          <p className="kpi-card__label">{texts[language].totalBookings}</p>
           <h3 className="kpi-card__value">{totalCount}</h3>
-          <p className="kpi-card__meta">Registros disponibles</p>
+          <p className="kpi-card__meta">{texts[language].availableRecords}</p>
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Pendientes</p>
+          <p className="kpi-card__label">{texts[language].pending}</p>
           <h3 className="kpi-card__value">{pendingCount}</h3>
           <p className="kpi-card__meta kpi-card__meta--warning">
-            Requieren seguimiento
+            {texts[language].needsFollowUp}
           </p>
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Confirmadas</p>
+          <p className="kpi-card__label">{texts[language].confirmed}</p>
           <h3 className="kpi-card__value">{confirmedCount}</h3>
           <p className="kpi-card__meta kpi-card__meta--positive">
-            Estado activo
+            {texts[language].activeStatus}
           </p>
-        </div>
+        </div>  
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Pagadas</p>
+          <p className="kpi-card__label">{texts[language].paid}</p>
           <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">Reservas cerradas</p>
+          <p className="kpi-card__meta">{texts[language].closedBookings}</p>
         </div>
       </section>
 
@@ -383,16 +486,16 @@ export default function BookingsClient({
         /* 5. AÑADIDO: ref={createFormRef} al elemento section */
         <section ref={createFormRef} className="section-card booking-form-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">Nueva reserva</h3>
+            <h3 className="panel-title">{texts[language].newBookingTitle}</h3>
             <button type="button" className="secondary-btn" onClick={closeCreateForm}>
-              Cancelar
+              {texts[language].cancel}
             </button>
           </div>
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Fecha</label>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].date}</label>
                 <input
                   className="input"
                   type="date"
@@ -403,7 +506,7 @@ export default function BookingsClient({
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Hora</label>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].time}</label>
                 <input
                   className="input"
                   type="time"
@@ -413,7 +516,7 @@ export default function BookingsClient({
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Estado</label>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].status}</label>
                 <select
                   className="select"
                   value={createForm.status}
@@ -429,7 +532,7 @@ export default function BookingsClient({
               
               {user?.role !== "usuario" && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Cliente</label>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].customerId}</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       className="input"
@@ -459,7 +562,7 @@ export default function BookingsClient({
 
               {user?.role === "admin" && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Negocio</label>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].businessId}</label>
                   <input
                     className="input"
                     type="number"
@@ -476,7 +579,7 @@ export default function BookingsClient({
 
               {user?.role === "usuario" && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Comercio</label>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].business}</label>
                   <select
                     className="select"
                     value={createForm.businessId}
@@ -492,7 +595,7 @@ export default function BookingsClient({
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Personas (1-5)</label>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].people}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button
                     type="button"
@@ -529,7 +632,7 @@ export default function BookingsClient({
               </div>
 
               <div className="input--full" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Servicio</label>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].service}</label>
                 <input
                   className="input"
                   type="text"
@@ -542,31 +645,33 @@ export default function BookingsClient({
             </div>
 
             {searchedCustomer && (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                padding: '12px 16px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(46, 204, 113, 0.08)',
-                border: '1px solid rgba(46, 204, 113, 0.3)',
-                color: '#27ae60',
-                fontSize: '13px'
-              }}>
-                <strong style={{ fontSize: '14px', color: '#219653' }}>✓ Cliente seleccionado encontrado:</strong>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                  <span><strong>Nombre:</strong> {searchedCustomer.name}</span>
-                  <span><strong>Email:</strong> {searchedCustomer.email}</span>
-                  <span><strong>Teléfono:</strong> {searchedCustomer.phone}</span>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(46, 204, 113, 0.08)',
+                  border: '1px solid rgba(46, 204, 113, 0.3)',
+                  color: '#27ae60',
+                  fontSize: '13px'
+            }}>
+                  <strong style={{ fontSize: "14px", color: "#219653" }}>
+                    ✓ {texts[language].customerFound}
+                  </strong>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                    <span><strong>{texts[language].name}:</strong> {searchedCustomer.name}</span>
+                    <span><strong>Email:</strong> {searchedCustomer.email}</span>
+                    <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+          )}
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
             <div className="message-row">
               <button className="primary-btn" type="submit" disabled={loadingCreate}>
-                {loadingCreate ? "Guardando..." : "Crear reserva"}
+                {loadingCreate ? texts[language].creating : texts[language].createBooking}
               </button>
             </div>
           </form>
@@ -576,132 +681,157 @@ export default function BookingsClient({
       {editingBookingId !== null && (
         /* 6. AÑADIDO: ref={editFormRef} al elemento section */
         <section ref={editFormRef} className="section-card booking-form-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
-            <button type="button" className="secondary-btn" onClick={closeEditForm}>
-              Cancelar
-            </button>
-          </div>
+  <div className="panel-title-row">
+    <h3 className="panel-title">
+      {texts[language].editBookingTitle} #{editingBookingId}
+    </h3>
 
-          <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
-            <div className="form-grid">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Fecha</label>
-                <input
-                  className="input"
-                  type="date"
-                  min={getTodayString()}
-                  value={editForm.date}
-                  onChange={(e) => updateEditForm("date", e.target.value)}
-                  required
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Hora</label>
-                <input
-                  className="input"
-                  type="time"
-                  value={editForm.time}
-                  onChange={(e) => updateEditForm("time", e.target.value)}
-                  required
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Estado</label>
-                <select
-                  className="select"
-                  value={editForm.status}
-                  onChange={(e) =>
-                    updateEditForm("status", e.target.value as BookingStatus)
-                  }
-                >
-                  <option value="pending">Pendiente</option>
-                  <option value="confirmed">Confirmada</option>
-                  <option value="paid">Pagada</option>
-                </select>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Cliente (Inmutable)</label>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  value={editForm.customerId}
-                  placeholder="Customer ID"
-                  disabled
-                  title="El Customer ID no se puede modificar una vez creada la reserva"
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>ID Negocio (Inmutable)</label>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  value={editForm.businessId}
-                  placeholder="Business ID"
-                  disabled
-                  title="El Business ID no se puede modificar una vez creada la reserva"
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Personas (1-5)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => setEditPersons(prev => Math.max(1, prev - 1))}
-                    style={{ padding: '8px 16px', fontSize: '16px', fontWeight: 'bold' }}
-                  >
-                    -
-                  </button>
-                  <input
-                    className="input"
-                    type="number"
-                    min={1}
-                    max={5}
-                    value={editPersons}
-                    onChange={(e) => {
-                      let val = Number(e.target.value);
-                      if (val < 1) val = 1;
-                      if (val > 5) val = 5;
-                      setEditPersons(val);
-                    }}
-                    style={{ width: '60px', textAlign: 'center', fontWeight: 'bold' }}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => setEditPersons(prev => Math.min(5, prev + 1))}
-                    style={{ padding: '8px 16px', fontSize: '16px', fontWeight: 'bold' }}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              <div className="input--full" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Servicio</label>
-                <input
-                  className="input"
-                  type="text"
-                  value={editForm.serviceName}
-                  onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                  placeholder="Servicio"
-                  required
-                />
-              </div>
-            </div>
+    <button type="button" className="secondary-btn" onClick={closeEditForm}>
+      {texts[language].cancel}
+    </button>
+  </div>
 
-            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+  <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
+    <div className="form-grid">
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].date}
+        </label>
+        <input
+          className="input"
+          type="date"
+          min={getTodayString()}
+          value={editForm.date}
+          onChange={(e) => updateEditForm("date", e.target.value)}
+          required
+        />
+      </div>
 
-            <div className="message-row">
-              <button className="primary-btn" type="submit" disabled={loadingEdit}>
-                {loadingEdit ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        </section>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].time}
+        </label>
+        <input
+          className="input"
+          type="time"
+          value={editForm.time}
+          onChange={(e) => updateEditForm("time", e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].status}
+        </label>
+        <select
+          className="select"
+          value={editForm.status}
+          onChange={(e) =>
+            updateEditForm("status", e.target.value as BookingStatus)
+          }
+        >
+          <option value="pending">{texts[language].pendingOption}</option>
+          <option value="confirmed">{texts[language].confirmedOption}</option>
+          <option value="paid">{texts[language].paidOption}</option>
+        </select>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].customerId}
+        </label>
+        <input
+          className="input"
+          type="number"
+          min={1}
+          value={editForm.customerId}
+          placeholder={texts[language].customerId}
+          disabled
+          title="El Customer ID no se puede modificar una vez creada la reserva"
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].businessId}
+        </label>
+        <input
+          className="input"
+          type="number"
+          min={1}
+          value={editForm.businessId}
+          placeholder={texts[language].businessId}
+          disabled
+          title="El Business ID no se puede modificar una vez creada la reserva"
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].people}
+        </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => setEditPersons((prev) => Math.max(1, prev - 1))}
+            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+          >
+            -
+          </button>
+
+          <input
+            className="input"
+            type="number"
+            min={1}
+            max={5}
+            value={editPersons}
+            onChange={(e) => {
+              let val = Number(e.target.value);
+              if (val < 1) val = 1;
+              if (val > 5) val = 5;
+              setEditPersons(val);
+            }}
+            style={{ width: "60px", textAlign: "center", fontWeight: "bold" }}
+            required
+          />
+
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => setEditPersons((prev) => Math.min(5, prev + 1))}
+            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].service}
+        </label>
+        <input
+          className="input"
+          type="text"
+          value={editForm.serviceName}
+          onChange={(e) => updateEditForm("serviceName", e.target.value)}
+          placeholder={texts[language].service}
+          required
+        />
+      </div>
+    </div>
+
+    {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+
+    <div className="message-row">
+      <button className="primary-btn" type="submit" disabled={loadingEdit}>
+        {loadingEdit ? texts[language].saving : texts[language].saveChanges}
+      </button>
+    </div>
+  </form>
+</section>
       )}
 
       {deleteTargetId !== null && (
@@ -709,7 +839,7 @@ export default function BookingsClient({
           className="modal-backdrop"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="delete-modal-title"
+          aria-labelledby="delete-modal-title"  
           aria-describedby="delete-modal-description"
           onClick={(e) => {
             if (e.target === e.currentTarget) closeDeleteModal();
@@ -717,19 +847,19 @@ export default function BookingsClient({
         >
           <div className="modal-card">
             <div className="modal-icon">!</div>
-            <h3 id="delete-modal-title" className="modal-title">
-              Eliminar reserva
-            </h3>
-            <p id="delete-modal-description" className="modal-text">
-              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
-            </p>
+           <h3 id="delete-modal-title" className="modal-title">
+            {texts[language].deleteTitle}
+          </h3>
+          <p id="delete-modal-description" className="modal-text">
+            {texts[language].deleteText} #{deleteTargetId}? {texts[language].deleteWarning}
+          </p>
             <div className="modal-actions">
               <button
                 type="button"
                 className="secondary-btn"
                 onClick={closeDeleteModal}
               >
-                Cancelar
+               {texts[language].cancel}
               </button>
               <button
                 type="button"
@@ -737,7 +867,9 @@ export default function BookingsClient({
                 onClick={confirmDelete}
                 disabled={deletingBookingId === deleteTargetId}
               >
-                {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+               {deletingBookingId === deleteTargetId
+                  ? texts[language].deleting
+                  : texts[language].delete}
               </button>
             </div>
           </div>
@@ -746,7 +878,7 @@ export default function BookingsClient({
 
       <section className="section-card booking-table-card">
         <div className="panel-title-row">
-          <h3 className="panel-title">Reservas registradas</h3>
+          <h3 className="panel-title">{texts[language].registeredBookings}</h3>
           <div className="filter-row">
             <button
               type="button"
@@ -754,31 +886,34 @@ export default function BookingsClient({
               aria-pressed={statusFilter === "all"}
               onClick={() => setStatusFilter("all")}
             >
-              Todas
+              {texts[language].all}
             </button>
+
             <button
               type="button"
               className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
               aria-pressed={statusFilter === "pending"}
               onClick={() => setStatusFilter("pending")}
             >
-              Pendientes
+              {texts[language].pending}
             </button>
+
             <button
               type="button"
               className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
               aria-pressed={statusFilter === "confirmed"}
               onClick={() => setStatusFilter("confirmed")}
             >
-              Confirmadas
+              {texts[language].confirmed}
             </button>
+
             <button
               type="button"
               className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
               aria-pressed={statusFilter === "paid"}
               onClick={() => setStatusFilter("paid")}
             >
-              Pagadas
+              {texts[language].paid}
             </button>
           </div>
         </div>
@@ -789,17 +924,17 @@ export default function BookingsClient({
         <div className="table-responsive">
           <table className="data-table">
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Servicio</th>
-                <th>Customer</th>
-                <th>Comercio</th>
-                <th>Estado</th>
-                {user?.role !== "usuario" && <th>Acciones</th>}
-              </tr>
-            </thead>
+            <tr>
+              <th>{texts[language].id}</th>
+              <th>{texts[language].date}</th>
+              <th>{texts[language].time}</th>
+              <th>{texts[language].service}</th>
+              <th>{texts[language].customer}</th>
+              <th>{texts[language].business}</th>
+              <th>{texts[language].status}</th>
+              {user?.role !== "usuario" && <th>{texts[language].actions}</th>}
+            </tr>
+          </thead>
             <tbody>
               {filteredBookings.map((booking) => (
                 <tr key={booking.id}>
@@ -818,16 +953,16 @@ export default function BookingsClient({
                           className="secondary-btn"
                           onClick={() => openEditForm(booking)}
                         >
-                          Editar
+                          {texts[language].edit}
                         </button>
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openDeleteModal(booking.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
+                         <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openDeleteModal(booking.id)}
+                      >
+                        {texts[language].delete}
+                      </button>
+                    </div>
                     </td>
                   )}
                 </tr>

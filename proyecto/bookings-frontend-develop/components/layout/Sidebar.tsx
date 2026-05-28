@@ -50,6 +50,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 // APLICADO: Tipo MenuItem definido para mayor robustez con TypeScript.
 type MenuItem = {
@@ -58,25 +59,7 @@ type MenuItem = {
   icon: string;
 };
 
-const adminMenuItems: MenuItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: "◫" },
-  { label: "Bookings", href: "/bookings", icon: "☰" },
-  { label: "Customers", href: "/customers", icon: "◎" },
-  { label: "Payments", href: "/payments", icon: "◌" },
-  { label: "Contacto", href: "/contacto", icon: "✉" },
-];
 
-const empresaMenuItems: MenuItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: "◫" },
-  { label: "Bookings", href: "/bookings", icon: "☰" },
-  { label: "Contacto", href: "/contacto", icon: "✉" },
-];
-
-const usuarioMenuItems: MenuItem[] = [
-  { label: "Mis Reservas", href: "/bookings", icon: "☰" },
-  { label: "Empresas", href: "/empresas", icon: "🏢" },
-  { label: "Contacto", href: "/contacto", icon: "✉" },
-];
 
 interface SidebarProps {
   menuItems?: MenuItem[];
@@ -93,30 +76,86 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
+  // Obtenemos el idioma global para traducir los textos del sidebar
+  const { language } = useLanguage();
 
-  // Determine active menu items based on user role if not provided via props
-  let activeMenuItems = menuItems;
-  if (!activeMenuItems) {
-    if (user?.role === "usuario") {
-      activeMenuItems = usuarioMenuItems;
-    } else if (user?.role === "empresa") {
-      activeMenuItems = empresaMenuItems;
-    } else {
-      activeMenuItems = adminMenuItems;
-    }
-  }
+  // Textos del sidebar en español e inglés.
+// Se usan para traducir los enlaces y el subtítulo según el idioma global.
+const sidebarTexts = {
+  es: {
+    dashboard: "Panel",
+    bookings: "Reservas",
+    customers: "Clientes",
+    payments: "Pagos",
+    contacto: "Contacto",
+    myBookings: "Mis Reservas",
+    empresas: "Empresas",
+    clientePortal: "Portal de Cliente",
+    comercioPortal: "Portal de Comercio",
+    adminWorkspace: "Espacio de administración",
+  },
+  en: {
+    dashboard: "Dashboard",
+    bookings: "Bookings",
+    customers: "Customers",
+    payments: "Payments",
+    contacto: "Contact",
+    myBookings: "My Bookings",
+    empresas: "Companies",
+    clientePortal: "Customer Portal",
+    comercioPortal: "Business Portal",
+    adminWorkspace: "Admin workspace",
+  },
+};
 
-  // Determine brand subtitle based on user role if not provided
-  let activeBrandSubtitle = brandSubtitle;
-  if (!activeBrandSubtitle) {
-    if (user?.role === "usuario") {
-      activeBrandSubtitle = "Portal de Cliente";
-    } else if (user?.role === "empresa") {
-      activeBrandSubtitle = "Portal de Comercio";
-    } else {
-      activeBrandSubtitle = "Admin workspace";
-    }
+// Menús traducidos según el idioma seleccionado
+const adminMenuItems: MenuItem[] = [
+  { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
+  { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+  { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
+  { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
+  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+];
+
+const empresaMenuItems: MenuItem[] = [
+  { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
+  { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+];
+
+const usuarioMenuItems: MenuItem[] = [
+  { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
+  { label: sidebarTexts[language].empresas, href: "/empresas", icon: "🏢" },
+  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+];
+
+  
+
+  // Determina qué menú se muestra según el rol del usuario
+let activeMenuItems = menuItems;
+
+if (!activeMenuItems) {
+  if (user?.role === "usuario") {
+    activeMenuItems = usuarioMenuItems;
+  } else if (user?.role === "empresa") {
+    activeMenuItems = empresaMenuItems;
+  } else {
+    activeMenuItems = adminMenuItems;
   }
+}
+
+// Determina el subtítulo del sidebar según el rol y el idioma seleccionado
+let activeBrandSubtitle = brandSubtitle;
+
+if (!activeBrandSubtitle) {
+  if (user?.role === "usuario") {
+    activeBrandSubtitle = sidebarTexts[language].clientePortal;
+  } else if (user?.role === "empresa") {
+    activeBrandSubtitle = sidebarTexts[language].comercioPortal;
+  } else {
+    activeBrandSubtitle = sidebarTexts[language].adminWorkspace;
+  }
+}
 
   // Comentario: usePathname es apropiado para detectar la ruta activa, pero para rutas anidadas convendría usar `startsWith`.
   // APLICADO: Se utiliza validación con startsWith para soportar rutas anidadas (ej. /bookings/123 se considera activa si el item es /bookings)

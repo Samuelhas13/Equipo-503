@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Booking,
   getAppointments,
@@ -45,15 +46,122 @@ function KpiCard({ title, value, subtitle, variant }: {
   );
 }
 
-function Badge({ status }: { status: Payment["status"] }) {
-  return (
-    <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
-      {status === "pending" ? "Por cobrar" : "Pagado"}
-    </span>
-  );
+function Badge({
+      status,
+      texts,
+    }: {
+      status: Payment["status"];
+      texts: {
+        pending: string;
+        paid: string;
+      };
+    }) {
+      return (
+        <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
+          {status === "pending" ? texts.pending : texts.paid}
+        </span>
+      );
 }
 
 export default function PaymentsPage() {
+
+  // Obtenemos el idioma global para traducir los textos de payments
+  const { language } = useLanguage();
+
+  // Textos de la página payments en español e inglés
+  const texts = {
+    es: {
+      title: "Pagos",
+      subtitle: "Seguimiento de cobros realizados y pendientes.",
+      registerPayment: "Registrar cobro",
+      closeForm: "Cerrar formulario",
+      client: "Cliente",
+      clientPlaceholder: "Nombre del cliente",
+      business: "Comercio",
+      businessPlaceholder: "Nombre del comercio",
+      amount: "Importe",
+      amountPlaceholder: "Ej: 28",
+      method: "Método",
+      card: "Tarjeta",
+      bizum: "Bizum",
+      cash: "Efectivo",
+      pendingMethod: "Pendiente",
+      date: "Fecha",
+      status: "Estado",
+      pending: "Por cobrar",
+      paid: "Pagado",
+      cancel: "Cancelar",
+      savePayment: "Guardar cobro",
+      formNote: "Formulario provisional con validación de importe entero",
+      totalCharged: "Cobrado total",
+      operations: "operaciones",
+      pendingAmount: "Pendiente",
+      paymentsToReview: "cobros por revisar",
+      totalPayments: "Total pagos",
+      databaseRecords: "registros en BD",
+      paymentList: "Listado de cobros",
+      results: "resultados",
+      loadingPayments: "Cargando pagos...",
+      noPayments: "No hay pagos registrados.",
+      id: "ID",
+      booking: "Reserva",
+      requiredClientBusiness: "Cliente y comercio son obligatorios.",
+      invalidClientName: "El nombre del cliente solo puede contener letras y espacios.",
+      invalidBusinessName: "El nombre del comercio solo puede contener letras y espacios.",
+      invalidAmount: "Importe debe ser un número entero sin decimales.",
+      requiredDate: "Fecha del pago es obligatoria.",
+      invalidStatus: "Estado de pago inválido.",
+      savePaymentError: "Error al guardar el pago",
+      onlyLetters: "Solo letras y espacios",
+      onlyNumbers: "Solo números enteros",
+    },
+    en: {
+      title: "Payments",
+      subtitle: "Tracking completed and pending payments.",
+      registerPayment: "Register payment",
+      closeForm: "Close form",
+      client: "Client",
+      clientPlaceholder: "Client name",
+      business: "Business",
+      businessPlaceholder: "Business name",
+      amount: "Amount",
+      amountPlaceholder: "Example: 28",
+      method: "Method",
+      card: "Card",
+      bizum: "Bizum",
+      cash: "Cash",
+      pendingMethod: "Pending",
+      date: "Date",
+      status: "Status",
+      pending: "To collect",
+      paid: "Paid",
+      cancel: "Cancel",
+      savePayment: "Save payment",
+      formNote: "Temporary form with integer amount validation",
+      totalCharged: "Total charged",
+      operations: "operations",
+      pendingAmount: "Pending",
+      paymentsToReview: "payments to review",
+      totalPayments: "Total payments",
+      databaseRecords: "database records",
+      paymentList: "Payment list",
+      results: "results",
+      loadingPayments: "Loading payments...",
+      noPayments: "No payments registered.",
+      id: "ID",
+      booking: "Booking",
+      requiredClientBusiness: "Client and business are required.",
+      invalidClientName: "The client name can only contain letters and spaces.",
+      invalidBusinessName: "The business name can only contain letters and spaces.",
+      invalidAmount: "Amount must be a whole number without decimals.",
+      requiredDate: "Payment date is required.",
+      invalidStatus: "Invalid payment status.",
+      savePaymentError: "Error saving payment",
+      onlyLetters: "Only letters and spaces",
+      onlyNumbers: "Only whole numbers",
+    },
+  };
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [appointments, setAppointments] = useState<Booking[]>([]);
@@ -86,39 +194,39 @@ export default function PaymentsPage() {
   const totalPending = pending.reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
   const validatePaymentForm = () => {
-    if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
-      setFormError("Cliente y comercio son obligatorios.");
-      return false;
-    }
+      if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
+        setFormError(texts[language].requiredClientBusiness);
+        return false;
+      }
 
-    if (!nameRegex.test(paymentForm.client.trim())) {
-      setFormError("El nombre del cliente solo puede contener letras y espacios.");
-      return false;
-    }
+      if (!nameRegex.test(paymentForm.client.trim())) {
+        setFormError(texts[language].invalidClientName);
+        return false;
+      }
 
-    if (!nameRegex.test(paymentForm.business.trim())) {
-      setFormError("El nombre del comercio solo puede contener letras y espacios.");
-      return false;
-    }
+      if (!nameRegex.test(paymentForm.business.trim())) {
+        setFormError(texts[language].invalidBusinessName);
+        return false;
+      }
 
-    if (!amountRegex.test(paymentForm.amount.trim())) {
-      setFormError("Importe debe ser un número entero sin decimales.");
-      return false;
-    }
+      if (!amountRegex.test(paymentForm.amount.trim())) {
+        setFormError(texts[language].invalidAmount);
+        return false;
+      }
 
-    if (!paymentForm.date) {
-      setFormError("Fecha del pago es obligatoria.");
-      return false;
-    }
+      if (!paymentForm.date) {
+        setFormError(texts[language].requiredDate);
+        return false;
+      }
 
-    if (!["pending", "paid"].includes(paymentForm.status)) {
-      setFormError("Estado de pago inválido.");
-      return false;
-    }
+      if (!["pending", "paid"].includes(paymentForm.status)) {
+        setFormError(texts[language].invalidStatus);
+        return false;
+      }
 
-    setFormError("");
-    return true;
-  };
+      setFormError("");
+      return true;
+};
 
   const handleInputChange = (field: keyof typeof paymentForm, value: string) => {
     setPaymentForm((prev) => ({ ...prev, [field]: value }));
@@ -143,7 +251,7 @@ export default function PaymentsPage() {
       setPaymentForm(initialPaymentForm);
       setIsCreateOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Error al guardar el pago");
+      setFormError(err instanceof Error ? err.message : texts[language].savePaymentError);
     }
   };
 
@@ -151,14 +259,14 @@ export default function PaymentsPage() {
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>Payments</h2>
-          <p>Seguimiento de cobros realizados y pendientes.</p>
+          <h2>{texts[language].title}</h2>  
+          <p>{texts[language].subtitle}</p>
         </div>
         <button className="primary-btn" 
         type="button"
         onClick = {() => setIsCreateOpen((prev) => !prev) }
         >
-          {isCreateOpen ? "Cerrar formulario" : "Registrar cobro" }
+          {isCreateOpen ? texts[language].closeForm : texts[language].registerPayment}
         </button>
       </section>
 
@@ -167,62 +275,62 @@ export default function PaymentsPage() {
 
       {isCreateOpen && (
   <section className="section-card">
-    <h3 className="panel-title">Registrar cobro</h3>
+    <h3 className="panel-title">{texts[language].registerPayment}</h3>
 
     <form className="form-grid" onSubmit={(event) => { event.preventDefault(); handleSavePayment(); }}>
       <label className="form-field">
-        Cliente
+        {texts[language].client}
         <input
           className="input"
-          placeholder="Nombre del cliente"
+          placeholder={texts[language].clientPlaceholder}
           value={paymentForm.client}
           onChange={(event) => handleInputChange("client", event.target.value)}
           pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-          title="Solo letras y espacios"
+          title={texts[language].onlyLetters}
         />
       </label>
 
       <label className="form-field">
-        Comercio
+        {texts[language].business}
         <input
           className="input"
-          placeholder="Nombre del comercio"
+          placeholder={texts[language].businessPlaceholder}
           value={paymentForm.business}
           onChange={(event) => handleInputChange("business", event.target.value)}
           pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-          title="Solo letras y espacios"
+          title={texts[language].onlyLetters}
         />
       </label>
 
       <label className="form-field">
-        Importe
+        {texts[language].amount}
         <input
           className="input"
-          placeholder="Ej: 28"
+          placeholder={texts[language].amountPlaceholder}
           value={paymentForm.amount}
           onChange={(event) => handleInputChange("amount", event.target.value)}
           inputMode="numeric"
           pattern="[0-9]+"
-          title="Solo números enteros"
+          title={texts[language].onlyNumbers}
         />
       </label>
 
       <label className="form-field">
-        Método
+        {texts[language].method}
         <select
           className="input"
           value={paymentForm.method}
           onChange={(event) => handleInputChange("method", event.target.value)}
         >
-          <option>Tarjeta</option>
-          <option>Bizum</option>
-          <option>Efectivo</option>
-          <option>Pendiente</option>
+          <option value="card">{texts[language].card}</option>
+          <option value="bizum">{texts[language].bizum}</option>
+          <option value="cash">{texts[language].cash}</option>
+          <option value="pending">{texts[language].pendingMethod}</option>
         </select>
       </label>
 
       <label className="form-field">
-        Fecha
+        {texts[language].date}
         <input
           className="input"
           type="date"
@@ -232,14 +340,14 @@ export default function PaymentsPage() {
       </label>
 
       <label className="form-field">
-        Estado
+        {texts[language].status}
         <select
           className="input"
           value={paymentForm.status}
           onChange={(event) => handleInputChange("status", event.target.value)}
         >
-          <option value="pending">Por cobrar</option>
-          <option value="paid">Pagado</option>
+          <option value="pending">{texts[language].pending}</option>
+          <option value="paid">{texts[language].paid}</option>
         </select>
       </label>
 
@@ -259,75 +367,91 @@ export default function PaymentsPage() {
             setPaymentForm(initialPaymentForm);
           }}
         >
-          Cancelar
+          {texts[language].cancel}
         </button>
 
         <button className="primary-btn" type="submit">
-          Guardar cobro
+          {texts[language].savePayment}
         </button>
       </div>
     </form>
 
     <p style={{ color: "#6b7280", fontSize: 14 }}>
-      Formulario provisional con validación de importe entero
+      {texts[language].formNote}
     </p>
   </section>
 )}
       <section className="kpi-grid">
         <KpiCard
-          title="Cobrado total"
+          title={texts[language].totalCharged}
           value={loading ? "—" : `${totalPaid} €`}
-          subtitle={`${paid.length} operaciones`}
+          subtitle={`${paid.length} ${texts[language].operations}`}
           variant="positive"
         />
-        <KpiCard
-          title="Pendiente"
+         <KpiCard
+          title={texts[language].pendingAmount}
           value={loading ? "—" : `${totalPending} €`}
-          subtitle={`${pending.length} cobros por revisar`}
+          subtitle={`${pending.length} ${texts[language].paymentsToReview}`}
           variant="warning"
         />
-        <KpiCard
-          title="Total pagos"
+         <KpiCard
+          title={texts[language].totalPayments}
           value={loading ? "—" : String(payments.length)}
-          subtitle="registros en BD"
+          subtitle={texts[language].databaseRecords}
         />
       </section>
 
-      <section className="section-card">
+     <section className="section-card">
         <div className="panel-title-row">
-          <h3 className="panel-title">Listado de cobros</h3>
+          <h3 className="panel-title">{texts[language].paymentList}</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {loading ? "—" : `${payments.length} resultados`}
+            {loading ? "—" : `${payments.length} ${texts[language].results}`}
           </span>
         </div>
 
         <div className="table-responsive">
-          {loading && <p className="table-feedback">Cargando pagos...</p>}
-          {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
-          {!loading && !error && payments.length === 0 && (
-            <p className="table-feedback">No hay pagos registrados.</p>
+          {loading && (
+            <p className="table-feedback">{texts[language].loadingPayments}</p>
           )}
+
+          {!loading && error && (
+            <p className="table-feedback table-feedback--error">{error}</p>
+          )}
+
+          {!loading && !error && payments.length === 0 && (
+            <p className="table-feedback">{texts[language].noPayments}</p>
+          )}
+
           {!loading && !error && payments.length > 0 && (
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Reserva</th>
-                  <th>Importe</th>
-                  <th>Método</th>
-                  <th>Fecha</th>
-                  <th>Estado</th>
+                  <th>{texts[language].id}</th>
+                  <th>{texts[language].booking}</th>
+                  <th>{texts[language].amount}</th>
+                  <th>{texts[language].method}</th>
+                  <th>{texts[language].date}</th>
+                  <th>{texts[language].status}</th>
                 </tr>
               </thead>
+
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.id}>
                     <td style={{ fontWeight: 600 }}>#{p.id}</td>
-                    <td>Reserva #{p.appointmentId}</td>
+                    <td>
+                      {texts[language].booking} #{p.appointmentId}
+                    </td>
                     <td>{p.amount} €</td>
-                    <td>{p.method}</td>
-                    <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString("es-ES") : "—"}</td>
-                    <td><Badge status={p.status} /></td>
+                    <td>{p.paymentMethod}</td>
+                    <td>
+                      {p.createdAt
+                        ? new Date(p.createdAt).toLocaleDateString("es-ES")
+                        : "—"}
+                    </td>
+                    <td>
+                       <Badge status={p.status} texts={texts[language]} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
