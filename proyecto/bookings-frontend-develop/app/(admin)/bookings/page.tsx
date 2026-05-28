@@ -1,45 +1,45 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import BookingsClient from "./BookingsClient";
 import { getAppointments } from "@/lib/api";
-
-// 1. Tipado explícito (si usas TypeScript)
-export const revalidate = 0; // Opcional: fuerza a que no se cachee si los datos cambian constantemente
-
-async function BookingsData() {
-  // 2. Manejo de errores básico a nivel de fetch
-  try {
-    const bookings = await getAppointments();
-    
-    if (!bookings || bookings.length === 0) {
-      return <p className="text-center p-4">No se encontraron reservas.</p>;
-    }
-
-    return <BookingsClient initialBookings={bookings} />;
-  } catch (error) {
-    console.error("Error cargando las reservas:", error);
-    return (
-      <div className="p-4 text-red-500 border border-red-200 rounded-md bg-red-50">
-        <h3 className="font-bold">Error al cargar las reservas</h3>
-        <p>Por favor, inténtalo de nuevo más tarde.</p>
-      </div>
-    );
-  }
-}
+import type { Booking } from "@/lib/types";
 
 export default function BookingsPage() {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    getAppointments()
+      .then(setBookings)
+      .catch((err) => {
+        console.error("Error cargando las reservas:", err);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <main className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Mis Reservas</h1>
       
-      {/* 3. UX Mejorada: Estado de carga mientras el servidor responde */}
-      <Suspense fallback={<BookingsSkeleton />}>
-        <BookingsData />
-      </Suspense>
+      {loading ? (
+        <BookingsSkeleton />
+      ) : error ? (
+        <div className="p-4 text-red-500 border border-red-200 rounded-md bg-red-50">
+          <h3 className="font-bold">Error al cargar las reservas</h3>
+          <p>Por favor, inténtalo de nuevo más tarde.</p>
+        </div>
+      ) : bookings.length === 0 ? (
+        <p className="text-center p-4">No se encontraron reservas.</p>
+      ) : (
+        <BookingsClient initialBookings={bookings} />
+      )}
     </main>
   );
 }
 
-// Un simple esqueleto de carga para que la pantalla no parpadee en blanco
 function BookingsSkeleton() {
   return (
     <div className="animate-pulse space-y-4">

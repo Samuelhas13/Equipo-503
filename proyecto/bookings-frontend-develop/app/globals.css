@@ -138,6 +138,12 @@ html.dark {
 
 * {
   box-sizing: border-box;
+  user-select: none; /* Evita la selección de texto */
+}
+
+/*Reactiva el cursor para inputs y textareas*/
+input,textarea {
+  user-select: text;
 }
 
 /* Principal: tipografía global, quita márgenes y padding, aplica color de fondo */
@@ -625,6 +631,7 @@ textarea {
   box-shadow: var(--shadow-booking);
   /* MEJORA APLICADA: Estilo distintivo para formularios y tablas en la página de bookings */
 }
+
 
 
 /* ==========================================================================

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 type MenuItem = {
   label: string;
@@ -10,11 +11,23 @@ type MenuItem = {
   icon: string;
 };
 
-const defaultMenuItems: MenuItem[] = [
+const adminMenuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
   { label: "Payments", href: "/payments", icon: "◌" },
+  { label: "Contacto", href: "/contacto", icon: "✉" },
+];
+
+const empresaMenuItems: MenuItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: "◫" },
+  { label: "Bookings", href: "/bookings", icon: "☰" },
+  { label: "Contacto", href: "/contacto", icon: "✉" },
+];
+
+const usuarioMenuItems: MenuItem[] = [
+  { label: "Mis Reservas", href: "/bookings", icon: "☰" },
+  { label: "Empresas", href: "/empresas", icon: "🏢" },
   { label: "Contacto", href: "/contacto", icon: "✉" },
 ];
 
@@ -26,13 +39,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  menuItems = defaultMenuItems,
+  menuItems,
   onNavigate,
   brandTitle = "BookFlow",
-  brandSubtitle = "Admin workspace",
+  brandSubtitle = "Portal de Administración",
 }: SidebarProps) {
+  const { user } = useAuth();
   const pathname = usePathname();
-  
+
   // Estado para controlar el tema (claro por defecto)
   const [isDarkMode, setIsDarkMode] = useState(false);
   
@@ -66,10 +80,35 @@ export default function Sidebar({
     }
   };
 
+  // Determine active menu items based on user role if not provided via props
+  let activeMenuItems = menuItems;
+  if (!activeMenuItems) {
+    if (user?.role === "usuario") {
+      activeMenuItems = usuarioMenuItems;
+    } else if (user?.role === "empresa") {
+      activeMenuItems = empresaMenuItems;
+    } else {
+      activeMenuItems = adminMenuItems;
+    }
+  }
+
+  // Determine brand subtitle based on user role if not provided
+  let activeBrandSubtitle = brandSubtitle;
+  if (!activeBrandSubtitle) {
+    if (user?.role === "usuario") {
+      activeBrandSubtitle = "Portal de Cliente";
+    } else if (user?.role === "empresa") {
+      activeBrandSubtitle = "Portal de Comercio";
+    } else {
+      activeBrandSubtitle = "Admin workspace";
+    }
+  }
+
   // NUEVO: Función para alternar la visibilidad del sidebar
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
 
   return (
     <aside 
@@ -84,7 +123,6 @@ export default function Sidebar({
             <h2 className="admin-sidebar__title">{brandTitle}</h2>
             <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
           </div>
-          
           {/* NUEVO: Botón para colapsar/expandir */}
           <button 
             onClick={toggleSidebar}
@@ -93,10 +131,11 @@ export default function Sidebar({
           > 
             {isOpen ? "◀" : "▶"}
           </button>
+
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
-          {menuItems.map((item) => {
+          {activeMenuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             
             const handleClick = () => {

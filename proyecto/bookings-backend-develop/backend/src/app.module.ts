@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CustomersModule } from './customers/customers.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { PaymentsModule } from './payments/payments.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+
     // TypeOrmModule.forRoot: Conecta la aplicación con la base de datos (SQLite en este caso)
     TypeOrmModule.forRoot({
       type: 'sqlite', // Motor de BD
@@ -25,6 +26,7 @@ import { PaymentsModule } from './payments/payments.module';
       // synchronize: true crea o altera las tablas automáticamente en base a las entidades (Peligroso en producción real)
       synchronize: process.env.NODE_ENV !== 'production',
     }),
+    AuthModule,
     AppointmentsModule,
     CustomersModule,
     PaymentsModule,
