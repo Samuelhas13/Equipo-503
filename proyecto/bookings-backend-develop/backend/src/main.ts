@@ -13,14 +13,17 @@ async function bootstrap() {
   // 1. CORS - permitir peticiones del frontend
   app.enableCors();
 
-  // 2. Proteger solo el Swagger con basicAuth
+  // 2. Prefijo global /api para todas las rutas REST
+  app.setGlobalPrefix('api');
+
+  // 3. Proteger solo el Swagger con basicAuth
   app.use('/api-docs', basicAuth({
     challenge: true,
     users: { 'admin': 'password123' },
     unauthorizedResponse: 'Requiere autenticación estricta.',
   }));
 
-  // 3. CONFIGURACIÓN DE SWAGGER
+  // 4. CONFIGURACIÓN DE SWAGGER
   const config = new DocumentBuilder()
     .setTitle('API de Reservas')
     .setDescription(`🔑 **Tu palabra secreta generada para esta sesión es:** \`${palabraAleatoria}\`. Cópiala y pégala en el botón **Authorize** de abajo.`)
@@ -40,8 +43,12 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // 4. Redirigir la raíz al Swagger
+  // 4. Redirigir la raíz y /api al Swagger
   app.getHttpAdapter().get('/', (req: any, res: any) => {
+    res.redirect('/api-docs');
+  });
+
+  app.getHttpAdapter().get('/api', (req: any, res: any) => {
     res.redirect('/api-docs');
   });
 

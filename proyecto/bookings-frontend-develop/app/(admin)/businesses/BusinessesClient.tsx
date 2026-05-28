@@ -8,6 +8,60 @@ type BusinessesClientProps = {
   initialBusinesses: Business[];
 };
 
+// ─────────────────────────────────────────────
+// REGEX DE VALIDACIÓN
+// ─────────────────────────────────────────────
+
+/** Teléfono: prefijo opcional (+) seguido de 9-15 dígitos */
+const REGEX_PHONE = /^\+?\d{9,15}$/;
+
+/** Nombre y categoría: letras, números, espacios, tildes, guión y apóstrofe. Mín 2 chars. */
+const REGEX_NAME = /^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-'&,.]{2,100}$/;
+
+/** Email estándar: xxxx@xxxx.xx */
+const REGEX_EMAIL = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
+/** Descripción: cualquier texto, máx 300 chars (opcional) */
+const MAX_DESCRIPTION = 300;
+
+type FormData = {
+  name: string;
+  category: string;
+  email: string;
+  phone: string;
+  description: string;
+};
+
+// ─────────────────────────────────────────────
+// FUNCIÓN DE VALIDACIÓN
+// ─────────────────────────────────────────────
+
+function validateForm(data: FormData): string {
+  if (!data.name.trim() || !data.category.trim() || !data.email.trim() || !data.phone.trim()) {
+    return "Todos los campos obligatorios deben estar rellenos.";
+  }
+  if (!REGEX_NAME.test(data.name.trim())) {
+    return "El nombre solo puede contener letras, números, espacios y guiones (mín. 2 caracteres).";
+  }
+  if (!REGEX_NAME.test(data.category.trim())) {
+    return "La categoría solo puede contener letras, números, espacios y guiones (mín. 2 caracteres).";
+  }
+  if (!REGEX_EMAIL.test(data.email.trim())) {
+    return "El email no tiene un formato válido. Ejemplo: contacto@empresa.com";
+  }
+  if (!REGEX_PHONE.test(data.phone.trim())) {
+    return "El teléfono debe contener entre 9 y 15 dígitos y puede incluir un prefijo (+).";
+  }
+  if (data.description && data.description.length > MAX_DESCRIPTION) {
+    return `La descripción no puede superar los ${MAX_DESCRIPTION} caracteres.`;
+  }
+  return "";
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE PRINCIPAL
+// ─────────────────────────────────────────────
+
 export default function BusinessesClient({ initialBusinesses }: BusinessesClientProps) {
   const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses);
   const [search, setSearch] = useState("");
@@ -15,8 +69,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  // Estados del formulario para crear
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     category: "",
     email: "",
@@ -24,8 +77,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
     description: "",
   });
 
-  // Estados del formulario para editar
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<FormData>({
     name: "",
     category: "",
     email: "",
@@ -36,8 +88,6 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const amountRegex = /^\+?\d{9,15}$/;
-
   // Filtrado de empresas por buscador
   const filteredBusinesses = businesses.filter((b) =>
     b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -47,60 +97,40 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
     (b.description ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
-  // Categorías únicas para el KPI
   const uniqueCategoriesCount = new Set(businesses.map((b) => b.category.toLowerCase().trim())).size;
 
-  function handleInputChange(field: keyof typeof formData, value: string) {
-    setFormData((current) => ({
-      ...current,
-      [field]: value,
-    }));
+  function handleInputChange(field: keyof FormData, value: string) {
+    setFormData((current) => ({ ...current, [field]: value }));
+    setFormError(""); // limpiar error al escribir
   }
 
-  function handleEditInputChange(field: keyof typeof editFormData, value: string) {
-    setEditFormData((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  }
-
-  // Validación de formulario
-  function validateForm(data: typeof formData) {
-    if (!data.name.trim() || !data.category.trim() || !data.email.trim() || !data.phone.trim()) {
-      setFormError("Todos los campos obligatorios deben estar rellenos.");
-      return false;
-    }
-    if (!amountRegex.test(data.phone.trim())) {
-      setFormError("El teléfono debe contener entre 9 y 15 dígitos y puede incluir un prefijo (+).");
-      return false;
-    }
+  function handleEditInputChange(field: keyof FormData, value: string) {
+    setEditFormData((current) => ({ ...current, [field]: value }));
     setFormError("");
-    return true;
   }
 
   // Crear empresa
   async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!validateForm(formData)) return;
-    setIsSaving(true);
 
+    const error = validateForm(formData);
+    if (error) {
+      setFormError(error);
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const newBusiness = await createBusiness({
-        name: formData.name,
-        category: formData.category,
-        email: formData.email,
-        phone: formData.phone,
-        description: formData.description || undefined,
+        name: formData.name.trim(),
+        category: formData.category.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        description: formData.description.trim() || undefined,
       });
 
       setBusinesses((current) => [newBusiness, ...current]);
-      setFormData({
-        name: "",
-        category: "",
-        email: "",
-        phone: "",
-        description: "",
-      });
+      setFormData({ name: "", category: "", email: "", phone: "", description: "" });
       setIsCreateOpen(false);
       setFormError("");
     } catch (error) {
@@ -133,16 +163,21 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
   async function handleEditSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editingBusiness) return;
-    if (!validateForm(editFormData)) return;
-    setIsSaving(true);
 
+    const error = validateForm(editFormData);
+    if (error) {
+      setFormError(error);
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const updated = await updateBusiness(editingBusiness.id, {
-        name: editFormData.name,
-        category: editFormData.category,
-        email: editFormData.email,
-        phone: editFormData.phone,
-        description: editFormData.description || undefined,
+        name: editFormData.name.trim(),
+        category: editFormData.category.trim(),
+        email: editFormData.email.trim(),
+        phone: editFormData.phone.trim(),
+        description: editFormData.description.trim() || undefined,
       });
 
       setBusinesses((current) =>
@@ -227,7 +262,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
         <section className="section-card">
           <h3 className="panel-title">Nueva empresa</h3>
 
-          <form onSubmit={handleCreateSubmit}>
+          <form onSubmit={handleCreateSubmit} noValidate>
             <div className="form-grid">
               <label>
                 Nombre
@@ -310,10 +345,14 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
 
       {/* Formulario de Edición de Empresa */}
       {editingBusiness && (
-        <section ref={editFormRef} className="section-card" style={{ borderColor: "var(--indigo-500)", borderStyle: "solid", borderWidth: "1px" }}>
+        <section
+          ref={editFormRef}
+          className="section-card"
+          style={{ borderColor: "var(--indigo-500)", borderStyle: "solid", borderWidth: "1px" }}
+        >
           <h3 className="panel-title">Editar empresa: {editingBusiness.name}</h3>
 
-          <form onSubmit={handleEditSubmit}>
+          <form onSubmit={handleEditSubmit} noValidate>
             <div className="form-grid">
               <label>
                 Nombre
