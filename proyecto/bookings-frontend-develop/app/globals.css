@@ -429,6 +429,10 @@ body {
   box-shadow: var(--shadow-table);
 }
 
+.data-table--businesses {
+  min-width: 750px;
+}
+
 /* Formato para el encabezado de la tabla */
 .data-table thead {
   position: sticky;
@@ -1523,6 +1527,7 @@ body {
 .admin-layout__main {
   flex: 1;
   padding: 1rem;
+  min-width: 0;
 }
 
 /* El botón de hamburguesa SOLO se ve en móvil */

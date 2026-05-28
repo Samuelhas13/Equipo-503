@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useRef } from "react";
 import type { Business } from "@/lib/types";
 import { createBusiness, updateBusiness, deleteBusiness } from "@/lib/api";
 
@@ -13,6 +13,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
 
   // Estados del formulario para crear
   const [formData, setFormData] = useState({
@@ -122,6 +123,10 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
     });
     setIsCreateOpen(false);
     setFormError("");
+
+    setTimeout(() => {
+      editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 
   // Guardar edición de empresa
@@ -305,7 +310,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
 
       {/* Formulario de Edición de Empresa */}
       {editingBusiness && (
-        <section className="section-card" style={{ borderColor: "var(--indigo-500)", borderStyle: "solid", borderWidth: "1px" }}>
+        <section ref={editFormRef} className="section-card" style={{ borderColor: "var(--indigo-500)", borderStyle: "solid", borderWidth: "1px" }}>
           <h3 className="panel-title">Editar empresa: {editingBusiness.name}</h3>
 
           <form onSubmit={handleEditSubmit}>
@@ -414,7 +419,7 @@ export default function BusinessesClient({ initialBusinesses }: BusinessesClient
           {filteredBusinesses.length === 0 ? (
             <p className="table-feedback">No hay empresas registradas.</p>
           ) : (
-            <table className="data-table">
+            <table className="data-table data-table--businesses">
               <thead>
                 <tr>
                   <th>ID</th>
