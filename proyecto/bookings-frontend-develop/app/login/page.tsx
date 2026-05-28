@@ -2,14 +2,28 @@
 
 import { useState } from "react";
 import { useAuth, UserRole } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const router = useRouter();
+
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole]         = useState<UserRole>("admin");
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
+
+  // Función para decidir a dónde enviar al usuario según su rol
+  const redirigirPorRol = (rolUsuario: UserRole) => {
+    if (rolUsuario === "admin") {
+      router.push("/dashboard");
+    } else if (rolUsuario === "empresa") {
+      router.push("/dashboard");
+    } else if (rolUsuario === "usuario") {
+      router.push("/reservas");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +35,11 @@ export default function LoginPage() {
 
     try {
       const success = await login(email, password, role);
-      if (!success) setError("Las credenciales ingresadas no son válidas.");
+      if (success) {
+        redirigirPorRol(role);
+      } else {
+        setError("Las credenciales ingresadas no son válidas.");
+      }
     } catch {
       setError("Ocurrió un error al intentar iniciar sesión.");
     } finally {
@@ -34,7 +52,11 @@ export default function LoginPage() {
     setError(null);
     try {
       const success = await login(userEmail, userPassword, userRole);
-      if (!success) setError("Error en el acceso rápido. ¿Está el backend activo?");
+      if (success) {
+        redirigirPorRol(userRole);
+      } else {
+        setError("Error en el acceso rápido. ¿Está el backend activo?");
+      }
     } catch {
       setError("Error al realizar el inicio de sesión rápido.");
     } finally {

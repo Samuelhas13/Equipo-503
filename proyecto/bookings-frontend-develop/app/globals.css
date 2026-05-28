@@ -938,6 +938,127 @@ textarea {
   color: var(--error);
 }
 
+/* ==========================================================================
+   10.A. Calendario para empresas en dashboard  
+   ESTILOS COMPLEMENTARIOS PARA EL CALENDARIO DE RESERVAS (EMPRESA)
+   ========================================================================== */
+
+.business-calendar {
+  background: var(--card-background, #1e1b4b); /* Se adapta a tus colores oscuros */
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.calendar-nav-btn {
+  background: #2e2a72;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.calendar-nav-btn:hover {
+  background: #433bff;
+}
+
+/* Rejilla de días */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-weight: 600;
+  color: #94a3b8;
+  padding-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.calendar-cell {
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s;
+}
+
+.calendar-cell--empty {
+  background: transparent;
+  border: none;
+}
+
+.calendar-cell--today {
+  border-color: #433bff;
+  background: rgba(67, 59, 255, 0.05);
+}
+
+.calendar-date-number {
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+/* Contenedor interno de eventos */
+.calendar-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 80px;
+}
+
+/* Etiquetas de citas de las empresas */
+.calendar-event-pill {
+  font-size: 0.75rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Colores de las píldoras según el estado que maneja tu NestJS */
+.event-status--pending {
+  background-color: #ef9f27;
+  color: #412402;
+}
+
+.event-status--confirmed {
+  background-color: #22c55e;
+  color: #14532d;
+}
+
+.event-status--paid {
+  background-color: #7f77dd;
+  color: #fff;
+}
+
 
 /* ==========================================================================
    11. PANEL (títulos y controles de sección)
