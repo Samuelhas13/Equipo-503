@@ -12,8 +12,6 @@ type MenuItem = {
   icon: string;
 };
 
-
-
 interface SidebarProps {
   menuItems?: MenuItem[];
   onNavigate?: (href: string) => void;
@@ -25,54 +23,86 @@ export default function Sidebar({
   menuItems,
   onNavigate,
   brandTitle = "BookFlow",
-  brandSubtitle = "Portal de Administración",
+  brandSubtitle,
 }: SidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
+
   // Obtenemos el idioma global para traducir los textos del sidebar
   const { language } = useLanguage();
 
-<<<<<<< HEAD
-  // Textos del sidebar en español e inglés.
-// Se usan para traducir los enlaces y el subtítulo según el idioma global.
-const sidebarTexts = {
-  es: {
-    dashboard: "Panel",
-    bookings: "Reservas",
-    customers: "Clientes",
-    payments: "Pagos",
-    contacto: "Contacto",
-    myBookings: "Mis Reservas",
-    empresas: "Empresas",
-    clientePortal: "Portal de Cliente",
-    comercioPortal: "Portal de Comercio",
-    adminWorkspace: "Espacio de administración",
-  },
-  en: {
-    dashboard: "Dashboard",
-    bookings: "Bookings",
-    customers: "Customers",
-    payments: "Payments",
-    contacto: "Contact",
-    myBookings: "My Bookings",
-    empresas: "Companies",
-    clientePortal: "Customer Portal",
-    comercioPortal: "Business Portal",
-    adminWorkspace: "Admin workspace",
-  },
-};
-=======
-  // Estado para controlar el tema (claro por defecto)
+  // Estado para controlar el tema claro/oscuro
   const [isDarkMode, setIsDarkMode] = useState(false);
-  
-  // NUEVO: Estado para controlar si el sidebar está expandido o colapsado
+
+  // Estado para controlar si el sidebar está expandido o colapsado
   const [isOpen, setIsOpen] = useState(true);
 
-  // Sincronizar el estado con localStorage y la clase en el HTML al montar el componente
+  // Textos del sidebar en español e inglés
+  const sidebarTexts = {
+    es: {
+      dashboard: "Panel",
+      bookings: "Reservas",
+      customers: "Clientes",
+      payments: "Pagos",
+      contacto: "Contacto",
+      myBookings: "Mis Reservas",
+      empresas: "Empresas",
+      clientePortal: "Portal de Cliente",
+      comercioPortal: "Portal de Comercio",
+      adminWorkspace: "Espacio de administración",
+      collapseMenu: "Contraer menú",
+      expandMenu: "Expandir menú",
+      lightMode: "Modo Claro",
+      darkMode: "Modo Oscuro",
+      changeToLight: "Cambiar a modo claro",
+      changeToDark: "Cambiar a modo oscuro",
+    },
+    en: {
+      dashboard: "Dashboard",
+      bookings: "Bookings",
+      customers: "Customers",
+      payments: "Payments",
+      contacto: "Contact",
+      myBookings: "My Bookings",
+      empresas: "Companies",
+      clientePortal: "Customer Portal",
+      comercioPortal: "Business Portal",
+      adminWorkspace: "Admin workspace",
+      collapseMenu: "Collapse menu",
+      expandMenu: "Expand menu",
+      lightMode: "Light Mode",
+      darkMode: "Dark Mode",
+      changeToLight: "Switch to light mode",
+      changeToDark: "Switch to dark mode",
+    },
+  };
+
+  // Menús traducidos según el idioma seleccionado
+  const adminMenuItems: MenuItem[] = [
+    { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
+    { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+    { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
+    { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
+    { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+  ];
+
+  const empresaMenuItems: MenuItem[] = [
+    { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
+    { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+    { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+  ];
+
+  const usuarioMenuItems: MenuItem[] = [
+    { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
+    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "🏢" },
+    { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+  ];
+
+  // Sincronizar el estado del tema con localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
+
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
@@ -82,7 +112,7 @@ const sidebarTexts = {
     }
   }, []);
 
-  // Función para alternar el tema
+  // Función para alternar el tema claro/oscuro
   const toggleTheme = () => {
     if (isDarkMode) {
       document.documentElement.classList.remove("dark");
@@ -95,8 +125,9 @@ const sidebarTexts = {
     }
   };
 
-  // Determine active menu items based on user role if not provided via props
+  // Determina qué menú se muestra según el rol del usuario
   let activeMenuItems = menuItems;
+
   if (!activeMenuItems) {
     if (user?.role === "usuario") {
       activeMenuItems = usuarioMenuItems;
@@ -106,96 +137,62 @@ const sidebarTexts = {
       activeMenuItems = adminMenuItems;
     }
   }
->>>>>>> origin/merge
 
-// Menús traducidos según el idioma seleccionado
-const adminMenuItems: MenuItem[] = [
-  { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
-  { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
-  { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
-  { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
-  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
-];
+  // Determina el subtítulo del sidebar según el rol y el idioma seleccionado
+  let activeBrandSubtitle = brandSubtitle;
 
-const empresaMenuItems: MenuItem[] = [
-  { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
-  { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
-  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
-];
-
-const usuarioMenuItems: MenuItem[] = [
-  { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
-  { label: sidebarTexts[language].empresas, href: "/empresas", icon: "🏢" },
-  { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
-];
-
-  
-
-  // Determina qué menú se muestra según el rol del usuario
-let activeMenuItems = menuItems;
-
-if (!activeMenuItems) {
-  if (user?.role === "usuario") {
-    activeMenuItems = usuarioMenuItems;
-  } else if (user?.role === "empresa") {
-    activeMenuItems = empresaMenuItems;
-  } else {
-    activeMenuItems = adminMenuItems;
+  if (!activeBrandSubtitle) {
+    if (user?.role === "usuario") {
+      activeBrandSubtitle = sidebarTexts[language].clientePortal;
+    } else if (user?.role === "empresa") {
+      activeBrandSubtitle = sidebarTexts[language].comercioPortal;
+    } else {
+      activeBrandSubtitle = sidebarTexts[language].adminWorkspace;
+    }
   }
-}
 
-// Determina el subtítulo del sidebar según el rol y el idioma seleccionado
-let activeBrandSubtitle = brandSubtitle;
-
-if (!activeBrandSubtitle) {
-  if (user?.role === "usuario") {
-    activeBrandSubtitle = sidebarTexts[language].clientePortal;
-  } else if (user?.role === "empresa") {
-    activeBrandSubtitle = sidebarTexts[language].comercioPortal;
-  } else {
-    activeBrandSubtitle = sidebarTexts[language].adminWorkspace;
-  }
-}
-
-  // NUEVO: Función para alternar la visibilidad del sidebar
+  // Función para alternar la visibilidad del sidebar
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
-
   return (
-    <aside 
-      // Añadimos una clase dinámica para cuando esté cerrado (`admin-sidebar--collapsed`)
-      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`} 
+    <aside
+      className={`admin-sidebar ${!isOpen ? "admin-sidebar--collapsed" : ""}`}
       role="navigation"
     >
-      {/* Contenedor Superior: Brand, Botón y Navegación */}
       <div className="admin-sidebar__top">
         <div className="admin-sidebar__brand-container">
           <div className="admin-sidebar__brand">
             <h2 className="admin-sidebar__title">{brandTitle}</h2>
-            <p className="admin-sidebar__subtitle">{brandSubtitle}</p>
+            <p className="admin-sidebar__subtitle">{activeBrandSubtitle}</p>
           </div>
-          {/* NUEVO: Botón para colapsar/expandir */}
-          <button 
+
+          <button
             onClick={toggleSidebar}
             className="admin-sidebar__toggle-btn admin-sidebar-boton--collapsed color-boton"
-            aria-label={isOpen ? "Contraer menú" : "Expandir menú"}
-          > 
+            aria-label={
+              isOpen
+                ? sidebarTexts[language].collapseMenu
+                : sidebarTexts[language].expandMenu
+            }
+          >
             {isOpen ? "◀" : "▶"}
           </button>
-
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
           {activeMenuItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+
             const handleClick = () => {
               onNavigate?.(item.href);
             };
 
-            const linkClasses = `admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""} admin-sidebar__link--hoverable`;
+            const linkClasses = `admin-sidebar__link ${
+              isActive ? "admin-sidebar__link--active" : ""
+            } admin-sidebar__link--hoverable`;
 
             return (
               <Link
@@ -215,18 +212,23 @@ if (!activeBrandSubtitle) {
         </nav>
       </div>
 
-      {/* Contenedor Inferior: Botón de cambio de tema funcional */}
       <div className="admin-sidebar__bottom">
-        <button 
-          onClick={toggleTheme} 
+        <button
+          onClick={toggleTheme}
           className="theme-toggle-btn"
-          aria-label={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          aria-label={
+            isDarkMode
+              ? sidebarTexts[language].changeToLight
+              : sidebarTexts[language].changeToDark
+          }
         >
           <span className="theme-toggle-btn__icon" aria-hidden="true">
             {isDarkMode ? "☀️" : "🌙"}
           </span>
           <span className="theme-toggle-btn__label">
-            {isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+            {isDarkMode
+              ? sidebarTexts[language].lightMode
+              : sidebarTexts[language].darkMode}
           </span>
         </button>
       </div>

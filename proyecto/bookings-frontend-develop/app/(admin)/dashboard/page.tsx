@@ -173,7 +173,6 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-<<<<<<< HEAD
   // Obtenemos el idioma global para traducir los textos del dashboard
 const { language } = useLanguage();
 
@@ -242,8 +241,6 @@ const texts = {
 };
 
   // 1. Estado para controlar si mostramos todas o solo una vista previa
-=======
->>>>>>> origin/merge
   const [showAll, setShowAll] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -315,97 +312,49 @@ const texts = {
 
       <section className="kpi-grid">
         <KpiCard
-<<<<<<< HEAD
-            title={texts[language].todayBookings}
-            value={loading ? "—" : String(todayBookings.length)}
-            subtitle={
-              loading
-                ? "—"
-                : `${todayBookings.filter(b => b.status === "confirmed").length} ${texts[language].confirmed}`
-            }
-            variant="positive"
-          />
-
-          <KpiCard
-            title={texts[language].paidToday}
-            value={loading ? "—" : String(paidBookings.filter(b => b.date === today).length)}
-            subtitle={
-              loading
-                ? "—"
-                : `${todayBookings.length} ${texts[language].totalToday}`
-            }
-          />
-
-          <KpiCard
-            title={texts[language].pending}
-            value={loading ? "—" : String(pendingBookings.length)}
-            subtitle={
-              loading
-                ? "—"
-                : `${bookings.filter(b => b.status === "confirmed").length} ${texts[language].confirmedTotal}`
-            }
-            variant="warning"
-          />
-
-          <KpiCard
-            title={texts[language].totalBookings}
-            value={loading ? "—" : String(bookings.length)}
-            subtitle={
-              loading
-                ? "—"
-                : `${todayBookings.length} ${texts[language].scheduledToday}`
-            }
-          />
-=======
-          title="Reservas hoy"
+          title={texts[language].todayBookings}
           value={todayBookings.length}
-          trend={`${todayBookings.filter((b) => b.status === "confirmed").length} confirmadas`}
+          trend={`${todayBookings.filter((b) => b.status === "confirmed").length} ${texts[language].confirmed}`}
           color={KPI_COLORS.teal}
           activity={ACTIVITY_DATA.bookings}
           loading={loading}
         />
+
         <KpiCard
-          title="Pagadas hoy"
+          title={texts[language].paidToday}
           value={paidBookings.filter((b) => b.date === today).length}
-          trend={`de ${todayBookings.length} hoy`}
+          trend={`${todayBookings.length} ${texts[language].totalToday}`}
           color={KPI_COLORS.blue}
           activity={ACTIVITY_DATA.paid}
           loading={loading}
         />
+
         <KpiCard
-          title="Pendientes"
+          title={texts[language].pending}
           value={pendingBookings.length}
-          trend="por confirmar"
+          trend={texts[language].confirmedTotal}
           color={KPI_COLORS.amber}
           activity={ACTIVITY_DATA.pending}
           loading={loading}
         />
+
         <KpiCard
-          title="Total reservas"
+          title={texts[language].totalBookings}
           value={filteredBookings.length}
-          trend={`${todayBookings.length} hoy`}
+          trend={`${todayBookings.length} ${texts[language].scheduledToday}`}
           color={KPI_COLORS.purple}
           activity={ACTIVITY_DATA.total}
           loading={loading}
         />
->>>>>>> origin/merge
       </section>
 
       <section className="dashboard-prueba-lg dashboard-prueba-responsive">
         <div className="section-card">
           <div className="panel-title-row">
-<<<<<<< HEAD
             <h3 className="panel-title">{texts[language].upcomingBookings}</h3>
-            
-            {/* 3. Cambiamos el comportamiento del botón y el texto dinámicamente */}
-            <button 
-              className="panel-subtle-link" 
-=======
-            <h3 className="panel-title">Próximas reservas</h3>
 
             <button
               className="panel-subtle-link"
->>>>>>> origin/merge
               type="button"
               onClick={() => setShowAll(!showAll)}
             >
@@ -414,12 +363,8 @@ const texts = {
           </div>
 
           <div className="table-responsive">
-<<<<<<< HEAD
             {/* NUEVO: estados de carga y error antes de renderizar la tabla */}
             {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
-=======
-            {loading && <p className="table-feedback">Cargando reservas...</p>}
->>>>>>> origin/merge
             {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
             {!loading && !error && todayBookings.length === 0 && (
               <p className="table-feedback">{texts[language].noBookingsToday}</p>

@@ -549,71 +549,37 @@ const texts = {
       </section>
 
       <section className="kpi-grid">
-<<<<<<< HEAD
-        <div className="kpi-card">
-          <p className="kpi-card__label">{texts[language].totalBookings}</p>
-          <h3 className="kpi-card__value">{totalCount}</h3>
-          <p className="kpi-card__meta">{texts[language].availableRecords}</p>
-        </div>
-
-        <div className="kpi-card">
-          <p className="kpi-card__label">{texts[language].pending}</p>
-          <h3 className="kpi-card__value">{pendingCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--warning">
-            {texts[language].needsFollowUp}
-          </p>
-        </div>
-
-        <div className="kpi-card">
-          <p className="kpi-card__label">{texts[language].confirmed}</p>
-          <h3 className="kpi-card__value">{confirmedCount}</h3>
-          <p className="kpi-card__meta kpi-card__meta--positive">
-            {texts[language].activeStatus}
-          </p>
-        </div>  
-
-        <div className="kpi-card">
-          <p className="kpi-card__label">{texts[language].paid}</p>
-          <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">{texts[language].closedBookings}</p>
-        </div>
-=======
-        {/* Total reservas — teal */}
         <KpiCard
-          title="Total reservas"
+          title={texts[language].totalBookings}
           value={totalCount}
-          trend="registros disponibles"
+          trend={texts[language].availableRecords}
           color={KPI_COLORS.teal}
           activity={ACTIVITY_DATA.total}
         />
 
-        {/* Pendientes — amber */}
         <KpiCard
-          title="Pendientes"
+          title={texts[language].pending}
           value={pendingCount}
-          trend="requieren seguimiento"
+          trend={texts[language].needsFollowUp}
           color={KPI_COLORS.amber}
           activity={ACTIVITY_DATA.pending}
         />
 
-        {/* Confirmadas — green */}
         <KpiCard
-          title="Confirmadas"
+          title={texts[language].confirmed}
           value={confirmedCount}
-          trend="estado activo"
+          trend={texts[language].activeStatus}
           color={KPI_COLORS.green}
           activity={ACTIVITY_DATA.confirmed}
         />
 
-        {/* Pagadas — purple (color de marca) */}
         <KpiCard
-          title="Pagadas"
+          title={texts[language].paid}
           value={paidCount}
-          trend="reservas cerradas"
+          trend={texts[language].closedBookings}
           color={KPI_COLORS.purple}
           activity={ACTIVITY_DATA.paid}
         />
->>>>>>> origin/merge
       </section>
 
       {isCreateOpen && (
@@ -987,17 +953,12 @@ const texts = {
             {texts[language].deleteText} #{deleteTargetId}? {texts[language].deleteWarning}
           </p>
             <div className="modal-actions">
-<<<<<<< HEAD
               <button
                 type="button"
                 className="secondary-btn"
                 onClick={closeDeleteModal}
               >
                {texts[language].cancel}
-=======
-              <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
-                Cancelar
->>>>>>> origin/merge
               </button>
               <button
                 type="button"
@@ -1015,63 +976,32 @@ const texts = {
       )}
 
       <section className="section-card booking-table-card">
-        <div className="panel-title-row">
-<<<<<<< HEAD
-          <h3 className="panel-title">{texts[language].registeredBookings}</h3>
-          <div className="filter-row">
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "all" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "all"}
-              onClick={() => setStatusFilter("all")}
-            >
-              {texts[language].all}
-            </button>
+        
 
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "pending" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "pending"}
-              onClick={() => setStatusFilter("pending")}
-            >
-              {texts[language].pending}
-            </button>
+    <div className="panel-title-row">
+      <h3 className="panel-title">{texts[language].registeredBookings}</h3>
 
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "confirmed" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "confirmed"}
-              onClick={() => setStatusFilter("confirmed")}
-            >
-              {texts[language].confirmed}
-            </button>
-
-            <button
-              type="button"
-              className={`filter-pill ${statusFilter === "paid" ? "filter-pill--active" : ""}`}
-              aria-pressed={statusFilter === "paid"}
-              onClick={() => setStatusFilter("paid")}
-            >
-              {texts[language].paid}
-            </button>
-=======
-          <h3 className="panel-title">Reservas registradas</h3>
-          {/* Filtros por estado */}
-          <div className="filter-row">
-            {(["all", "pending", "confirmed", "paid"] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={`filter-pill ${statusFilter === f ? "filter-pill--active" : ""}`}
-                aria-pressed={statusFilter === f}
-                onClick={() => setStatusFilter(f)}
-              >
-                {{ all: "Todas", pending: "Pendientes", confirmed: "Confirmadas", paid: "Pagadas" }[f]}
-              </button>
-            ))}
->>>>>>> origin/merge
-          </div>
-        </div>
+      <div className="filter-row">
+        {(["all", "pending", "confirmed", "paid"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={`filter-pill ${statusFilter === f ? "filter-pill--active" : ""}`}
+            aria-pressed={statusFilter === f}
+            onClick={() => setStatusFilter(f)}
+          >
+            {
+              {
+                all: texts[language].all,
+                pending: texts[language].pending,
+                confirmed: texts[language].confirmed,
+                paid: texts[language].paid,
+              }[f]
+            }
+          </button>
+        ))}
+      </div>
+    </div>
 
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
         {errorMessage   ? <div className="message-error"   style={{ marginBottom: 12 }}>{errorMessage}</div>   : null}

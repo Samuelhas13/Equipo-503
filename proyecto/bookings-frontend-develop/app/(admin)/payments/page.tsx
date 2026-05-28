@@ -1,14 +1,8 @@
 "use client";
 
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-=======
-import { useEffect, useState, useRef } from "react";
->>>>>>> origin/merge
 import {
-  Booking,
-  getAppointments,
   getPayments,
   createPayment,
   PaymentMethod,
@@ -36,15 +30,10 @@ const initialPaymentForm: PaymentForm = {
   status: "paid",
 };
 
-// ─── KpiCard — Variante D ──────────────────────────────────────────────────────
-// NUEVO: Componente KpiCard rediseñado con la Variante D, consistente con
-// dashboard/page.tsx y BookingsClient.tsx.
+// Componente KPI con diseño visual avanzado.
 interface KpiCardColor {
-  // Color del borde lateral izquierdo y de las barras del histograma
   bar: string;
-  // Fondo del badge de tendencia
   trendBg: string;
-  // Color del texto del badge de tendencia
   trendText: string;
 }
 
@@ -72,13 +61,14 @@ function KpiCard({
 
     const container = barsRef.current;
     const max = Math.max(...activity);
-
     const bars = container.querySelectorAll(".kpi-d__dot");
+
     setTimeout(() => {
       bars.forEach((bar, i) => {
         const v = activity[i] ?? 0;
         const heightPx = Math.round((v / max) * 24 + 4);
         const opacity = v === max ? 1 : v > max * 0.7 ? 0.65 : 0.3;
+
         (bar as HTMLElement).style.height = `${heightPx}px`;
         (bar as HTMLElement).style.opacity = String(opacity);
       });
@@ -116,7 +106,8 @@ function KpiCard({
               height: "4px",
               flex: 1,
               borderRadius: "2px 2px 0 0",
-              transition: "height 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.8s ease",
+              transition:
+                "height 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.8s ease",
             }}
           />
         ))}
@@ -125,68 +116,54 @@ function KpiCard({
   );
 }
 
-<<<<<<< HEAD
-function Badge({
-      status,
-      texts,
-    }: {
-      status: Payment["status"];
-      texts: {
-        pending: string;
-        paid: string;
-      };
-    }) {
-      return (
-        <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
-          {status === "pending" ? texts.pending : texts.paid}
-        </span>
-      );
-=======
-// ─── Configuración visual de las tarjetas KPI ─────────────────────────────────
+// Colores de las tarjetas KPI
 const KPI_COLORS: Record<string, KpiCardColor> = {
   green: {
-    bar:       "#1D9E75",
-    trendBg:   "#E1F5EE",
+    bar: "#1D9E75",
+    trendBg: "#E1F5EE",
     trendText: "#085041",
   },
   amber: {
-    bar:       "#EF9F27",
-    trendBg:   "#FAEEDA",
+    bar: "#EF9F27",
+    trendBg: "#FAEEDA",
     trendText: "#412402",
   },
   purple: {
-    bar:       "#7F77DD",
-    trendBg:   "#EEEDFE",
+    bar: "#7F77DD",
+    trendBg: "#EEEDFE",
     trendText: "#26215C",
   },
 };
 
 const ACTIVITY_DATA = {
-  paid:    [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
   pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total:   [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
 };
 
-const METHOD_LABELS: Record<PaymentMethod, string> = {
-  card: "Tarjeta",
-  bizum: "Bizum",
-  cash: "Efectivo",
-  pending: "Pendiente",
-};
-
-// ─── Badge ────────────────────────────────────────────────────────────────────
-function Badge({ status }: { status: Payment["status"] }) {
+// Badge traducido según el idioma global
+function Badge({
+  status,
+  texts,
+}: {
+  status: Payment["status"];
+  texts: {
+    pending: string;
+    paid: string;
+  };
+}) {
   return (
-    <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
-      {status === "pending" ? "Por cobrar" : "Pagado"}
+    <span
+      className={`badge badge--${
+        status === "pending" ? "pending" : "confirmed"
+      }`}
+    >
+      {status === "pending" ? texts.pending : texts.paid}
     </span>
   );
->>>>>>> origin/merge
 }
 
-// ─── PaymentsPage ─────────────────────────────────────────────────────────────
 export default function PaymentsPage() {
-
   // Obtenemos el idioma global para traducir los textos de payments
   const { language } = useLanguage();
 
@@ -228,8 +205,10 @@ export default function PaymentsPage() {
       id: "ID",
       booking: "Reserva",
       requiredClientBusiness: "Cliente y comercio son obligatorios.",
-      invalidClientName: "El nombre del cliente solo puede contener letras y espacios.",
-      invalidBusinessName: "El nombre del comercio solo puede contener letras y espacios.",
+      invalidClientName:
+        "El nombre del cliente solo puede contener letras y espacios.",
+      invalidBusinessName:
+        "El nombre del comercio solo puede contener letras y espacios.",
       invalidAmount: "Importe debe ser un número entero sin decimales.",
       requiredDate: "Fecha del pago es obligatoria.",
       invalidStatus: "Estado de pago inválido.",
@@ -274,7 +253,8 @@ export default function PaymentsPage() {
       booking: "Booking",
       requiredClientBusiness: "Client and business are required.",
       invalidClientName: "The client name can only contain letters and spaces.",
-      invalidBusinessName: "The business name can only contain letters and spaces.",
+      invalidBusinessName:
+        "The business name can only contain letters and spaces.",
       invalidAmount: "Amount must be a whole number without decimals.",
       requiredDate: "Payment date is required.",
       invalidStatus: "Invalid payment status.",
@@ -286,8 +266,8 @@ export default function PaymentsPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [appointments, setAppointments] = useState<Booking[]>([]);
-  const [paymentForm, setPaymentForm] = useState<PaymentForm>(initialPaymentForm);
+  const [paymentForm, setPaymentForm] =
+    useState<PaymentForm>(initialPaymentForm);
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -308,50 +288,54 @@ export default function PaymentsPage() {
         setLoading(false);
       }
     }
+
     load();
   }, []);
 
-  const paid         = payments.filter((p) => p.status === "paid");
-  const pending      = payments.filter((p) => p.status === "pending");
-  const totalPaid    = paid.reduce((sum, p) => sum + (p.amount ?? 0), 0);
+  const paid = payments.filter((p) => p.status === "paid");
+  const pending = payments.filter((p) => p.status === "pending");
+  const totalPaid = paid.reduce((sum, p) => sum + (p.amount ?? 0), 0);
   const totalPending = pending.reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
   const validatePaymentForm = () => {
-      if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
-        setFormError(texts[language].requiredClientBusiness);
-        return false;
-      }
+    if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
+      setFormError(texts[language].requiredClientBusiness);
+      return false;
+    }
 
-      if (!nameRegex.test(paymentForm.client.trim())) {
-        setFormError(texts[language].invalidClientName);
-        return false;
-      }
+    if (!nameRegex.test(paymentForm.client.trim())) {
+      setFormError(texts[language].invalidClientName);
+      return false;
+    }
 
-      if (!nameRegex.test(paymentForm.business.trim())) {
-        setFormError(texts[language].invalidBusinessName);
-        return false;
-      }
+    if (!nameRegex.test(paymentForm.business.trim())) {
+      setFormError(texts[language].invalidBusinessName);
+      return false;
+    }
 
-      if (!amountRegex.test(paymentForm.amount.trim())) {
-        setFormError(texts[language].invalidAmount);
-        return false;
-      }
+    if (!amountRegex.test(paymentForm.amount.trim())) {
+      setFormError(texts[language].invalidAmount);
+      return false;
+    }
 
-      if (!paymentForm.date) {
-        setFormError(texts[language].requiredDate);
-        return false;
-      }
+    if (!paymentForm.date) {
+      setFormError(texts[language].requiredDate);
+      return false;
+    }
 
-      if (!["pending", "paid"].includes(paymentForm.status)) {
-        setFormError(texts[language].invalidStatus);
-        return false;
-      }
+    if (!["pending", "paid"].includes(paymentForm.status)) {
+      setFormError(texts[language].invalidStatus);
+      return false;
+    }
 
-      setFormError("");
-      return true;
-};
+    setFormError("");
+    return true;
+  };
 
-  const handleInputChange = (field: keyof typeof paymentForm, value: string) => {
+  const handleInputChange = (
+    field: keyof typeof paymentForm,
+    value: string
+  ) => {
     setPaymentForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -374,7 +358,9 @@ export default function PaymentsPage() {
       setPaymentForm(initialPaymentForm);
       setIsCreateOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : texts[language].savePaymentError);
+      setFormError(
+        err instanceof Error ? err.message : texts[language].savePaymentError
+      );
     }
   };
 
@@ -382,185 +368,132 @@ export default function PaymentsPage() {
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>{texts[language].title}</h2>  
+          <h2>{texts[language].title}</h2>
           <p>{texts[language].subtitle}</p>
         </div>
+
         <button
-          className="primary-btn" 
+          className="primary-btn"
           type="button"
           onClick={() => setIsCreateOpen((prev) => !prev)}
         >
-<<<<<<< HEAD
-          {isCreateOpen ? texts[language].closeForm : texts[language].registerPayment}
-=======
-          {isCreateOpen ? "Cerrar formulario" : "Registrar cobro"}
->>>>>>> origin/merge
+          {isCreateOpen
+            ? texts[language].closeForm
+            : texts[language].registerPayment}
         </button>
       </section>
 
       {isCreateOpen && (
-<<<<<<< HEAD
-  <section className="section-card">
-    <h3 className="panel-title">{texts[language].registerPayment}</h3>
-
-    <form className="form-grid" onSubmit={(event) => { event.preventDefault(); handleSavePayment(); }}>
-      <label className="form-field">
-        {texts[language].client}
-        <input
-          className="input"
-          placeholder={texts[language].clientPlaceholder}
-          value={paymentForm.client}
-          onChange={(event) => handleInputChange("client", event.target.value)}
-          pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-          title={texts[language].onlyLetters}
-        />
-      </label>
-
-      <label className="form-field">
-        {texts[language].business}
-        <input
-          className="input"
-          placeholder={texts[language].businessPlaceholder}
-          value={paymentForm.business}
-          onChange={(event) => handleInputChange("business", event.target.value)}
-          pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-          title={texts[language].onlyLetters}
-        />
-      </label>
-
-      <label className="form-field">
-        {texts[language].amount}
-        <input
-          className="input"
-          placeholder={texts[language].amountPlaceholder}
-          value={paymentForm.amount}
-          onChange={(event) => handleInputChange("amount", event.target.value)}
-          inputMode="numeric"
-          pattern="[0-9]+"
-          title={texts[language].onlyNumbers}
-        />
-      </label>
-
-      <label className="form-field">
-        {texts[language].method}
-        <select
-          className="input"
-          value={paymentForm.method}
-          onChange={(event) => handleInputChange("method", event.target.value)}
-        >
-          <option value="card">{texts[language].card}</option>
-          <option value="bizum">{texts[language].bizum}</option>
-          <option value="cash">{texts[language].cash}</option>
-          <option value="pending">{texts[language].pendingMethod}</option>
-        </select>
-      </label>
-
-      <label className="form-field">
-        {texts[language].date}
-        <input
-          className="input"
-          type="date"
-          value={paymentForm.date}
-          onChange={(event) => handleInputChange("date", event.target.value)}
-        />
-      </label>
-
-      <label className="form-field">
-        {texts[language].status}
-        <select
-          className="input"
-          value={paymentForm.status}
-          onChange={(event) => handleInputChange("status", event.target.value)}
-        >
-          <option value="pending">{texts[language].pending}</option>
-          <option value="paid">{texts[language].paid}</option>
-        </select>
-      </label>
-=======
         <section className="section-card">
-          <h3 className="panel-title">Registrar cobro</h3>
+          <h3 className="panel-title">{texts[language].registerPayment}</h3>
 
-          <form className="form-grid" onSubmit={(event) => { event.preventDefault(); handleSavePayment(); }}>
+          <form
+            className="form-grid"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSavePayment();
+            }}
+          >
             <label className="form-field">
-              Cliente
+              {texts[language].client}
               <input
                 className="input"
-                placeholder="Nombre del cliente"
+                placeholder={texts[language].clientPlaceholder}
                 value={paymentForm.client}
-                onChange={(event) => handleInputChange("client", event.target.value)}
+                onChange={(event) =>
+                  handleInputChange("client", event.target.value)
+                }
                 pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-                title="Solo letras y espacios"
+                title={texts[language].onlyLetters}
                 required
               />
             </label>
 
             <label className="form-field">
-              Comercio
+              {texts[language].business}
               <input
                 className="input"
-                placeholder="Nombre del comercio"
+                placeholder={texts[language].businessPlaceholder}
                 value={paymentForm.business}
-                onChange={(event) => handleInputChange("business", event.target.value)}
+                onChange={(event) =>
+                  handleInputChange("business", event.target.value)
+                }
                 pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
-                title="Solo letras y espacios"
+                title={texts[language].onlyLetters}
                 required
               />
             </label>
 
             <label className="form-field">
-              Importe
+              {texts[language].amount}
               <input
                 className="input"
-                placeholder="Ej: 28"
+                placeholder={texts[language].amountPlaceholder}
                 value={paymentForm.amount}
-                onChange={(event) => handleInputChange("amount", event.target.value)}
+                onChange={(event) =>
+                  handleInputChange("amount", event.target.value)
+                }
                 inputMode="numeric"
                 pattern="[0-9]+"
-                title="Solo números enteros"
+                title={texts[language].onlyNumbers}
                 required
               />
             </label>
 
             <label className="form-field">
-              Método
+              {texts[language].method}
               <select
                 className="input"
                 value={paymentForm.method}
-                onChange={(event) => handleInputChange("method", event.target.value as PaymentMethod)}
+                onChange={(event) =>
+                  handleInputChange("method", event.target.value as PaymentMethod)
+                }
               >
-                <option value="card">Tarjeta</option>
-                <option value="bizum">Bizum</option>
-                <option value="cash">Efectivo</option>
-                <option value="pending">Pendiente</option>
+                <option value="card">{texts[language].card}</option>
+                <option value="bizum">{texts[language].bizum}</option>
+                <option value="cash">{texts[language].cash}</option>
+                <option value="pending">{texts[language].pendingMethod}</option>
               </select>
             </label>
 
             <label className="form-field">
-              Fecha
+              {texts[language].date}
               <input
                 className="input"
                 type="date"
                 value={paymentForm.date}
-                onChange={(event) => handleInputChange("date", event.target.value)}
+                onChange={(event) =>
+                  handleInputChange("date", event.target.value)
+                }
                 required
               />
             </label>
 
             <label className="form-field">
-              Estado
+              {texts[language].status}
               <select
                 className="input"
                 value={paymentForm.status}
-                onChange={(event) => handleInputChange("status", event.target.value)}
+                onChange={(event) =>
+                  handleInputChange(
+                    "status",
+                    event.target.value as PaymentStatus
+                  )
+                }
               >
-                <option value="pending">Por cobrar</option>
-                <option value="paid">Pagado</option>
+                <option value="pending">{texts[language].pending}</option>
+                <option value="paid">{texts[language].paid}</option>
               </select>
             </label>
->>>>>>> origin/merge
 
             {formError && (
-              <p style={{ color: "#b91c1c", fontSize: 14, gridColumn: "1 / -1" }}>
+              <p
+                style={{
+                  color: "#b91c1c",
+                  fontSize: 14,
+                  gridColumn: "1 / -1",
+                }}
+              >
                 {formError}
               </p>
             )}
@@ -575,93 +508,51 @@ export default function PaymentsPage() {
                   setPaymentForm(initialPaymentForm);
                 }}
               >
-                Cancelar
+                {texts[language].cancel}
               </button>
 
               <button className="primary-btn" type="submit">
-                Guardar cobro
+                {texts[language].savePayment}
               </button>
             </div>
           </form>
+
+          <p style={{ color: "#6b7280", fontSize: 14 }}>
+            {texts[language].formNote}
+          </p>
         </section>
       )}
 
-<<<<<<< HEAD
-      <div className="form-actions">
-        <button
-          className="secondary-btn"
-          type="button"
-          onClick={() => {
-            setIsCreateOpen(false);
-            setFormError("");
-            setPaymentForm(initialPaymentForm);
-          }}
-        >
-          {texts[language].cancel}
-        </button>
-
-        <button className="primary-btn" type="submit">
-          {texts[language].savePayment}
-        </button>
-      </div>
-    </form>
-
-    <p style={{ color: "#6b7280", fontSize: 14 }}>
-      {texts[language].formNote}
-    </p>
-  </section>
-)}
-=======
->>>>>>> origin/merge
       <section className="kpi-grid">
-        {/* Cobrado total — verde */}
         <KpiCard
           title={texts[language].totalCharged}
-          value={loading ? "—" : `${totalPaid} €`}
-<<<<<<< HEAD
-          subtitle={`${paid.length} ${texts[language].operations}`}
-          variant="positive"
-        />
-         <KpiCard
-          title={texts[language].pendingAmount}
-          value={loading ? "—" : `${totalPending} €`}
-          subtitle={`${pending.length} ${texts[language].paymentsToReview}`}
-          variant="warning"
-        />
-         <KpiCard
-          title={texts[language].totalPayments}
-          value={loading ? "—" : String(payments.length)}
-          subtitle={texts[language].databaseRecords}
-=======
-          trend={`${paid.length} operaciones`}
+          value={`${totalPaid} €`}
+          trend={`${paid.length} ${texts[language].operations}`}
           color={KPI_COLORS.green}
           activity={ACTIVITY_DATA.paid}
           loading={loading}
         />
 
-        {/* Pendiente — amber */}
         <KpiCard
-          title="Pendiente"
-          value={loading ? "—" : `${totalPending} €`}
-          trend={`${pending.length} por revisar`}
+          title={texts[language].pendingAmount}
+          value={`${totalPending} €`}
+          trend={`${pending.length} ${texts[language].paymentsToReview}`}
           color={KPI_COLORS.amber}
           activity={ACTIVITY_DATA.pending}
           loading={loading}
         />
 
-        {/* Total pagos — purple (color de marca) */}
         <KpiCard
-          title="Total pagos"
-          value={loading ? "—" : String(payments.length)}
-          trend="registros en BD"
+          title={texts[language].totalPayments}
+          value={String(payments.length)}
+          trend={texts[language].databaseRecords}
           color={KPI_COLORS.purple}
           activity={ACTIVITY_DATA.total}
           loading={loading}
->>>>>>> origin/merge
         />
       </section>
 
-     <section className="section-card">
+      <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">{texts[language].paymentList}</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
@@ -670,9 +561,10 @@ export default function PaymentsPage() {
         </div>
 
         <div className="table-responsive">
-<<<<<<< HEAD
           {loading && (
-            <p className="table-feedback">{texts[language].loadingPayments}</p>
+            <p className="table-feedback">
+              {texts[language].loadingPayments}
+            </p>
           )}
 
           {!loading && error && (
@@ -683,16 +575,6 @@ export default function PaymentsPage() {
             <p className="table-feedback">{texts[language].noPayments}</p>
           )}
 
-=======
-          {loading && <p className="table-feedback">Cargando pagos...</p>}
-          {!loading && error && (
-            <p className="table-feedback table-feedback--error">{error}</p>
-          )}
-          {!loading && !error && payments.length === 0 && (
-            <p className="table-feedback">No hay pagos registrados.</p>
-          )}
-
->>>>>>> origin/merge
           {!loading && !error && payments.length > 0 && (
             <table className="data-table">
               <thead>
@@ -707,37 +589,21 @@ export default function PaymentsPage() {
               </thead>
 
               <tbody>
-<<<<<<< HEAD
-                {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight: 600 }}>#{p.id}</td>
-                    <td>
-                      {texts[language].booking} #{p.appointmentId}
-                    </td>
-                    <td>{p.amount} €</td>
-                    <td>{p.paymentMethod}</td>
-                    <td>
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleDateString("es-ES")
-                        : "—"}
-                    </td>
-                    <td>
-                       <Badge status={p.status} texts={texts[language]} />
-=======
                 {payments.map((payment) => (
                   <tr key={payment.id}>
                     <td style={{ fontWeight: 600 }}>#{payment.id}</td>
-                    <td>Reserva #{payment.appointmentId}</td>
+                    <td>
+                      {texts[language].booking} #{payment.appointmentId}
+                    </td>
                     <td>{payment.amount} €</td>
-                    <td>{METHOD_LABELS[payment.paymentMethod] ?? payment.paymentMethod ?? "—"}</td>
+                    <td>{payment.paymentMethod}</td>
                     <td>
                       {payment.createdAt
                         ? new Date(payment.createdAt).toLocaleDateString("es-ES")
                         : "—"}
                     </td>
                     <td>
-                      <Badge status={payment.status} />
->>>>>>> origin/merge
+                      <Badge status={payment.status} texts={texts[language]} />
                     </td>
                   </tr>
                 ))}
