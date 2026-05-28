@@ -5,8 +5,14 @@
    - Se añaden variables de marca: --purple-*, --sidebar-*, --page-bg
    - Tipografía Manrope conservada
    - Estructura, comentarios y lógica 100% originales
+   - REFACTOR (27/05): Eliminados duplicados, reordenado por grupos,
+     responsive móvil añadido con breakpoints coherentes
 */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* ==========================================================================
+   1. VARIABLES GLOBALES (Design Tokens)
+   ========================================================================== */
 
 :root {
   /* ── Paleta púrpura ──────────────────────────────── */
@@ -125,6 +131,11 @@ html.dark {
   --shadow-md:                0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+
+/* ==========================================================================
+   2. RESET Y BASE
+   ========================================================================== */
+
 * {
   box-sizing: border-box;
 }
@@ -137,6 +148,11 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Manrope', Arial, Helvetica, sans-serif;
+}
+
+/* Pone el min-height del body al 100% de la ventana */
+body {
+  min-height: 100vh;
 }
 
 a {
@@ -152,10 +168,10 @@ textarea {
   /* APLICADO: Se agregó textarea al selector para heredar tipografía en formularios largos */
 }
 
-/* Pone el min-height del body al 100% de la ventana */
-body {
-  min-height: 100vh;
-}
+
+/* ==========================================================================
+   3. LAYOUT PRINCIPAL
+   ========================================================================== */
 
 /* Haz que el contenedor principal ocupe todo el espacio disponible */
 .admin-shell {
@@ -163,20 +179,94 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar fija: cuidado con `height: 100vh` y `position: sticky`; en pantallas pequeñas puede causar problemas de overflow. */
+/* Layout mobile-first: columna en móvil, fila en escritorio */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg);
+  position: relative;
+}
+
+.admin-layout__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Padding más pequeño en móvil, más generoso en escritorio */
+.admin-layout__main {
+  flex: 1;
+  padding: 0.75rem;
+}
+
+/* Hace que el contenedor principal ocupe todo el espacio disponible */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Capa oscura transparente detrás del menú móvil */
+.admin-layout__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 998;
+}
+
+/* Espacio entre el contenido y el borde */
+.admin-content {
+  padding: 16px 12px 12px;
+}
+
+
+/* ==========================================================================
+   4. SIDEBAR
+   ========================================================================== */
+
+/* Sidebar fija: en móvil es un panel flotante deslizable, en escritorio sticky */
 .admin-sidebar {
-  width: var(--sidebar-width);
+  width: 260px;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border-sidebar);
   backdrop-filter: blur(10px);
   padding: 24px 16px;
-  position: sticky;
+  /* Panel flotante en móvil */
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100vh;
+  z-index: 999;
   /* ── Estilos estructurales para el botón en la parte baja ── */
   display: flex;
   flex-direction: column;
   justify-content: space-between; /* Empuja el contenido hacia los extremos */
+  /* Transición suave para el ancho del sidebar y el deslizamiento */
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow: hidden; /* Evita que el texto desborde al achicarse */
+  transform: translateX(-100%); /* Oculto por defecto en móvil */
+}
+
+/* Cuando el estado es 'open', lo deslizamos hacia adentro */
+.sidebar-open .admin-sidebar {
+  transform: translateX(0);
+}
+
+/* Contenedor del título y el botón juntos */
+.admin-sidebar__brand-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
 }
 
 /* Añade un margen inferior al logo de la barra lateral */
@@ -271,12 +361,14 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* Zona inferior del sidebar: tema y ajustes */
 .admin-sidebar__bottom {
   margin-top: auto; /* Asegura empujar al fondo */
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-sidebar);
 }
 
+/* Botón de toggle de tema claro/oscuro */
 .theme-toggle-btn {
   display: flex;
   align-items: center;
@@ -303,25 +395,62 @@ body {
   font-size: 1.1rem;
 }
 
-/* Hace que el contenedor principal ocupe todo el espacio disponible */
-.admin-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* Botón de hamburguesa: solo visible en móvil (se oculta desde la media query ≥768px) */
+.admin-header__toggle-btn {
+  display: block;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  color: var(--text);
 }
+
+/* Botón de colapso/expansión del sidebar en escritorio */
+.color-boton {
+  background-color: var(--purple-800);
+  border-radius: 20%;
+  color: white;
+}
+
+/* Ajuste de alineación del botón cuando el sidebar está colapsado */
+.admin-sidebar-boton--collapsed {
+  justify-content: center; /* Centra el botón cuando el sidebar está colapsado */
+  align-items: center;
+  margin-left: 10px;
+}
+
+/* Sidebar colapsado en escritorio: solo muestra iconos */
+.admin-sidebar--collapsed {
+  width: 85px; /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
+}
+
+/* Ocultar el texto del título, subtítulo, etiquetas de menú y tema cuando esté colapsado */
+.admin-sidebar--collapsed .admin-sidebar__brand,
+.admin-sidebar--collapsed .admin-sidebar__label,
+.admin-sidebar--collapsed .theme-toggle-btn__label,
+.admin-sidebar--collapsed .admin-sidebar__subtitle {
+  display: none;
+}
+
+
+/* ==========================================================================
+   5. CABECERA (HEADER)
+   ========================================================================== */
 
 /* En cabeceras con transparencia y blur, revisar contraste si aparece sobre fondos oscuros o imágenes. */
 .admin-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px 28px;
+  padding: 14px 16px;
   background: var(--surface-translucent-soft);
   border: 1px solid var(--border-header);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -334,7 +463,7 @@ body {
 /* Pone formato al título de la cabecera */
 .admin-header__title {
   margin: 0;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1.1;
   letter-spacing: -0.04em;
   font-weight: 700;
@@ -343,9 +472,9 @@ body {
 
 /* Añade formato al subtítulo de la cabecera */
 .admin-header__subtitle {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.4;
 }
 
@@ -353,14 +482,14 @@ body {
 .admin-header__actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 /* El avatar utiliza variables para mantener consistencia de marca. */
 .admin-avatar {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
   background: var(--purple-800);
   color: var(--purple-100);
@@ -370,16 +499,96 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Espacio entre el contenido y el borde */
-.admin-content {
-  padding: 24px 18px 18px;
+/* Estilos de cabecera de perfil */
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px 4px 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  border: 1px solid var(--border);
 }
+
+.user-profile-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.user-profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.user-profile-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.logout-btn-header {
+  background: transparent;
+  border: none;
+  color: var(--error);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.logout-btn-header:hover {
+  background: rgba(226, 75, 74, 0.08);
+}
+
+
+/* ==========================================================================
+   6. PAGE LAYOUT (hero, stack, contenido de página)
+   ========================================================================== */
 
 /* Posiciona los elementos en la pila de páginas */
 .page-stack {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+}
+
+/* El hero usa ancho flexible; en móvil se apila verticalmente */
+.page-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Formato para el título del hero */
+.page-hero h2 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+
+/* Formato para el párrafo del hero y color */
+.page-hero p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+/* MEJORA APLICADA: Variantes de hero para páginas específicas como /bookings */
+.booking-hero {
+  box-shadow: var(--shadow-booking-hero);
+  border-color: var(--border-booking-hero);
 }
 
 /* Mejora aplicada: wrapper específico para la página de bookings */
@@ -387,6 +596,11 @@ body {
   width: 100%;
   gap: 28px;
 }
+
+
+/* ==========================================================================
+   7. TARJETAS (cards)
+   ========================================================================== */
 
 /* Forma para las tarjetas de superficie */
 .surface-card {
@@ -401,7 +615,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 20px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -412,157 +626,16 @@ body {
   /* MEJORA APLICADA: Estilo distintivo para formularios y tablas en la página de bookings */
 }
 
-/* Modificación de las tablas, mejoras responsive para móvil para la página de bookings */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
 
-/* La tabla usa `border-collapse`, buen enfoque. */
-.data-table {
-  width: 100%;
-  min-width: 900px; /* fuerza scroll si no cabe */
-  border-collapse: collapse;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow-table);
-}
+/* ==========================================================================
+   8. KPI CARDS
+   ========================================================================== */
 
-/* Formato para el encabezado de la tabla */
-.data-table thead {
-  position: sticky;
-  top: 0;
-  background: var(--surface-2);
-}
-
-/* Formato para las filas del encabezado de la tabla */
-.data-table thead tr {
-  color: var(--muted);
-  text-align: left;
-}
-
-/* Formato para las celdas del encabezado de la tabla */
-.data-table th {
-  padding: 16px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  text-align: left;
-  white-space: nowrap;
-}
-
-/* Formato para las celdas de la tabla */
-.data-table td {
-  padding: 18px 14px;
-  border-top: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--text);
-  text-align: left;
-  white-space: nowrap;
-}
-
-.data-table tbody tr:hover {
-  background: var(--surface-2);
-}
-
-/* Formato para las celdas de la tabla en la primera columna */
-.data-table td:first-child,
-.data-table th:first-child {
-  padding-left: 18px;
-}
-
-.table-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* El hero usa ancho flexible pero no tiene restricciones de contenido; el texto podría comprimirse demasiado en pantallas estrechas. */
-.page-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  box-shadow: var(--shadow-sm);
-}
-
-/* Formato para el título del hero */
-.page-hero h2 {
-  margin: 0;
-  font-size: 30px;
-  letter-spacing: -0.04em;
-  color: var(--text);
-}
-
-/* MEJORA APLICADA: Variantes de hero para páginas específicas como /bookings */
-.booking-hero {
-  box-shadow: var(--shadow-booking-hero);
-  border-color: var(--border-booking-hero);
-}
-
-/* Formato para el párrafo del hero y color */
-.page-hero p {
-  margin: 8px 0 0;
-  color: var(--muted);
-}
-
-/* Los botones no consideran un estado `disabled`; si se usan botones inactivos conviene definirlo aquí también. */
-.primary-btn {
-  border: none;
-  background: var(--accent);
-  color: white;
-  border-radius: 14px;
-  padding: 12px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.primary-btn:hover {
-  background: var(--purple-800);
-  transform: translateY(-1px);
-}
-
-.primary-btn:active {
-  transform: translateY(0);
-}
-
-/* Botón secundario */
-.secondary-btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 14px;
-  padding: 12px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.secondary-btn:hover {
-  background: var(--surface-2);
-  border-color: var(--purple-200);
-  color: var(--accent);
-}
-
-/* Estados disabled para botones */
-.primary-btn:disabled,
-.secondary-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* El grid de KPIs se fija en 4 columnas; la media query de 1200px es útil, pero nuevos puntos de quiebre podrían mejorar la adaptación intermedia. */
+/* El grid de KPIs: 2 columnas en móvil, 4 en escritorio */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 /* Formato para las tarjetas de KPI */
@@ -570,7 +643,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 22px;
-  padding: 22px;
+  padding: 20px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -583,8 +656,8 @@ body {
 
 /* Formato para el valor de las tarjetas de KPI */
 .kpi-card__value {
-  margin: 12px 0 10px;
-  font-size: 34px;
+  margin: 10px 0 8px;
+  font-size: 30px;
   line-height: 1;
   letter-spacing: -0.05em;
   color: var(--text);
@@ -729,65 +802,10 @@ body {
               opacity 0.8s ease;
 }
 
-/* ── Badges adicionales para los estados "canceled" y "completed" ──
-   Se añaden aquí porque el dashboard/page.tsx ya usa DashboardBookingStatus
-   completo con estos dos valores. */
 
-/* Cancelada: rojo suave — mismo token de error del sistema */
-.badge--canceled {
-  background: var(--message-error-bg);
-  color: var(--error);
-}
-
-/* Completada: púrpura suave — tono de marca, indica finalización exitosa */
-.badge--completed {
-  background: var(--purple-50);
-  color: var(--purple-800);
-}
-
-/* Formato para dashboard responsive */
-.dashboard-prueba {
-  display: flex;
-  gap: 16px;
-}
-
-.dashboard-prueba-responsive {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.dashboard-cartas {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Formato para la fila del título del panel */
-.panel-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-/* Formato para el título del panel */
-.panel-title {
-  margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.03em;
-  color: var(--text);
-}
-
-/* Formato para el enlace sutil del panel */
-.panel-subtle-link {
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 14px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
+/* ==========================================================================
+   9. BADGES
+   ========================================================================== */
 
 /* Formato para las insignias */
 .badge {
@@ -816,11 +834,146 @@ body {
   color: var(--paid-text);
 }
 
+/* Cancelada: rojo suave — mismo token de error del sistema */
+.badge--canceled {
+  background: var(--message-error-bg);
+  color: var(--error);
+}
+
+/* Completada: púrpura suave — tono de marca, indica finalización exitosa */
+.badge--completed {
+  background: var(--purple-50);
+  color: var(--purple-800);
+}
+
+
+/* ==========================================================================
+   10. TABLAS
+   ========================================================================== */
+
+/* Modificación de las tablas, mejoras responsive para móvil */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* La tabla usa `border-collapse`, buen enfoque. */
+.data-table {
+  width: 100%;
+  min-width: 600px; /* fuerza scroll si no cabe */
+  border-collapse: collapse;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-table);
+}
+
+/* Formato para el encabezado de la tabla */
+.data-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+}
+
+/* Formato para las filas del encabezado de la tabla */
+.data-table thead tr {
+  color: var(--muted);
+  text-align: left;
+}
+
+/* Formato para las celdas del encabezado de la tabla */
+.data-table th {
+  padding: 14px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Formato para las celdas de la tabla */
+.data-table td {
+  padding: 14px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+/* Formato para las celdas de la tabla en la primera columna */
+.data-table td:first-child,
+.data-table th:first-child {
+  padding-left: 16px;
+}
+
+/* Acciones dentro de una celda de tabla */
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Texto de estado de la tabla (cargando, vacío, error) */
+.table-feedback {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Variante de error para el feedback de tabla */
+.table-feedback--error {
+  color: var(--error);
+}
+
+
+/* ==========================================================================
+   11. PANEL (títulos y controles de sección)
+   ========================================================================== */
+
+/* Formato para la fila del título del panel */
+.panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Formato para el título del panel */
+.panel-title {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+/* Formato para el enlace sutil del panel */
+.panel-subtle-link {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+
+/* ==========================================================================
+   12. INFO BOXES (tarjetas de información secundaria)
+   ========================================================================== */
+
 /* Formato para la pila de información */
 .info-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* Formato para la caja de información */
@@ -828,7 +981,7 @@ body {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 16px;
+  padding: 14px;
 }
 
 /* Formato para el subtítulo de la caja de información */
@@ -840,7 +993,7 @@ body {
 
 /* Formato para el título de la caja de información */
 .info-box__title {
-  margin: 10px 0 4px;
+  margin: 8px 0 4px;
   font-weight: 700;
   color: var(--text);
 }
@@ -852,50 +1005,44 @@ body {
   font-size: 14px;
 }
 
-/* Formato para la fila de filtros */
-.filter-row {
+
+/* ==========================================================================
+   13. DASHBOARD (layout de paneles del dashboard)
+   ========================================================================== */
+
+/* Layout del dashboard: columna en móvil, fila en pantallas grandes.
+   Reemplaza la antigua clase .dashboard-prueba (eliminada por duplicado).
+   En escritorio se usa desde JS con .dashboard-prueba-lg (ver media query). */
+.dashboard-prueba-responsive {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Formato para las pastillas de filtro */
-.filter-pill {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 999px;
-  padding: 10px 14px;
-  font-size: 14px;
-  color: var(--text);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+/* Columna de tarjetas informativas laterales del dashboard */
+.dashboard-cartas {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.filter-pill--active {
-  background: var(--primary-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px var(--active-pill-inset);
-}
 
-/* Formato para las pastillas de filtro en estado hover */
-.filter-pill:hover {
-  background: var(--surface-2);
-  cursor: pointer;
-}
+/* ==========================================================================
+   14. FORMULARIOS
+   ========================================================================== */
 
-/* El grid de formularios usa 2 columnas */
+/* El grid de formularios: 1 columna en móvil, 2 en escritorio */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 14px;
 }
 
 /* Formato para los campos de entrada y select */
 .input,
 .select {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid var(--border-strong);
   background: var(--surface);
@@ -914,14 +1061,86 @@ body {
   color: var(--muted-2);
 }
 
+/* Campo que ocupa el ancho completo del grid de formulario */
 .input--full {
   grid-column: 1 / -1;
 }
 
+/* Contenedor para un campo de formulario con su label.
+   Usado en payments/page.tsx para agrupar label + input. */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Fila de acciones al pie del formulario (Cancelar / Guardar) */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+/* Margen para los elementos (usado en inputs y botones de CustomersClient) */
+.margenes {
+  margin: 8px;
+}
+
+/* Fila de búsqueda: input + botón de filtro */
+.search-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-row .input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Formato para la fila de filtros de estado */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Formato para las pastillas de filtro */
+.filter-pill {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+.filter-pill--active {
+  background: var(--primary-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--active-pill-inset);
+}
+
+/* Formato para las pastillas de filtro en estado hover */
+.filter-pill:hover {
+  background: var(--surface-2);
+}
+
+/* Mensajes de estado de formulario */
 .message-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .message-success {
@@ -943,63 +1162,86 @@ body {
   padding: 12px 16px;
 }
 
-/* Formato para el grid de clientes */
-.customer-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
 
-/* Formato para las tarjetas de cliente */
-.customer-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  padding: 20px;
+/* ==========================================================================
+   15. BOTONES
+   ========================================================================== */
+
+/* Los botones no consideran un estado `disabled`; si se usan botones inactivos conviene definirlo aquí también. */
+.primary-btn {
+  border: none;
+  background: var(--accent);
+  color: white;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-weight: 600;
+  cursor: pointer;
   box-shadow: var(--shadow-sm);
+  transition: background 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
 }
 
-/* Formato para el nombre del cliente */
-.customer-name {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+.primary-btn:hover {
+  background: var(--purple-800);
+  transform: translateY(-1px);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+/* Botón secundario */
+.secondary-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text);
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
-/* Formato para la metadata del cliente */
-.customer-meta {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-/* Formato para la etiqueta de cliente */
-.customer-tag {
-  width: fit-content;
-  margin-top: 12px;
+.secondary-btn:hover {
   background: var(--surface-2);
-  color: var(--purple-200);
-  padding: 6px 10px;
+  border-color: var(--purple-200);
+  color: var(--accent);
+}
+
+/* Estados disabled para botones */
+.primary-btn:disabled,
+.secondary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Formato para el botón de peligro */
+.danger-btn {
+  min-height: 44px;
+  padding: 0 20px;
   border-radius: 10px;
-  font-size: 13px;
+  border: none;
+  background: var(--error);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
 }
 
-/* Formato para el texto adicional del cliente */
-.customer-next {
-  margin-top: 14px;
-  font-size: 14px;
-  color: var(--text);
+.danger-btn:hover {
+  background: var(--error);
+  opacity: 0.8;
 }
 
-/* Formato para la fila de búsqueda */
-.search-row {
-  display: flex;
-  gap: 12px;
+.danger-btn:active {
+  transform: translateY(1px);
 }
 
-.search-row .input {
-  flex: 1;
+.danger-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 /* Formato para estados focus-visible con outline de marca */
@@ -1012,6 +1254,11 @@ body {
   outline-offset: 2px;
 }
 
+
+/* ==========================================================================
+   16. MODAL
+   ========================================================================== */
+
 /* El modal usa `backdrop-filter`, que no es compatible en navegadores antiguos; revisar soporte si la app apunta a clientes legacy. */
 .modal-backdrop {
   position: fixed;
@@ -1019,7 +1266,7 @@ body {
   z-index: 50;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 16px;
   background: var(--modal-backdrop-bg);
   backdrop-filter: blur(4px);
 }
@@ -1031,7 +1278,9 @@ body {
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow-modal);
-  padding: 28px;
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 /* Formato para el ícono del modal */
@@ -1074,41 +1323,352 @@ body {
   flex-wrap: wrap;
 }
 
-/* Formato para el botón de peligro */
-.danger-btn {
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: 10px;
-  border: none;
-  background: var(--error);
-  color: #ffffff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 150ms ease, transform 150ms ease;
+
+/* ==========================================================================
+   17. CLIENTES (customer directory)
+   ========================================================================== */
+
+/* Formato para el grid de clientes: 1 col en móvil, 2 en tablet, 3 en escritorio */
+.customer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
 }
 
-.danger-btn:hover {
-  background: var(--error);
+/* Formato para las tarjetas de cliente */
+.customer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Formato para el nombre del cliente */
+.customer-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Formato para la metadata del cliente */
+.customer-meta {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Formato para la etiqueta de cliente */
+.customer-tag {
+  width: fit-content;
+  margin-top: 10px;
+  background: var(--surface-2);
+  color: var(--purple-200);
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* Formato para el texto adicional del cliente */
+.customer-next {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+
+/* ==========================================================================
+   18. COMERCIOS (business directory)
+   ========================================================================== */
+
+.business-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.business-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--purple-200);
+}
+
+.business-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.business-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.business-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.business-category {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--primary-soft);
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.business-desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.business-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.business-actions button {
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   19. AUTH (login y pantalla de carga)
+   ========================================================================== */
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg);
+  color: var(--text);
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--purple-100);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 16px;
+  background: radial-gradient(circle at 10% 20%, var(--purple-900) 0%, #17143a 90%);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decoraciones de fondo brillantes */
+.login-container::before {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(127, 119, 221, 0.15) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
+  z-index: 1;
+}
+
+.login-container::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(83, 74, 215, 0.12) 0%, transparent 70%);
+  bottom: -150px;
+  left: -150px;
+  z-index: 1;
+}
+
+.login-card {
+  width: min(100%, 500px);
+  background: rgba(38, 33, 92, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(206, 203, 246, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-header {
+  text-align: center;
+}
+
+.login-brand {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--purple-50);
+  margin-bottom: 8px;
+}
+
+.login-tagline {
+  color: var(--purple-100);
+  font-size: 14px;
   opacity: 0.8;
 }
 
-.danger-btn:active {
-  transform: translateY(1px);
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.danger-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.login-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple-100);
 }
 
-/* Margen para los elementos */
-.margenes {
-  margin: 8px;
+.login-input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  border: 1px solid rgba(206, 203, 246, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease;
 }
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--purple-200);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(127, 117, 221, 0.25);
+}
+
+.login-btn {
+  border: none;
+  background: var(--accent);
+  color: white;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(83, 74, 183, 0.3);
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: var(--purple-400);
+  transform: translateY(-1px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.quick-login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quick-login-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--purple-200);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Grid de acceso rápido: 3 columnas en todos los tamaños (botones compactos) */
+.quick-login-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-login-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(206, 203, 246, 0.1);
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-login-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--purple-200);
+  transform: translateY(-2px);
+}
+
+.quick-login-role {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--purple-200);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.quick-login-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 /* ==========================================================================
-   FOOTER ADMINISTRATIVO DISTRIBUIDO (FULL SCREEN WIDTH)
+   20. FOOTER ADMINISTRATIVO DISTRIBUIDO (FULL SCREEN WIDTH)
    ========================================================================== */
 
 .admin-footer {
@@ -1116,7 +1676,7 @@ body {
   background-color: var(--surface);
   border-top: 1px solid var(--border);
   color: var(--text);
-  padding: 1.25rem 2rem;
+  padding: 1.25rem 1.5rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
 }
@@ -1267,489 +1827,58 @@ body {
 
 
 /* ==========================================================================
-   MEDIA QUERIES: DISTRIBUCIÓN HORIZONTAL EN PANTALLAS GRANDES
+   21. MEDIA QUERIES
+   Breakpoints:
+     480px  → móvil grande (2 col KPI, 2 col clientes/comercios)
+     768px  → tablet (sidebar sticky, header toggle oculto, layout fila)
+     1024px → escritorio (4 col KPI, 3 col clientes, hero en fila, form 2 col)
+     1200px → escritorio ancho (ajustes de grids)
    ========================================================================== */
 
-@media (min-width: 992px) {
-  .admin-footer__wrapper {
-    flex-direction: row;
-    justify-content: space-between; /* Empuja las secciones a los extremos */
-    align-items: center;
+/* ── Móvil grande (≥480px): primera expansión de grids ── */
+@media (min-width: 480px) {
+  /* KPI: 2 columnas ya desde aquí (ya es el default, se refuerza) */
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-footer__section {
-    align-items: flex-start;
-    text-align: left;
-    flex: 1; /* Distribución equitativa de espacio */
+  /* Clientes y comercios: 2 columnas en móvil grande */
+  .customer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /* El bloque del centro alinea sus enlaces horizontalmente */
-  .admin-footer__section--center {
-    align-items: center;
-    justify-content: center;
+  .business-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-footer__links-list {
-    flex-direction: row;
-    gap: 2rem;
-  }
-
-  /* El bloque de la derecha empuja sus cosas al extremo final */
-  .admin-footer__section--right {
-    align-items: flex-end;
-    justify-content: flex-end;
-    flex-direction: row;
-    gap: 1.5rem;
-  }
-}
-/* ==========================================
-   ESTILOS DE AUTH / LOGIN Y CARGA
-   ========================================== */
-
-.loading-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  background: var(--bg);
-  color: var(--text);
-  gap: 16px;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid var(--purple-100);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.login-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 24px;
-  background: radial-gradient(circle at 10% 20%, var(--purple-900) 0%, #17143a 90%);
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Decoraciones de fondo brillantes */
-.login-container::before {
-  content: "";
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(127, 119, 221, 0.15) 0%, transparent 70%);
-  top: -100px;
-  right: -100px;
-  z-index: 1;
-}
-
-.login-container::after {
-  content: "";
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(83, 74, 215, 0.12) 0%, transparent 70%);
-  bottom: -150px;
-  left: -150px;
-  z-index: 1;
-}
-
-.login-card {
-  width: min(100%, 500px);
-  background: rgba(38, 33, 92, 0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(206, 203, 246, 0.15);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.login-header {
-  text-align: center;
-}
-
-.login-brand {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--purple-50);
-  margin-bottom: 8px;
-}
-
-.login-tagline {
-  color: var(--purple-100);
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.login-label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--purple-100);
-}
-
-.login-input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(206, 203, 246, 0.25);
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  transition: all 0.2s ease;
-}
-
-.login-input:focus {
-  outline: none;
-  border-color: var(--purple-200);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 4px rgba(127, 117, 221, 0.25);
-}
-
-.login-btn {
-  border: none;
-  background: var(--accent);
-  color: white;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(83, 74, 183, 0.3);
-  transition: all 0.2s ease;
-}
-
-.login-btn:hover {
-  background: var(--purple-400);
-  transform: translateY(-1px);
-}
-
-.login-btn:active {
-  transform: translateY(0);
-}
-
-.quick-login-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.quick-login-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--purple-200);
-  text-align: center;
-  margin-bottom: 4px;
-}
-
-.quick-login-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.quick-login-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(206, 203, 246, 0.1);
-  border-radius: 12px;
-  padding: 12px 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quick-login-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--purple-200);
-  transform: translateY(-2px);
-}
-
-.quick-login-role {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--purple-200);
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.quick-login-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ==========================================
-   ESTILOS DE DIRECTORIO DE EMPRESAS
-   ========================================== */
-
-.business-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.business-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.business-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--purple-200);
-}
-
-.business-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--primary-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.business-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.business-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.business-category {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--primary-soft);
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.business-desc {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.5;
-  flex-grow: 1;
-}
-
-.business-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.business-actions button {
-  width: 100%;
-}
-
-/* Estilos de cabecera de perfil */
-.user-profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 12px 4px 4px;
-  background: var(--surface-2);
-  border-radius: 999px;
-  border: 1px solid var(--border);
-}
-
-.user-profile-info {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.user-profile-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.2;
-}
-
-.user-profile-role {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  line-height: 1.2;
-}
-
-.logout-btn-header {
-  background: transparent;
-  border: none;
-  color: var(--error);
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: background 0.2s ease;
-}
-
-.logout-btn-header:hover {
-  background: rgba(226, 75, 74, 0.08);
-}
-
-/* ==========================================
-   LAYOUT PRINCIPAL (Móvil primero)
-   ========================================== */
-
-.admin-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--bg);
-  position: relative;
-}
-
-.admin-layout__wrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.admin-layout__body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.admin-layout__main {
-  flex: 1;
-  padding: 1rem;
-}
-
-/* El botón de hamburguesa SOLO se ve en móvil */
-.admin-header__toggle-btn {
-  display: block;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 1.25rem;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  color: var(--text);
-}
-
-/* Forzamos al Sidebar a convertirse en un panel flotante en móvil */
-.admin-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 260px;
-  height: 100vh;
-  z-index: 999;
-  background-color: var(--sidebar-bg);
-  transition: transform 0.3s ease;
-  transform: translateX(-100%);
-}
-
-/* Cuando el estado es 'open', lo deslizamos hacia adentro */
-.sidebar-open .admin-sidebar {
-  transform: translateX(0);
-}
-
-/* Capa oscura transparente detrás del menú móvil */
-.admin-layout__overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 998;
-}
-
-/* ==========================================
-   MEDIA QUERIES
-   ========================================== */
-
-@media (max-width: 768px) {
-  .booking-table-card {
-    padding: 16px;
-  }
-
-  .panel-title-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .data-table th,
-  .data-table td {
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-
-  .table-actions {
-    flex-direction: column;
-  }
-
-  .table-actions .secondary-btn {
-    width: 100%;
+  /* Formulario: 2 columnas en móvil grande */
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+/* ── Tablet (≥768px): sidebar sticky, layout horizontal ── */
 @media (min-width: 768px) {
-  .admin-header {
-    order: -1;
+  /* El sidebar deja de ser flotante y pasa a sticky */
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    transform: translateX(0); /* Siempre visible */
+    z-index: 10;
   }
 
+  /* En tablet+, el overlay del menú no tiene sentido */
+  .admin-layout__overlay {
+    display: none;
+  }
+
+  /* El botón de hamburguesa se oculta en tablet+ */
   .admin-header__toggle-btn {
     display: none;
   }
 
+  /* Layout en fila: sidebar + main */
   .admin-layout {
     flex-direction: column;
   }
@@ -1763,102 +1892,231 @@ body {
     min-width: 0;
   }
 
-  .admin-sidebar {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    transform: translateX(0);
-    z-index: 10;
+  /* Header pasa al inicio del flujo */
+  .admin-header {
+    order: -1;
+    padding: 18px 24px;
   }
 
-  .admin-layout__overlay {
-    display: none;
+  .admin-header__title {
+    font-size: 26px;
   }
 
+  /* Padding más generoso en tablet */
+  .admin-layout__main {
+    padding: 1rem 1.25rem;
+  }
+
+  .admin-content {
+    padding: 20px 16px 16px;
+  }
+
+  /* Hero en fila desde tablet */
+  .page-hero {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+  }
+
+  .page-hero h2 {
+    font-size: 28px;
+  }
+
+  /* Panel title row no se rompe en tablet */
+  .panel-title-row {
+    flex-wrap: nowrap;
+  }
+
+  /* Footer horizontal desde tablet */
   .admin-footer {
     flex-direction: row;
     justify-content: space-between;
     text-align: left;
   }
 
-  .admin-footer__content {
+  .admin-footer__wrapper {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-footer__section {
+    align-items: flex-start;
+    text-align: left;
+    flex: 1;
+  }
+
+  .admin-footer__section--center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-footer__links-list {
     flex-direction: row;
     gap: 2rem;
   }
-}
 
-@media (max-width: 1200px) {
-  .kpi-grid,
-  .customer-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .admin-footer__section--right {
+    align-items: flex-end;
+    justify-content: flex-end;
+    flex-direction: row;
+    gap: 1.5rem;
   }
 
-  .dashboard-grid {
+  /* Tabla: min-width más grande en tablet donde hay más espacio */
+  .data-table {
+    min-width: 700px;
+  }
+}
+
+/* ── Escritorio (≥1024px): grids completos, layout definitivo ── */
+@media (min-width: 1024px) {
+  /* KPI: 4 columnas en escritorio */
+  .kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Clientes: 3 columnas en escritorio */
+  .customer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Comercios: columnas automáticas con mínimo de 300px */
+  .business-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  /* Dashboard: fila principal + columna lateral en escritorio.
+     La clase .dashboard-prueba-lg se aplica desde JS junto a
+     .dashboard-prueba-responsive para conseguir el layout de dos columnas. */
+  .dashboard-prueba-lg {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  /* La tabla de reservas ocupa el espacio sobrante */
+  .dashboard-prueba-lg > .section-card:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Columna lateral de tarjetas: ancho fijo en escritorio */
+  .dashboard-cartas-lg {
+    width: 280px;
+    flex-shrink: 0;
+  }
+
+  /* Padding completo en escritorio */
+  .admin-layout__main {
+    padding: 1.5rem;
+  }
+
+  .admin-content {
+    padding: 24px 18px 18px;
+  }
+
+  /* Header más generoso en escritorio */
+  .admin-header {
+    padding: 22px 28px;
+  }
+
+  .admin-header__title {
+    font-size: 28px;
+  }
+
+  /* Tabla con ancho original en escritorio */
+  .data-table {
+    min-width: 900px;
+  }
+}
+
+/* ── Escritorio ancho (≥1200px): ajuste fino ── */
+@media (min-width: 1200px) {
+  /* Payments KPI: solo tiene 3 tarjetas, se alinean en 3 col */
+  .kpi-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── Ajustes específicos para móvil pequeño (<480px) ── */
+@media (max-width: 479px) {
+  /* KPI en columna única en móviles muy pequeños */
+  .kpi-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Tabla con scroll más agresivo */
+  .booking-table-card {
+    padding: 12px;
+  }
+
+  /* Acciones de tabla en columna */
+  .table-actions {
+    flex-direction: column;
+  }
+
+  .table-actions .secondary-btn {
+    width: 100%;
+  }
+
+  /* Modal ocupa casi toda la pantalla en móvil pequeño */
+  .modal-card {
+    padding: 18px;
+  }
+
+  /* Login card con menos padding */
+  .login-card {
+    padding: 24px 16px;
+  }
+
+  /* Hero más compacto */
+  .page-hero {
+    padding: 16px;
+    border-radius: var(--radius-md);
+  }
 }
 
+/* ── Ajustes de tabla en pantallas medianas ── */
+@media (max-width: 768px) {
+  .booking-table-card {
+    padding: 14px;
+  }
+
+  .data-table th,
+  .data-table td {
+    font-size: 13px;
+    padding: 10px 10px;
+  }
+
+  /* Panel title row se apila en pantallas pequeñas */
+  .panel-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  /* Filtros se reorganizan */
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+/* ── Shell legacy (admin-shell): responsive para la estructura antigua ── */
 @media (max-width: 920px) {
   .admin-shell {
     flex-direction: column;
   }
 
-  .admin-sidebar {
+  .admin-shell .admin-sidebar {
     width: 100%;
     height: auto;
     position: relative;
   }
 
-  .form-grid,
-  .kpi-grid,
-  .customer-grid {
+  .admin-shell .form-grid {
     grid-template-columns: 1fr;
   }
-
-  .page-hero,
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-/*Mejoras al boton de sidebar para meter y sacar el componente */
-/* Contenedor del título y el botón juntos */
-.admin-sidebar__brand-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-/* Transición suave para el ancho del sidebar */
-.admin-sidebar {
-  width: 260px;
-  transition: width 0.3s ease;
-  overflow: hidden; /* Evita que el texto desborde al achicarse */
-}
-.color-boton {
-  background-color: var(--purple-800);
-  border-radius: 20%;
-  color : white;
-}
-
-.admin-sidebar-boton--collapsed {
-  justify-content: center; /* Centra el botón cuando el sidebar está colapsado */
-  align-items: center;
-  margin-left: 10px;
-
-}
-
-
-/* Cuando el sidebar esté colapsado */
-.admin-sidebar--collapsed {
-  width: 85px; /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
-}
-
-/* Ocultar el texto del título, subtítulo, etiquetas de menú y tema cuando esté colapsado */
-.admin-sidebar--collapsed .admin-sidebar__brand,
-.admin-sidebar--collapsed .admin-sidebar__label,
-.admin-sidebar--collapsed .theme-toggle-btn__label,
-.admin-sidebar--collapsed .admin-sidebar__subtitle {
-  display: none; 
 }
