@@ -12,136 +12,95 @@ import type {
   CreatePaymentDto,
 } from "./types";
 
-export type {
-  Booking,
-  BookingStatus,
-  CreateBookingDto,
-  UpdateBookingDto,
-  Customer,
-  CreateCustomerDto,
-  UpdateCustomerDto,
-  Payment,
-  PaymentMethod,
-  PaymentStatus,
-  CreatePaymentDto,
-} from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// ─── APPOINTMENTS ──────────────────────────────────────────────
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("bookflow_token");
+}
+
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...extra };
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
+async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: authHeaders(options.headers as Record<string, string>),
+  });
+
+if (!res.ok) {
+  const body = await res.json().catch(() => null);
+
+  if (res.status === 401) {
+    throw new Error("No has iniciado sesión.");
+  }
+
+  if (res.status === 403) {
+    throw new Error(
+      body?.message ||
+      "No tienes permisos para acceder a este recurso."
+    );
+  }
+
+  throw new Error(
+    body?.message || `Error ${res.status}: ${res.statusText}`
+  );
+}
+  return res.json();
+}
+
+// ── APPOINTMENTS ────────────────────────────────────────────────
 
 export async function getAppointments(): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/appointments`, { cache: "no-store" });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error ${res.status}: ${errorText}`);
-  }
-  return res.json();
+  return apiRequest<Booking[]>("/appointments", { cache: "no-store" });
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
-  const res = await fetch(`${API_URL}/appointments`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Error al crear la reserva");
-  return res.json();
+  return apiRequest<Booking>("/appointments", { method: "POST", body: JSON.stringify(data) });
 }
 
 export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
-  const res = await fetch(`${API_URL}/appointments/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Error al editar la reserva");
-  return res.json();
+  return apiRequest<Booking>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 }
 
 export async function deleteAppointment(id: number): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/appointments/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar la reserva");
-  return res.json();
+  return apiRequest<{ message: string }>(`/appointments/${id}`, { method: "DELETE" });
 }
 
-// ─── CUSTOMERS ────────────────────────────────────────────────
+// ── CUSTOMERS ───────────────────────────────────────────────────
 
 export async function getCustomers(): Promise<Customer[]> {
-  const res = await fetch(`${API_URL}/customers`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener los clientes");
-  return res.json();
+  return apiRequest<Customer[]>("/customers", { cache: "no-store" });
 }
 
-export async function createCustomer(
-  data: CreateCustomerDto
-): Promise<Customer> {
-  const res = await fetch(`${API_URL}/customers`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Error al crear el cliente");
-  return res.json();
+export async function createCustomer(data: CreateCustomerDto): Promise<Customer> {
+  return apiRequest<Customer>("/customers", { method: "POST", body: JSON.stringify(data) });
 }
 
-// Actualiza un cliente existente usando su id
-export async function updateCustomer(
-  id: number,
-  data: UpdateCustomerDto
-): Promise<Customer> {
-  const res = await fetch(`${API_URL}/customers/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al actualizar el cliente");
-  }
-
-  return res.json();
+export async function updateCustomer(id: number, data: UpdateCustomerDto): Promise<Customer> {
+  return apiRequest<Customer>(`/customers/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 }
 
-// Elimina un cliente existente usando su id
 export async function deleteCustomer(id: number): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/customers/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al eliminar el cliente");
-  }
-
-  return res.json();
+  return apiRequest<{ message: string }>(`/customers/${id}`, { method: "DELETE" });
 }
 
-// ─── PAYMENTS ─────────────────────────────────────────────────
+// ── PAYMENTS ────────────────────────────────────────────────────
 
 export async function getPayments(): Promise<Payment[]> {
-  const res = await fetch(`${API_URL}/payments`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener los pagos");
-  return res.json();
+  return apiRequest<Payment[]>("/payments", { cache: "no-store" });
 }
 
 export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
-  const res = await fetch(`${API_URL}/payments`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => null);
-    const message = errorData?.message || "Error al crear el pago";
-    throw new Error(message);
-  }
-
-  return res.json();
+  return apiRequest<Payment>("/payments", { method: "POST", body: JSON.stringify(data) });
 }
 
 export function getExportReportUrl(): string {
-  return `${API_URL}/appointments/export`;
-}
+  const token = getToken();
+  const query = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `${API_URL}/appointments/export${query}`;}

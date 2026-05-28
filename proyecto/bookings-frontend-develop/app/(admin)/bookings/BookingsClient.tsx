@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import type {
@@ -22,11 +24,7 @@ const BUSINESS_NAMES: Record<number, string> = {
   5: "Clínica Dental",
 };
 
-// ─── StatusBadge ──────────────────────────────────────────────────────────────
-// MODIFICADO: StatusBadge ahora cubre todos los estados del backend usando un map tipado.
-// Antes usaba ternarios encadenados que dejaban fuera "canceled" y "completed".
 function StatusBadge({ status }: { status: BookingStatus }) {
-  // Map completo de status → etiqueta legible en español
   const map: Record<BookingStatus, string> = {
     pending:   "Pendiente",
     confirmed: "Confirmada",
@@ -37,8 +35,17 @@ function StatusBadge({ status }: { status: BookingStatus }) {
   return <span className={`badge badge--${status}`}>{map[status] ?? status}</span>;
 }
 
-// ─── formatDate ───────────────────────────────────────────────────────────────
-// Formatea una fecha ISO "YYYY-MM-DD" a formato local "dd/mm/yyyy".
+function getTodayString() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getCurrentTimeString() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, "0");
+  const m = String(now.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
 function formatDate(date: string) {
   try {
     return new Intl.DateTimeFormat("es-ES", {
@@ -51,14 +58,9 @@ function formatDate(date: string) {
   }
 }
 
-// ─── KpiCard — Variante D ──────────────────────────────────────────────────────
-// NUEVO: Componente KpiCard rediseñado con la Variante D, mismo que usa dashboard/page.tsx.
 interface KpiCardColor {
-  // Color del borde lateral izquierdo y de las barras del histograma
   bar: string;
-  // Fondo del badge de tendencia
   trendBg: string;
-  // Color del texto del badge de tendencia
   trendText: string;
 }
 
@@ -161,7 +163,6 @@ const ACTIVITY_DATA = {
   paid:      [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
 };
 
-// ─── BookingsClient ───────────────────────────────────────────────────────────
 export default function BookingsClient({
   initialBookings,
 }: {
@@ -170,24 +171,9 @@ export default function BookingsClient({
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
-  const getTodayString = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const getCurrentTimeString = () => {
-    const today = new Date();
-    const hours = String(today.getHours()).padStart(2, "0");
-    const minutes = String(today.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-
   const emptyForm: CreateBookingDto = {
-    date: getTodayString(),
-    time: getCurrentTimeString(),
+    date: "",
+    time: "",
     status: "pending",
     customerId: 1,
     businessId: 1,
@@ -206,7 +192,6 @@ export default function BookingsClient({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-
   const [searchedCustomer, setSearchedCustomer] = useState<{ id: number; name: string; email: string; phone: string } | null>(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [createPersons, setCreatePersons] = useState<number>(1);
@@ -232,6 +217,7 @@ export default function BookingsClient({
     }
   }
 
+  // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
@@ -254,7 +240,6 @@ export default function BookingsClient({
   const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
   const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
 
-  // ─── Helpers de formulario ─────────────────────────────────────────────────
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
@@ -272,16 +257,17 @@ export default function BookingsClient({
   function resetCreateForm() { setCreateForm(emptyForm); }
   function resetEditForm()   { setEditForm(emptyForm); }
 
+  // 3. Modificamos la apertura para añadir el scroll
   function openCreateForm() {
-    setSuccessMessage(""); 
+    setSuccessMessage("");
     setErrorMessage("");
+    setSuccessMessage("");
     setEditingBookingId(null);
     setDeleteTargetId(null);
-    setCreatePersons(1);
-    setSearchedCustomer(null);
     resetEditForm();
     setIsCreateOpen(true);
 
+    // Auto-asignamos los identificadores reales que vienen del token/auth
     const initialCustomerId = user?.role === "usuario" ? (user.customerId || 1) : 1;
     const initialBusinessId = user?.role === "empresa" ? (user.businessId || 1) : 1;
 
@@ -294,12 +280,12 @@ export default function BookingsClient({
       serviceName: "",
     });
 
+    // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
   }
 
-  // ─── Handlers async ────────────────────────────────────────────────────────
   function closeCreateForm() {
     setErrorMessage("");
     resetCreateForm();
@@ -312,7 +298,6 @@ export default function BookingsClient({
     setIsCreateOpen(false);
     setDeleteTargetId(null);
     setEditingBookingId(booking.id);
-
     let cleanServiceName = booking.serviceName;
     let parsedPersons = 1;
     const match = booking.serviceName.match(/(.*) \((\d+) personas?\)/);
@@ -328,7 +313,7 @@ export default function BookingsClient({
       status: booking.status,
       customerId: booking.customerId,
       businessId: booking.businessId,
-      serviceName: cleanServiceName,
+      serviceName: booking.serviceName,
     });
 
     setTimeout(() => {
@@ -380,6 +365,7 @@ export default function BookingsClient({
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingBookingId) return;
+
     setLoadingEdit(true);
     setSuccessMessage("");
     setErrorMessage("");
@@ -390,7 +376,7 @@ export default function BookingsClient({
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        serviceName: finalServiceName,
+        serviceName: editForm.serviceName,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -422,7 +408,7 @@ export default function BookingsClient({
 
       if (editingBookingId === deleteTargetId) closeEditForm();
 
-      setSuccessMessage("Reserva eliminada correctamente.");
+      setSuccessMessage("Reserva personalizada eliminada con éxito.");
       closeDeleteModal();
     } catch {
       setErrorMessage("No se pudo eliminar la reserva.");
@@ -431,57 +417,61 @@ export default function BookingsClient({
     }
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="booking-page page-stack">
       <section className="page-hero booking-hero">
         <div>
-          <h2>Bookings list</h2>
-          <p>Gestión de reservas conectada con la API.</p>
+          <h2>
+            {user?.role === "usuario" ? "Mis Reservas" : "Listado de Reservas"}
+          </h2>
+          <p>
+            {user?.role === "usuario" 
+              ? "Aquí puedes ver e inscribir tus citas activas." 
+              : "Gestión de reservas conectada con la API."}
+          </p>
         </div>
 
-        <button className="primary-btn" type="button" onClick={openCreateForm}>
-          Nueva reserva
-        </button>
+        {/* El botón para crear reservas está disponible para Admins y Usuarios particulares */}
+        {user?.role !== "empresa" && (
+          <button className="primary-btn" type="button" onClick={openCreateForm}>
+            Nueva reserva
+          </button>
+        )}
       </section>
 
-      <section className="kpi-grid">
-        {/* Total reservas — teal */}
-        <KpiCard
-          title="Total reservas"
-          value={totalCount}
-          trend="registros disponibles"
-          color={KPI_COLORS.teal}
-          activity={ACTIVITY_DATA.total}
-        />
-
-        {/* Pendientes — amber */}
-        <KpiCard
-          title="Pendientes"
-          value={pendingCount}
-          trend="requieren seguimiento"
-          color={KPI_COLORS.amber}
-          activity={ACTIVITY_DATA.pending}
-        />
-
-        {/* Confirmadas — green */}
-        <KpiCard
-          title="Confirmadas"
-          value={confirmedCount}
-          trend="estado activo"
-          color={KPI_COLORS.green}
-          activity={ACTIVITY_DATA.confirmed}
-        />
-
-        {/* Pagadas — purple (color de marca) */}
-        <KpiCard
-          title="Pagadas"
-          value={paidCount}
-          trend="reservas cerradas"
-          color={KPI_COLORS.purple}
-          activity={ACTIVITY_DATA.paid}
-        />
-      </section>
+      {/* Ocultamos las tarjetas KPI si el rol es un cliente convencional */}
+      {user?.role !== "usuario" && (
+        <section className="kpi-grid">
+          <KpiCard
+            title="Total reservas"
+            value={totalCount}
+            trend="registros disponibles"
+            color={KPI_COLORS.teal}
+            activity={ACTIVITY_DATA.total}
+          />
+          <KpiCard
+            title="Pendientes"
+            value={pendingCount}
+            trend="requieren seguimiento"
+            color={KPI_COLORS.amber}
+            activity={ACTIVITY_DATA.pending}
+          />
+          <KpiCard
+            title="Confirmadas"
+            value={confirmedCount}
+            trend="estado activo"
+            color={KPI_COLORS.green}
+            activity={ACTIVITY_DATA.confirmed}
+          />
+          <KpiCard
+            title="Pagadas"
+            value={paidCount}
+            trend="reservas cerradas"
+            color={KPI_COLORS.purple}
+            activity={ACTIVITY_DATA.paid}
+          />
+        </section>
+      )}
 
       {isCreateOpen && (
         <section ref={createFormRef} className="section-card booking-form-card">
@@ -806,36 +796,15 @@ export default function BookingsClient({
         </section>
       )}
 
-      {/* Modal de confirmación de borrado */}
       {deleteTargetId !== null && (
-        <div
-          className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-modal-title"
-          aria-describedby="delete-modal-description"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeDeleteModal();
-          }}
-        >
+        <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) closeDeleteModal(); }}>
           <div className="modal-card">
             <div className="modal-icon">!</div>
-            <h3 id="delete-modal-title" className="modal-title">
-              Eliminar reserva
-            </h3>
-            <p id="delete-modal-description" className="modal-text">
-              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
-            </p>
+            <h3 className="modal-title">Eliminar reserva</h3>
+            <p className="modal-text">¿Seguro que quieres eliminar la reserva #{deleteTargetId}?</p>
             <div className="modal-actions">
-              <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="danger-btn"
-                onClick={confirmDelete}
-                disabled={deletingBookingId === deleteTargetId}
-              >
+              <button type="button" className="secondary-btn" onClick={closeDeleteModal}>Cancelar</button>
+              <button type="button" className="danger-btn" onClick={confirmDelete} disabled={deletingBookingId === deleteTargetId}>
                 {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
@@ -845,8 +814,9 @@ export default function BookingsClient({
 
       <section className="section-card booking-table-card">
         <div className="panel-title-row">
-          <h3 className="panel-title">Reservas registradas</h3>
-          {/* Filtros por estado */}
+          <h3 className="panel-title">
+            {user?.role === "usuario" ? "Mis Citas Solicitadas" : "Reservas registradas"}
+          </h3>
           <div className="filter-row">
             {(["all", "pending", "confirmed", "paid"] as const).map((f) => (
               <button
@@ -876,7 +846,7 @@ export default function BookingsClient({
                 <th>Customer</th>
                 <th>Comercio</th>
                 <th>Estado</th>
-                {user?.role !== "usuario" && <th>Acciones</th>}
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -889,26 +859,24 @@ export default function BookingsClient({
                   <td>{booking.customerId}</td>
                   <td>{BUSINESS_NAMES[booking.businessId] || `#${booking.businessId}`}</td>
                   <td><StatusBadge status={booking.status} /></td>
-                  {user?.role !== "usuario" && (
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openEditForm(booking)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openDeleteModal(booking.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  )}
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openEditForm(booking)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openDeleteModal(booking.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
