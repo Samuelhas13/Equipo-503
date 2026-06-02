@@ -87,22 +87,30 @@ const headerTexts = {
       </button>
 
         {user && (
-          <div className="user-profile-badge">
-            <div className="admin-avatar">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="user-profile-info">
-              <span className="user-profile-name">{user.name}</span>
-              <span className="user-profile-role">{user.role}</span>
-            </div>
-            <button 
-              onClick={logout} 
-              className="logout-btn-header"
-              type="button"
-            >
-              {headerTexts[language].logout}
-            </button>
-          </div>
+          (() => {
+            const profileName =
+              typeof user.name === "string" && user.name.trim()
+                ? user.name
+                : user.email ?? "Usuario";
+            return (
+              <div className="user-profile-badge">
+                <div className="admin-avatar">
+                  {profileName.charAt(0).toUpperCase()}
+                </div>
+                <div className="user-profile-info">
+                  <span className="user-profile-name">{profileName}</span>
+                  <span className="user-profile-role">{user.role}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="logout-btn-header"
+                  type="button"
+                >
+                  {headerTexts[language].logout}
+                </button>
+              </div>
+            );
+          })()
         )}
       </div>
     </header>

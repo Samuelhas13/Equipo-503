@@ -29,12 +29,7 @@ const initialPaymentForm: PaymentForm = {
   date: "",
   status: "paid",
 };
-
-<<<<<<< HEAD
-// ─── KpiCard — Variante D ──────────────────────────────────────────────────────
-=======
-// Componente KPI con diseño visual avanzado.
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
+// ─── KpiCard — Variante D — Componente KPI con diseño visual avanzado.
 interface KpiCardColor {
   bar: string;
   trendBg: string;
@@ -64,12 +59,7 @@ function KpiCard({
     if (loading || !barsRef.current || activity.length === 0) return;
 
     const container = barsRef.current;
-<<<<<<< HEAD
     const max = Math.max(...activity) || 1; // Evitamos división por cero
-
-=======
-    const max = Math.max(...activity);
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
     const bars = container.querySelectorAll(".kpi-d__dot");
 
     setTimeout(() => {
@@ -151,17 +141,20 @@ const KPI_COLORS: Record<string, KpiCardColor> = {
 };
 
 const ACTIVITY_DATA = {
-<<<<<<< HEAD
   paid:     [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
   pending:  [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
   total:    [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
   // Datos simulados para la animación de barras del nuevo KPI
   method:   [20, 35, 40, 30, 45, 55, 40, 60, 50, 65, 70, 60, 75, 85],
-=======
-  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
-  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
+};
+
+const METHOD_LABELS: Record<string, string> = {
+  tarjeta: "Tarjeta",
+  card: "Tarjeta",
+  bizum: "Bizum",
+  efectivo: "Efectivo",
+  cash: "Efectivo",
+  pending: "Pendiente",
 };
 
 // Badge traducido según el idioma global
@@ -326,10 +319,10 @@ export default function PaymentsPage() {
     const counts = payments.reduce((acc, p) => {
       const method = p.paymentMethod;
       if (method) {
-        acc[method] = (acc[method] || 0) + 1;
+        acc[String(method)] = (acc[String(method)] || 0) + 1;
       }
       return acc;
-    }, {} as Record<PaymentMethod, number>);
+    }, {} as Record<string, number>);
 
     let topMethod: PaymentMethod = "card";
     let maxCount = 0;
@@ -342,7 +335,7 @@ export default function PaymentsPage() {
     });
 
     return {
-      label: METHOD_LABELS[topMethod] || String(topMethod),
+      label: METHOD_LABELS[String(topMethod)] || String(topMethod),
       count: maxCount,
     };
   };
@@ -429,10 +422,6 @@ export default function PaymentsPage() {
 
       {isCreateOpen && (
         <section className="section-card">
-<<<<<<< HEAD
-          <h3 className="panel-title">Registrar cobro</h3>
-          <form className="form-grid" onSubmit={(event) => { event.preventDefault(); handleSavePayment(); }}>
-=======
           <h3 className="panel-title">{texts[language].registerPayment}</h3>
 
           <form
@@ -442,7 +431,6 @@ export default function PaymentsPage() {
               handleSavePayment();
             }}
           >
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
             <label className="form-field">
               {texts[language].client}
               <input
@@ -591,7 +579,6 @@ export default function PaymentsPage() {
           loading={loading}
         />
 
-<<<<<<< HEAD
         {/* NUEVO: Método preferido — azul */}
         <KpiCard
           title="Método preferido"
@@ -603,8 +590,6 @@ export default function PaymentsPage() {
         />
 
         {/* Total pagos — purple */}
-=======
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
         <KpiCard
           title={texts[language].totalPayments}
           value={String(payments.length)}

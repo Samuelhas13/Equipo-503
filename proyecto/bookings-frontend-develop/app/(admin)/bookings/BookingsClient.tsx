@@ -14,6 +14,7 @@ import type {
 import {
   createAppointment,
   deleteAppointment,
+  getCustomerById,
   updateAppointment,
 } from "@/lib/api";
 
@@ -258,7 +259,12 @@ export default function BookingsClient({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [searchedCustomer, setSearchedCustomer] = useState<{ id: number; name: string; email: string; phone: string } | null>(null);
+  const [searchedCustomer, setSearchedCustomer] = useState<{
+    id: number;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null>(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [createPersons, setCreatePersons] = useState<number>(1);
   const [editPersons, setEditPersons] = useState<number>(1);
@@ -269,14 +275,10 @@ export default function BookingsClient({
     setSearchedCustomer(null);
     setErrorMessage("");
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      const res = await fetch(`${API_URL}/customers/${id}`);
-      if (!res.ok) {
-        throw new Error("Cliente no encontrado");
-      }
-      const customer = await res.json();
+      const customer = await getCustomerById(id);
       setSearchedCustomer(customer);
     } catch (err: any) {
+      console.error("Error buscando cliente:", err);
       setErrorMessage("No se encontró ningún cliente con ese ID en el sistema.");
     } finally {
       setSearchingCustomer(false);
@@ -364,9 +366,9 @@ export default function BookingsClient({
     setIsCreateOpen(false);
     setDeleteTargetId(null);
     setEditingBookingId(booking.id);
-    let cleanServiceName = booking.serviceName;
+    let cleanServiceName = booking.serviceName ?? "";
     let parsedPersons = 1;
-    const match = booking.serviceName.match(/(.*) \((\d+) personas?\)/);
+    const match = (booking.serviceName ?? "").match(/(.*) \((\d+) personas?\)/);
     if (match) {
       cleanServiceName = match[1].trim();
       parsedPersons = Number(match[2]);
@@ -602,7 +604,7 @@ export default function BookingsClient({
                     <button
                       type="button"
                       className="secondary-btn"
-                      onClick={() => findCustomer(createForm.customerId)}
+                                      onClick={() => findCustomer(createForm.customerId ?? 0)}
                       disabled={searchingCustomer}
                       style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
                     >
@@ -712,9 +714,9 @@ export default function BookingsClient({
                     ✓ {texts[language].customerFound}
                   </strong>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                    <span><strong>{texts[language].name}:</strong> {searchedCustomer.name}</span>
-                    <span><strong>Email:</strong> {searchedCustomer.email}</span>
-                    <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone}</span>
+                    <span><strong>{texts[language].name}:</strong> {searchedCustomer.name ?? "-"}</span>
+                    <span><strong>Email:</strong> {searchedCustomer.email ?? "-"}</span>
+                    <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone ?? "-"}</span>
                   </div>
                 </div>
             )}
@@ -941,12 +943,12 @@ export default function BookingsClient({
               {filteredBookings.map((booking) => (
                 <tr key={booking.id}>
                   <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                  <td>{formatDate(booking.date)}</td>
+                  <td>{formatDate(booking.date ?? "")}</td>
                   <td>{booking.time}</td>
                   <td>{booking.serviceName}</td>
                   <td>{booking.customerId}</td>
-                  <td>{BUSINESS_NAMES[booking.businessId] || `#${booking.businessId}`}</td>
-                  <td><StatusBadge status={booking.status} /></td>
+                  <td>{BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
+                  <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
                   {user?.role !== "usuario" && (
                     <td>
                       <div className="table-actions">

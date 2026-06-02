@@ -21,7 +21,7 @@ export default function LoginPage() {
     } else if (rolUsuario === "empresa") {
       router.push("/dashboard");
     } else if (rolUsuario === "usuario") {
-      router.push("/reservas");
+      router.push("/bookings");
     }
   };
 

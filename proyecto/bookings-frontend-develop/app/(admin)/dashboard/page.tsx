@@ -4,12 +4,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import {
-  getAppointments,
-  getExportReportUrl,
-  type Booking,
-  type BookingStatus,
-} from "@/lib/api";
+import { getAppointments, getExportReportUrl } from "@/lib/api";
+import type { Booking } from "@/lib/types";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
 
@@ -169,8 +165,9 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
   const bookingsByDateMap = useMemo(() => {
     const map: Record<string, Booking[]> = {};
     bookings.forEach((b) => {
-      if (!map[b.date]) map[b.date] = [];
-      map[b.date].push(b);
+      const key = bookingDate(b);
+      if (!map[key]) map[key] = [];
+      map[key].push(b);
     });
     return map;
   }, [bookings]);
@@ -180,7 +177,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
   */
   const selectedDayBookings = useMemo(() => {
     const dayList = bookingsByDateMap[selectedDateISO] || [];
-    return [...dayList].sort((a, b) => a.time.localeCompare(b.time));
+    return [...dayList].sort((a, b) => bookingTime(a).localeCompare(bookingTime(b)));
   }, [bookingsByDateMap, selectedDateISO]);
 
   /* CAMBIO RESPONSIVE: Genera un string legible tipo "28 de mayo" para el encabezado 
@@ -234,13 +231,13 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
             >
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
-                {dayBookings.sort((a, b) => a.time.localeCompare(b.time)).map((b) => (
+                {dayBookings.sort((a, b) => bookingTime(a).localeCompare(bookingTime(b))).map((b) => (
                   <div 
                     key={b.id} 
-                    className={`calendar-event-pill event-status--${b.status}`}
-                    title={`[${b.time}] Servicio: ${b.serviceName}`}
+                    className={`calendar-event-pill event-status--${bookingStatus(b)}`}
+                    title={`[${bookingTime(b)}] Servicio: ${bookingServiceName(b)}`}
                   >
-                    {b.time} - {b.serviceName}
+                    {bookingTime(b)} - {bookingServiceName(b)}
                   </div>
                 ))}
               </div>
@@ -262,9 +259,9 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
         ) : (
           <div className="mobile-event-list">
             {selectedDayBookings.map((b) => (
-              <div key={b.id} className={`mobile-event-item event-status--${b.status}`}>
-                <strong>{b.time}</strong>
-                <span>{b.serviceName}</span>
+              <div key={b.id} className={`mobile-event-item event-status--${bookingStatus(b)}`}>
+                <strong>{bookingTime(b)}</strong>
+                <span>{bookingServiceName(b)}</span>
               </div>
             ))}
           </div>
@@ -387,19 +384,19 @@ export default function DashboardPage() {
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
       if (user?.role === "empresa") {
-        return b.businessId === user.businessId;
+        return bookingBusinessId(b) === user.businessId;
       }
       return true;
     });
   }, [bookings, user]);
 
   const today = getTodayISO();
-  const todayBookings = filteredBookings.filter((b) => b.date === today);
-  const pendingBookings = filteredBookings.filter((b) => b.status === "pending");
-  const paidBookings = filteredBookings.filter((b) => b.status === "paid");
+  const todayBookings = filteredBookings.filter((b) => bookingDate(b) === today);
+  const pendingBookings = filteredBookings.filter((b) => bookingStatus(b) === "pending");
+  const paidBookings = filteredBookings.filter((b) => bookingStatus(b) === "paid");
 
   const nextBooking = [...todayBookings].sort((a, b) =>
-    a.time.localeCompare(b.time)
+    bookingTime(a).localeCompare(bookingTime(b))
   )[0];
 
   const displayedBookings = showAll ? todayBookings : todayBookings.slice(0, 2);
@@ -415,12 +412,7 @@ export default function DashboardPage() {
           <h2>{texts[language].title}</h2>
           <p>{texts[language].subtitle}</p>
         </div>
-<<<<<<< HEAD
-        
-=======
-
         {/* Contenedor con botones de acción dinámica según el rol y modo */}
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {user?.role === "empresa" && (
             <button 
@@ -441,14 +433,14 @@ export default function DashboardPage() {
         <KpiCard
           title={texts[language].todayBookings}
           value={todayBookings.length}
-          trend={`${todayBookings.filter((b) => b.status === "confirmed").length} ${texts[language].confirmed}`}
+          trend={`${todayBookings.filter((b) => bookingStatus(b) === "confirmed").length} ${texts[language].confirmed}`}
           color={KPI_COLORS.teal}
           activity={ACTIVITY_DATA.bookings}
           loading={loading}
         />
         <KpiCard
           title={texts[language].paidToday}
-          value={paidBookings.filter((b) => b.date === today).length}
+          value={paidBookings.filter((b) => bookingDate(b) === today).length}
           trend={`de ${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
           color={KPI_COLORS.blue}
           activity={ACTIVITY_DATA.paid}
@@ -471,12 +463,8 @@ export default function DashboardPage() {
           loading={loading}
         />
       </section>
-
-<<<<<<< HEAD
-=======
       {/* Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
           Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards). */}
->>>>>>> 1f22a1e72d55b5407bbcc1b3aceca0ebe4fa9f3b
       {user?.role === "empresa" && viewMode === "calendar" ? (
         <section className="section-card" style={{ width: "100%" }}>
           <div className="panel-title-row" style={{ marginBottom: "16px" }}>
@@ -525,12 +513,12 @@ export default function DashboardPage() {
                   <tbody>
                     {displayedBookings.map((booking) => (
                       <tr key={booking.id}>
-                        <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                        <td>#{booking.customerId}</td>
-                        <td>#{booking.businessId}</td>
-                        <td>{booking.serviceName}</td>
+                        <td style={{ fontWeight: 600 }}>{bookingTime(booking)}</td>
+                        <td>#{bookingCustomerId(booking) ?? "?"}</td>
+                        <td>#{bookingBusinessId(booking) ?? "?"}</td>
+                        <td>{bookingServiceName(booking)}</td>
                         <td>
-                          <Badge status={booking.status as DashboardBookingStatus} />
+                          <Badge status={bookingStatus(booking) as DashboardBookingStatus} />
                         </td>
                       </tr>
                     ))}
@@ -546,9 +534,9 @@ export default function DashboardPage() {
               {nextBooking ? (
                 <>
                   <p className="info-box__title">
-                    {texts[language].customer} #{nextBooking.customerId}
+                    {texts[language].customer} #{bookingCustomerId(nextBooking) ?? "?"}
                   </p>
-                  <p className="info-box__text">{nextBooking.time} · {nextBooking.serviceName}</p>
+                  <p className="info-box__text">{bookingTime(nextBooking)} · {bookingServiceName(nextBooking)}</p>
                 </>
               ) : (
                 <p className="info-box__text">{texts[language].noBookings}</p>
@@ -560,7 +548,11 @@ export default function DashboardPage() {
                   ? texts[language].myBusiness
                   : texts[language].featuredBusiness}
               </p>
-              <p className="info-box__title">{user?.role === "empresa" ? user.name : "Restaurante Marea"}</p>
+              <p className="info-box__title">
+                {user?.role === "empresa"
+                  ? user.name ?? user.email ?? texts[language].business
+                  : "Restaurante Marea"}
+              </p>
               <p className="info-box__text">
                 {user?.role === "empresa"
                   ? `${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`
@@ -579,4 +571,37 @@ export default function DashboardPage() {
       )}
     </div>
   );
+}
+
+// Helpers para normalizar campos de Booking (backend usa `hora_reserva`, `service`, `customer`, `business`)
+function bookingDate(b: Booking): string {
+  const raw = (b as any).hora_reserva || "";
+  const parts = raw.split(" ");
+  return parts[0]?.includes("-") ? parts[0] : getTodayISO();
+}
+
+function bookingTime(b: Booking): string {
+  const raw = (b as any).hora_reserva || "";
+  const parts = raw.split(" ");
+  return parts.length > 1 ? parts.slice(1).join(" ") : raw;
+}
+
+function bookingServiceName(b: Booking): string {
+  const svc = (b as any).service;
+  if (!svc) return String((b as any).serviceId || "");
+  return typeof svc === "object" ? svc.nombre || String(svc.id) : String(svc);
+}
+
+function bookingCustomerId(b: Booking): number | undefined {
+  const c = (b as any).customer;
+  return typeof c === "number" ? c : c?.id;
+}
+
+function bookingBusinessId(b: Booking): number | undefined {
+  const c = (b as any).business;
+  return typeof c === "number" ? c : c?.id;
+}
+
+function bookingStatus(b: Booking): string {
+  return (b as any).status || "pending";
 }

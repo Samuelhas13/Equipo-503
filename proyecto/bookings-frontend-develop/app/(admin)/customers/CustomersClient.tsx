@@ -31,12 +31,12 @@ function CustomerCard({
       <p className="customer-meta">{customer.email}</p>
 
       <div className="customer-tag">
-        {customer.business ?? texts.noBusiness}
+        {typeof customer.business === 'object' ? (customer.business as any).nombre : String(customer.business ?? texts.noBusiness)}
       </div>
 
       <div className="customer-next">
         <strong>{texts.nextBooking}:</strong>{" "}
-        {customer.nextBooking ?? texts.noNextBooking}
+        {typeof customer.nextBooking === 'string' ? customer.nextBooking : texts.noNextBooking}
       </div>
     </div>
   );
@@ -109,10 +109,10 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
   const [isSaving, setIsSaving] = useState(false);  // Estado para indicar si se está guardando un cliente.
 
   const filteredCustomers = customers.filter((customer) =>
-    customer.name.toLowerCase().includes(search.toLowerCase()) ||
-    customer.phone.toLowerCase().includes(search.toLowerCase()) ||
-    customer.email.toLowerCase().includes(search.toLowerCase()) ||
-    (customer.business ?? "").toLowerCase().includes(search.toLowerCase())
+    (customer.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (customer.phone ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (customer.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    String(customer.business ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   function handleInputChange(field: keyof typeof formData, value: string) {  // Actualiza un campo concreto del formulario sin modificar el resto.
