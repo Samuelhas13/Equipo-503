@@ -1,8 +1,3 @@
-/**
- * PaymentsService.
- * Contiene la lógica de negocio para la gestión de cobros/pagos.
- * Interactúa con la base de datos a través del repositorio TypeORM de Payment.
- */
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,34 +9,23 @@ import { UpdatePaymentDto } from './dto/update-payment.dto';
 @Injectable()
 export class PaymentsService {
   constructor(
-    // Inyecta el repositorio para interactuar con la tabla de 'payment'
     @InjectRepository(Payment)
     private readonly paymentsRepository: Repository<Payment>,
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
   ) {}
 
-  /**
-   * Obtiene todos los pagos registrados.
-   * @returns Lista de pagos ordenados por fecha ascendente, incluyendo la reserva asociada.
-   */
   findAll() {
     return this.paymentsRepository.find({
-      order: { date: 'ASC' },
-      relations: ['appointment', 'customer'], // Incluye las relaciones en la respuesta
+      order: { hora_pago: 'ASC' },
+      relations: ['appointment', 'customer', 'servicio'],
     });
   }
 
-  /**
-   * Obtiene la información detallada de un pago específico.
-   * @param id ID único del pago
-   * @returns El pago y su reserva/cliente asociados
-   * @throws NotFoundException si no existe el ID
-   */
   async findOne(id: number) {
     const payment = await this.paymentsRepository.findOne({
       where: { id },
-      relations: ['appointment', 'customer'],
+      relations: ['appointment', 'customer', 'servicio'],
     });
 
     if (!payment) {
@@ -51,14 +35,10 @@ export class PaymentsService {
     return payment;
   }
 
-  /**
-   * Registra un nuevo pago en el sistema.
-   * @param createPaymentDto Objeto con los datos del pago
-   * @returns El pago guardado en base de datos
-   */
   async create(createPaymentDto: CreatePaymentDto) {
-    const appointment = await this.appointmentsRepository.findOneBy({
-      id: createPaymentDto.appointmentId,
+    const appointment = await this.appointmentsRepository.findOne({
+      where: { id: createPaymentDto.appointmentId },
+      relations: ['customer'],
     });
 
     if (!appointment) {
@@ -67,14 +47,14 @@ export class PaymentsService {
       );
     }
 
-    if (createPaymentDto.customerId !== appointment.customerId) {
+    if (appointment.customer && createPaymentDto.customerId !== appointment.customer.id) {
       throw new BadRequestException(
         'El cliente del pago debe coincidir con el cliente de la reserva asociada.',
       );
     }
 
-    const existingPayment = await this.paymentsRepository.findOneBy({
-      appointmentId: createPaymentDto.appointmentId,
+    const existingPayment = await this.paymentsRepository.findOne({
+      where: { appointment: { id: createPaymentDto.appointmentId } },
     });
 
     if (existingPayment) {
@@ -83,45 +63,38 @@ export class PaymentsService {
       );
     }
 
-    const payment = this.paymentsRepository.create(createPaymentDto);
+    const { customerId, appointmentId, servicioId, ...rest } = createPaymentDto;
+
+    const payment = this.paymentsRepository.create({
+      ...rest,
+      customer: { id: customerId },
+      appointment: { id: appointmentId },
+      servicio: { id: servicioId },
+    });
+    
     return this.paymentsRepository.save(payment);
   }
 
-  /**
-   * Actualiza parcialmente la información de un pago (por ejemplo, cambiar status a PAID).
-   * @param id ID del pago a modificar
-   * @param updatePaymentDto Datos parciales a modificar
-   * @returns El pago actualizado
-   */
   async update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    const payment = await this.paymentsRepository.findOneBy({ id });
-
-    if (!payment) {
-      throw new NotFoundException(`No existe el pago con id ${id}`);
-    }
+    const payment = await this.findOne(id);
+    const { customerId, appointmentId, servicioId, ...rest } = updatePaymentDto;
 
     const updatedPayment = this.paymentsRepository.merge(
       payment,
-      updatePaymentDto,
+      {
+        ...rest,
+        customer: customerId ? { id: customerId } : undefined,
+        appointment: appointmentId ? { id: appointmentId } : undefined,
+        servicio: servicioId ? { id: servicioId } : undefined,
+      }
     );
 
     return this.paymentsRepository.save(updatedPayment);
   }
 
-  /**
-   * Elimina un registro de pago de la base de datos de manera permanente.
-   * @param id ID del pago a borrar
-   * @returns Mensaje de confirmación
-   */
   async remove(id: number) {
-    const payment = await this.paymentsRepository.findOneBy({ id });
-
-    if (!payment) {
-      throw new NotFoundException(`No existe el pago con id ${id}`);
-    }
-
+    const payment = await this.findOne(id);
     await this.paymentsRepository.remove(payment);
-
     return { message: `Pago ${id} eliminado correctamente` };
   }
 }

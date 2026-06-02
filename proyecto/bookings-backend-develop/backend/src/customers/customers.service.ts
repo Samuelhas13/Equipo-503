@@ -24,7 +24,7 @@ export class CustomersService {
    */
   findAll() {
     return this.customersRepository.find({
-      order: { createdAt: 'DESC' }, // Ordenar por creación más reciente por defecto
+      order: { id: 'DESC' }, // Ordenar por creación más reciente por defecto
     });
   }
 
@@ -56,7 +56,11 @@ export class CustomersService {
       throw new ConflictException('Ya existe un cliente registrado con este email');
     }
     // Instancia el cliente y lo graba en base de datos
-    const customer = this.customersRepository.create(createCustomerDto);
+    const { businessId, ...rest } = createCustomerDto;
+    const customer = this.customersRepository.create({
+      ...rest,
+      business: businessId ? { id: businessId } : undefined,
+    });
     return this.customersRepository.save(customer);
   }
 
@@ -67,9 +71,12 @@ export class CustomersService {
    * @returns El objeto del cliente tras la modificación
    */
   async update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    const customer = await this.findOne(id); // Aprovechamos findOne que ya lanza error si no existe
-    // Mezcla el registro actual de BD con los campos modificados
-    const updatedCustomer = this.customersRepository.merge(customer, updateCustomerDto);
+    const customer = await this.findOne(id);
+    const { businessId, ...rest } = updateCustomerDto;
+    const updatedCustomer = this.customersRepository.merge(customer, {
+      ...rest,
+      business: businessId ? { id: businessId } : undefined,
+    });
     return this.customersRepository.save(updatedCustomer);
   }
 

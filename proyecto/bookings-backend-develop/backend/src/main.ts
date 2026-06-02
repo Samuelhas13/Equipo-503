@@ -33,8 +33,7 @@ async function bootstrap() {
         name: 'Authorization',
         description: `Escribe aquí la palabra aleatoria actual: ${palabraAleatoria}`,
         in: 'header',
-      },
-      'token-login',
+      }
     )
     .build();
 

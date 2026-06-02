@@ -1,86 +1,37 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './jwt-payload.interface';
 
-export type UserRole = 'admin' | 'empresa' | 'usuario';
-
-interface MockUser {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  businessId?: number;
-  customerId?: number;
-}
-
-const MOCK_USERS: MockUser[] = [
-  {
-    id: 999,
-    name: 'Administrador de Sistema',
-    email: 'admin@bookflow.com',
-    password: 'admin123',
-    role: 'admin',
-  },
-  {
-    id: 1,
-    name: 'Peluquería Nova',
-    email: 'nova@bookflow.com',
-    password: 'nova123',
-    role: 'empresa',
-    businessId: 1,
-  },
-  {
-    id: 2,
-    name: 'Restaurante Marea',
-    email: 'marea@bookflow.com',
-    password: 'marea123',
-    role: 'empresa',
-    businessId: 2,
-  },
-  {
-    id: 1,
-    name: 'Juan Pérez',
-    email: 'juan@bookflow.com',
-    password: 'juan123',
-    role: 'usuario',
-    customerId: 1,
-  },
-  {
-    id: 2,
-    name: 'María López',
-    email: 'maria@bookflow.com',
-    password: 'maria123',
-    role: 'usuario',
-    customerId: 2,
-  },
-];
-
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async login(loginDto: LoginDto) {
-    const { email, password, role } = loginDto;
+    const { email, password } = loginDto;
+    const user = await this.usersService.findOneByEmail(email);
 
-    const user = MOCK_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role,
-    );
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
 
-    if (!user || user.password !== password) {
-      throw new UnauthorizedException(
-        'Credenciales inválidas. Verifica tu email, contraseña y rol.',
-      );
+    const isMatch = await bcrypt.compare(password, user.password || '');
+    if (!isMatch) {
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      name: user.name,
+      nombre: user.nombre,
+      apellido: user.apellido,
       role: user.role,
-      businessId: user.businessId,
-      customerId: user.customerId,
+      businessId: user.business?.id,
     };
 
     const access_token = this.jwtService.sign(payload);
@@ -97,11 +48,11 @@ export class AuthService {
   getProfile(payload: JwtPayload) {
     return {
       id: payload.sub,
-      name: payload.name,
+      nombre: payload.nombre,
+      apellido: payload.apellido,
       email: payload.email,
       role: payload.role,
       businessId: payload.businessId,
-      customerId: payload.customerId,
     };
   }
 }
