@@ -1,4 +1,4 @@
-export type {
+import type {
   Booking,
   BookingStatus,
   CreateBookingDto,
@@ -11,7 +11,6 @@ export type {
   PaymentStatus,
   CreatePaymentDto,
 } from "./types";
-
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
