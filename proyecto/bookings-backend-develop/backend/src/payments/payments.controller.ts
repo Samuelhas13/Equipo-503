@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -24,6 +25,7 @@ import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './payment.entity';
+import { UserRole } from '../users/user.entity';
 
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -34,35 +36,35 @@ export class PaymentsController {
 
   // admin + empresa → listado de pagos
   @Get()
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Listado completo de cobros', type: [Payment] })
-  findAll() {
-    return this.paymentsService.findAll();
+  findAll(@Request() req: any) {
+    return this.paymentsService.findAll(req.user);
   }
 
   // admin + empresa → detalle de un pago
   @Get(':id')
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Detalle de un cobro', type: Payment })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.paymentsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.paymentsService.findOne(id, req.user);
   }
 
   // admin + empresa → registrar un pago
   @Post()
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiCreatedResponse({
     description: 'Cobro creado correctamente',
     type: Payment,
   })
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.create(createPaymentDto);
+  create(@Body() createPaymentDto: CreatePaymentDto, @Request() req: any) {
+    return this.paymentsService.create(createPaymentDto, req.user);
   }
 
   // admin + empresa → modificar un pago
   @Patch(':id')
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({
     description: 'Cobro actualizado correctamente',
     type: Payment,
@@ -71,16 +73,17 @@ export class PaymentsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePaymentDto: UpdatePaymentDto,
+    @Request() req: any,
   ) {
-    return this.paymentsService.update(id, updatePaymentDto);
+    return this.paymentsService.update(id, updatePaymentDto, req.user);
   }
 
   // solo admin → eliminar un pago
   @Delete(':id')
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   @ApiOkResponse({ description: 'Cobro eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.paymentsService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.paymentsService.remove(id, req.user);
   }
 }

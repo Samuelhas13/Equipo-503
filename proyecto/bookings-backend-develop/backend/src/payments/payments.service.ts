@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { JwtPayload } from '../auth/jwt-payload.interface';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -15,36 +17,53 @@ export class PaymentsService {
     private readonly appointmentsRepository: Repository<Appointment>,
   ) {}
 
-  findAll() {
+  findAll(currentUser?: JwtPayload) {
+    const where: any = {};
+    if (currentUser?.role === UserRole.BUSINESS) {
+      where.appointment = { business: { id: currentUser.businessId } };
+    }
     return this.paymentsRepository.find({
+      where,
       order: { hora_pago: 'ASC' },
-      relations: ['appointment', 'customer', 'servicio'],
+      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, currentUser?: JwtPayload) {
     const payment = await this.paymentsRepository.findOne({
       where: { id },
-      relations: ['appointment', 'customer', 'servicio'],
+      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
     });
 
     if (!payment) {
       throw new NotFoundException(`No existe el pago con id ${id}`);
     }
 
+    if (currentUser?.role === UserRole.BUSINESS && payment.appointment?.business?.id !== currentUser.businessId) {
+      throw new ForbiddenException('Solo puedes acceder a los pagos de tu empresa');
+    }
+
     return payment;
   }
 
-  async create(createPaymentDto: CreatePaymentDto) {
+  async create(createPaymentDto: CreatePaymentDto, currentUser?: JwtPayload) {
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: createPaymentDto.appointmentId },
-      relations: ['customer'],
+      relations: ['customer', 'business', 'user'],
     });
 
     if (!appointment) {
       throw new BadRequestException(
         `No existe la reserva con id ${createPaymentDto.appointmentId}`,
       );
+    }
+
+    if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
+      throw new ForbiddenException('No puedes registrar pagos para reservas de otras empresas');
+    }
+    
+    if (currentUser?.role === UserRole.CUSTOMER && appointment.user?.id !== currentUser.sub) {
+      throw new ForbiddenException('Solo puedes pagar tus propias reservas');
     }
 
     if (appointment.customer && createPaymentDto.customerId !== appointment.customer.id) {
@@ -75,8 +94,19 @@ export class PaymentsService {
     return this.paymentsRepository.save(payment);
   }
 
-  async update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    const payment = await this.findOne(id);
+  async update(id: number, updatePaymentDto: UpdatePaymentDto, currentUser?: JwtPayload) {
+    const payment = await this.findOne(id, currentUser);
+    
+    if (updatePaymentDto.appointmentId && updatePaymentDto.appointmentId !== payment.appointment?.id) {
+      const newAppointment = await this.appointmentsRepository.findOne({
+        where: { id: updatePaymentDto.appointmentId },
+        relations: ['business']
+      });
+      if (currentUser?.role === UserRole.BUSINESS && newAppointment?.business?.id !== currentUser.businessId) {
+        throw new ForbiddenException('No puedes asociar un pago a la reserva de otra empresa');
+      }
+    }
+
     const { customerId, appointmentId, servicioId, ...rest } = updatePaymentDto;
 
     const updatedPayment = this.paymentsRepository.merge(
@@ -92,8 +122,8 @@ export class PaymentsService {
     return this.paymentsRepository.save(updatedPayment);
   }
 
-  async remove(id: number) {
-    const payment = await this.findOne(id);
+  async remove(id: number, currentUser?: JwtPayload) {
+    const payment = await this.findOne(id, currentUser);
     await this.paymentsRepository.remove(payment);
     return { message: `Pago ${id} eliminado correctamente` };
   }

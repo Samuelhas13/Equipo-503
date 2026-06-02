@@ -1,0 +1,35 @@
+=== CREDENCIALES DE USUARIO SEMBRADOS (SEEDED) ===
+
+1. ADMIN (Global)
+Email: admin@bookings.com
+Contraseña: Admin123!
+Rol: admin
+businessId: null (acceso total a todas las empresas)
+
+2. BUSINESS 1 (Empresa Alfa - businessId: 1)
+Email: business1@bookings.com
+Contraseña: Business123!
+Rol: business
+
+3. BUSINESS 2 (Empresa Beta - businessId: 2)
+Email: business2@bookings.com
+Contraseña: Business123!
+Rol: business
+
+4. CUSTOMERS (Clientes de Prueba)
+Contraseña común para todos: Customer123!
+Rol: customer
+
+Asociados a la Empresa Alfa (businessId: 1):
+- customer1@bookings.com
+- customer2@bookings.com
+- customer3@bookings.com
+- customer4@bookings.com
+- customer5@bookings.com
+
+Asociados a la Empresa Beta (businessId: 2):
+- customer6@bookings.com
+- customer7@bookings.com
+- customer8@bookings.com
+- customer9@bookings.com
+- customer10@bookings.com
