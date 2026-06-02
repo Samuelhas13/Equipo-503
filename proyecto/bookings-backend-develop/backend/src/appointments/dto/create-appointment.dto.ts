@@ -1,53 +1,31 @@
-/**
- * CreateAppointmentDto.
- * Define la estructura de datos requerida para crear una nueva reserva.
- * Utiliza validadores de class-validator para asegurar la integridad de los datos.
- */
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsPositive,
-  IsString,
-  Matches,
-} from 'class-validator';
-import { AppointmentStatus } from '../appointment.entity';
+import { IsInt, IsNotEmpty, IsPositive, IsString, IsOptional } from 'class-validator';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ example: '2026-04-20' })
-  @IsDateString()
-  date!: string;
+  @ApiProperty({ example: 1, required: false })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  userId?: number;
 
-  @ApiProperty({ example: '10:30' })
-  @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: 'La hora debe tener formato HH:mm',
-  })
-  time!: string;
-
-  @ApiProperty({
-    enum: AppointmentStatus,
-    example: AppointmentStatus.PENDING,
-  })
-  @IsEnum(AppointmentStatus)
-  status!: AppointmentStatus;
+  @ApiProperty({ example: 1, required: false })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  customerId?: number;
 
   @ApiProperty({ example: 1 })
   @IsInt()
-  @IsPositive({ message: 'El ID del cliente debe ser un número positivo' })
-  customerId!: number;
-
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  @IsPositive({ message: 'El ID del negocio debe ser un número positivo' })
+  @IsPositive()
   businessId!: number;
 
-  @ApiProperty({ example: 'Corte de pelo' })
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  @IsPositive()
+  serviceId!: number;
+
+  @ApiProperty({ example: '2026-04-20 10:30' })
   @IsString()
-  @IsNotEmpty({ message: 'El servicio no puede estar vacío' })
-  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9\s\-,.]+$/, {
-    message: 'El nombre del servicio solo puede contener letras, números y signos básicos',
-  })
-  serviceName!: string;
+  @IsNotEmpty()
+  hora_reserva!: string;
 }

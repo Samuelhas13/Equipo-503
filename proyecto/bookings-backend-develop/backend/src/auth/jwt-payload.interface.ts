@@ -1,10 +1,12 @@
+import { UserRole } from '../users/user.entity';
+
 export interface JwtPayload {
   sub: number;
   email: string;
-  name: string;
-  role: 'admin' | 'empresa' | 'usuario';
+  nombre: string;
+  apellido: string;
+  role: UserRole;
   businessId?: number;
-  customerId?: number;
   iat?: number;
   exp?: number;
 }

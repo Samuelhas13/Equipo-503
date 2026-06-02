@@ -1,7 +1,10 @@
 "use client";
 
+
+
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import type {
   Booking,
   BookingStatus,
@@ -31,6 +34,17 @@ function StatusBadge({ status }: { status: BookingStatus }) {
     completed: "Completada",
   };
   return <span className={`badge badge--${status}`}>{map[status] ?? status}</span>;
+}
+
+function getTodayString() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getCurrentTimeString() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, "0");
+  const m = String(now.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
 }
 
 function formatDate(date: string) {
@@ -156,6 +170,71 @@ export default function BookingsClient({
   initialBookings: Booking[];
 }) {
   const { user } = useAuth();
+  const { language } = useLanguage();
+
+  const texts = {
+    es: {
+      title: "Panel de Reservas",
+      subtitle: "Gestiona las citas, clientes y estados de tu negocio.",
+      newBooking: "Nueva reserva",
+      totalBookings: "Total reservas",
+      availableRecords: "registros disponibles",
+      pending: "Pendientes",
+      needsFollowUp: "requiere seguimiento",
+      confirmed: "Confirmadas",
+      activeStatus: "citas activas",
+      paid: "Pagadas",
+      closedBookings: "transacciones completadas",
+      date: "Fecha",
+      time: "Hora",
+      status: "Estado",
+      customerId: "ID Cliente",
+      businessId: "ID Negocio",
+      business: "Comercio",
+      people: "Personas (1-5)",
+      service: "Servicio",
+      customerFound: "Cliente encontrado",
+      name: "Nombre",
+      phone: "Teléfono",
+      editBookingTitle: "Editar reserva",
+      cancel: "Cancelar",
+      pendingOption: "Pendiente",
+      confirmedOption: "Confirmada",
+      paidOption: "Pagada",
+      edit: "Editar",
+    },
+    en: {
+      title: "Bookings Dashboard",
+      subtitle: "Manage your business appointments, customers, and statuses.",
+      newBooking: "New Booking",
+      totalBookings: "Total Bookings",
+      availableRecords: "available records",
+      pending: "Pending",
+      needsFollowUp: "needs follow-up",
+      confirmed: "Confirmed",
+      activeStatus: "active appointments",
+      paid: "Paid",
+      closedBookings: "completed transactions",
+      date: "Date",
+      time: "Time",
+      status: "Status",
+      customerId: "Customer ID",
+      businessId: "Business ID",
+      business: "Business",
+      people: "People (1-5)",
+      service: "Service",
+      customerFound: "Customer found",
+      name: "Name",
+      phone: "Phone",
+      editBookingTitle: "Edit Booking",
+      cancel: "Cancel",
+      pendingOption: "Pending",
+      confirmedOption: "Confirmed",
+      paidOption: "Paid",
+      edit: "Edit",
+    },
+  };
+
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
   const emptyForm: CreateBookingDto = {
@@ -204,33 +283,28 @@ export default function BookingsClient({
     }
   }
 
+  // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  // ─── FILTRADO INTELIGENTE POR ROL ───────────────────────────────────────────
-  // Aquí ocurre la magia: filtramos los datos de origen según quién inició sesión
-  const bookingsFiltradosPorRol = useMemo(() => {
-    return bookings.filter((booking) => {
-      if (user?.role === "usuario") {
-        return booking.customerId === user.customerId;
-      }
-      if (user?.role === "empresa") {
-        return booking.businessId === user.businessId;
-      }
-      return true; // El admin ve todo
-    });
+  const roleFilteredBookings = useMemo(() => {
+    if (user?.role === "empresa") {
+      return bookings.filter((b) => b.businessId === user.businessId);
+    } else if (user?.role === "usuario") {
+      return bookings.filter((b) => b.customerId === user.customerId);
+    }
+    return bookings;
   }, [bookings, user]);
 
   const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return bookingsFiltradosPorRol;
-    return bookingsFiltradosPorRol.filter((booking) => booking.status === statusFilter);
-  }, [bookingsFiltradosPorRol, statusFilter]);
+    if (statusFilter === "all") return roleFilteredBookings;
+    return roleFilteredBookings.filter((booking) => booking.status === statusFilter);
+  }, [roleFilteredBookings, statusFilter]);
 
-  // Las estadísticas se calculan dinámicamente en base a lo que el rol tiene permitido ver
-  const totalCount = bookingsFiltradosPorRol.length;
-  const pendingCount = bookingsFiltradosPorRol.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookingsFiltradosPorRol.filter((b) => b.status === "confirmed").length;
-  const paidCount = bookingsFiltradosPorRol.filter((b) => b.status === "paid").length;
+  const totalCount = roleFilteredBookings.length;
+  const pendingCount = roleFilteredBookings.filter((b) => b.status === "pending").length;
+  const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
+  const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
 
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
@@ -249,9 +323,11 @@ export default function BookingsClient({
   function resetCreateForm() { setCreateForm(emptyForm); }
   function resetEditForm()   { setEditForm(emptyForm); }
 
+  // 3. Modificamos la apertura para añadir el scroll
   function openCreateForm() {
     setSuccessMessage("");
     setErrorMessage("");
+    setSuccessMessage("");
     setEditingBookingId(null);
     setDeleteTargetId(null);
     resetEditForm();
@@ -262,14 +338,15 @@ export default function BookingsClient({
     const initialBusinessId = user?.role === "empresa" ? (user.businessId || 1) : 1;
 
     setCreateForm({
-      date: "",
-      time: "",
+      date: getTodayString(),
+      time: getCurrentTimeString(),
       status: "pending",
       customerId: initialCustomerId,
       businessId: initialBusinessId,
       serviceName: "",
     });
 
+    // El setTimeout asegura que el DOM ya se actualizó y el elemento existe
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
@@ -331,9 +408,17 @@ export default function BookingsClient({
     setErrorMessage("");
 
     try {
-      const created = await createAppointment(createForm);
+      const finalServiceName = `${createForm.serviceName} (${createPersons} ${createPersons === 1 ? 'persona' : 'personas'})`;
+      const payload = {
+        ...createForm,
+        serviceName: finalServiceName,
+      };
+
+      const created = await createAppointment(payload);
       setBookings((prev) => [created, ...prev]);
       resetCreateForm();
+      setCreatePersons(1);
+      setSearchedCustomer(null);
       setIsCreateOpen(false);
       setSuccessMessage("Reserva creada correctamente.");
     } catch {
@@ -352,6 +437,7 @@ export default function BookingsClient({
     setErrorMessage("");
 
     try {
+      const finalServiceName = `${editForm.serviceName} (${editPersons} ${editPersons === 1 ? 'persona' : 'personas'})`;
       const payload: UpdateBookingDto = {
         date: editForm.date,
         time: editForm.time,
@@ -401,20 +487,13 @@ export default function BookingsClient({
     <div className="booking-page page-stack">
       <section className="page-hero booking-hero">
         <div>
-          <h2>
-            {user?.role === "usuario" ? "Mis Reservas" : "Listado de Reservas"}
-          </h2>
-          <p>
-            {user?.role === "usuario" 
-              ? "Aquí puedes ver e inscribir tus citas activas." 
-              : "Gestión de reservas conectada con la API."}
-          </p>
+          <h2>{texts[language].title}</h2>
+          <p>{texts[language].subtitle}</p>
         </div>
 
-        {/* El botón para crear reservas está disponible para Admins y Usuarios particulares */}
         {user?.role !== "empresa" && (
           <button className="primary-btn" type="button" onClick={openCreateForm}>
-            Nueva reserva
+            {texts[language].newBooking}
           </button>
         )}
       </section>
@@ -423,30 +502,33 @@ export default function BookingsClient({
       {user?.role !== "usuario" && (
         <section className="kpi-grid">
           <KpiCard
-            title="Total reservas"
+            title={texts[language].totalBookings}
             value={totalCount}
-            trend="registros disponibles"
+            trend={texts[language].availableRecords}
             color={KPI_COLORS.teal}
             activity={ACTIVITY_DATA.total}
           />
+
           <KpiCard
-            title="Pendientes"
+            title={texts[language].pending}
             value={pendingCount}
-            trend="requieren seguimiento"
+            trend={texts[language].needsFollowUp}
             color={KPI_COLORS.amber}
             activity={ACTIVITY_DATA.pending}
           />
+
           <KpiCard
-            title="Confirmadas"
+            title={texts[language].confirmed}
             value={confirmedCount}
-            trend="estado activo"
+            trend={texts[language].activeStatus}
             color={KPI_COLORS.green}
             activity={ACTIVITY_DATA.confirmed}
           />
+
           <KpiCard
-            title="Pagadas"
+            title={texts[language].paid}
             value={paidCount}
-            trend="reservas cerradas"
+            trend={texts[language].closedBookings}
             color={KPI_COLORS.purple}
             activity={ACTIVITY_DATA.paid}
           />
@@ -464,78 +546,178 @@ export default function BookingsClient({
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={createForm.date}
-                onChange={(e) => updateCreateForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={createForm.time}
-                onChange={(e) => updateCreateForm("time", e.target.value)}
-                required
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].date}</label>
+                <input
+                  className="input"
+                  type="date"
+                  min={getTodayString()}
+                  value={createForm.date}
+                  onChange={(e) => updateCreateForm("date", e.target.value)}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].time}</label>
+                <input
+                  className="input"
+                  type="time"
+                  value={createForm.time}
+                  onChange={(e) => updateCreateForm("time", e.target.value)}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].status}</label>
+                <select
+                  className="select"
+                  value={createForm.status}
+                  onChange={(e) =>
+                    updateCreateForm("status", e.target.value as BookingStatus)
+                  }
+                >
+                  <option value="pending">Pendiente</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="paid">Pagada</option>
+                </select>
+              </div>
               
-              {/* Bloqueamos el selector de estados si es un usuario común para que empiece en pending obligatoriamente */}
-              <select
-                className="select"
-                value={createForm.status}
-                disabled={user?.role === "usuario"}
-                onChange={(e) =>
-                  updateCreateForm("status", e.target.value as BookingStatus)
-                }
-              >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
-              </select>
+              {user?.role !== "usuario" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].customerId}</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      value={createForm.customerId}
+                      onChange={(e) => {
+                        updateCreateForm("customerId", Number(e.target.value));
+                        setSearchedCustomer(null);
+                      }}
+                      placeholder="Customer ID"
+                      required
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      onClick={() => findCustomer(createForm.customerId)}
+                      disabled={searchingCustomer}
+                      style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
+                    >
+                      {searchingCustomer ? "Buscando..." : "Buscar"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {/* Si es Admin muestra los inputs numéricos de control, si no, se auto-asignan de forma oculta */}
-              {user?.role === "admin" ? (
-                <>
-                  <input
-                    className="input"
-                    type="number"
-                    min={1}
-                    value={createForm.customerId}
-                    onChange={(e) => updateCreateForm("customerId", Number(e.target.value))}
-                    placeholder="Customer ID"
-                    required
-                  />
+              {user?.role === "admin" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].businessId}</label>
                   <input
                     className="input"
                     type="number"
                     min={1}
                     value={createForm.businessId}
-                    onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
+                    onChange={(e) =>
+                      updateCreateForm("businessId", Number(e.target.value))
+                    }
                     placeholder="Business ID"
                     required
                   />
-                </>
-              ) : user?.role === "usuario" ? (
-                <select 
-                  className="select"
-                  value={createForm.businessId}
-                  onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
-                >
-                  {Object.entries(BUSINESS_NAMES).map(([id, name]) => (
-                    <option key={id} value={id}>{name}</option>
-                  ))}
-                </select>
-              ) : null}
+                </div>
+              )}
 
-              <input
-                className={`input ${user?.role !== "admin" ? "input--full" : ""}`}
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio solicitado (Ej: Corte de pelo)"
-                required
-              />
+              {user?.role === "usuario" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].business}</label>
+                  <select
+                    className="select"
+                    value={createForm.businessId}
+                    onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
+                    required
+                    style={{ padding: "13px 16px" }}
+                  >
+                    {Object.entries(BUSINESS_NAMES).map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].people}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setCreatePersons(prev => Math.max(1, prev - 1))}
+                    style={{ padding: '8px 16px', fontSize: '16px', fontWeight: 'bold' }}
+                  >
+                    -
+                  </button>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={createPersons}
+                    onChange={(e) => {
+                      let val = Number(e.target.value);
+                      if (val < 1) val = 1;
+                      if (val > 5) val = 5;
+                      setCreatePersons(val);
+                    }}
+                    style={{ width: '60px', textAlign: 'center', fontWeight: 'bold' }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setCreatePersons(prev => Math.min(5, prev + 1))}
+                    style={{ padding: '8px 16px', fontSize: '16px', fontWeight: 'bold' }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="input--full" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].service}</label>
+                <input
+                  className="input"
+                  type="text"
+                  value={createForm.serviceName}
+                  onChange={(e) => updateCreateForm("serviceName", e.target.value)}
+                  placeholder="Servicio"
+                  required
+                />
+              </div>
             </div>
+
+            {searchedCustomer && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(46, 204, 113, 0.08)',
+                  border: '1px solid rgba(46, 204, 113, 0.3)',
+                  color: '#27ae60',
+                  fontSize: '13px'
+            }}>
+                  <strong style={{ fontSize: "14px", color: "#219653" }}>
+                    ✓ {texts[language].customerFound}
+                  </strong>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                    <span><strong>{texts[language].name}:</strong> {searchedCustomer.name}</span>
+                    <span><strong>Email:</strong> {searchedCustomer.email}</span>
+                    <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone}</span>
+                  </div>
+                </div>
+            )}
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
@@ -550,49 +732,146 @@ export default function BookingsClient({
 
       {editingBookingId !== null && (
         <section ref={editFormRef} className="section-card booking-form-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
-            <button type="button" className="secondary-btn" onClick={closeEditForm}>
-              Cancelar
-            </button>
-          </div>
+  <div className="panel-title-row">
+    <h3 className="panel-title">
+      {texts[language].editBookingTitle} #{editingBookingId}
+    </h3>
 
+    <button type="button" className="secondary-btn" onClick={closeEditForm}>
+      {texts[language].cancel}
+    </button>
+  </div>
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={editForm.date}
-                onChange={(e) => updateEditForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={editForm.time}
-                onChange={(e) => updateEditForm("time", e.target.value)}
-                required
-              />
-              <select
-                className="select"
-                value={editForm.status}
-                disabled={user?.role === "usuario"}
-                onChange={(e) => updateEditForm("status", e.target.value as BookingStatus)}
-              >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
-                <option value="canceled">Cancelar Reserva</option>
-              </select>
-              <input
-                className="input"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
-            </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].date}
+        </label>
+        <input
+          className="input"
+          type="date"
+          min={getTodayString()}
+          value={editForm.date}
+          onChange={(e) => updateEditForm("date", e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].time}
+        </label>
+        <input
+          className="input"
+          type="time"
+          value={editForm.time}
+          onChange={(e) => updateEditForm("time", e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].status}
+        </label>
+        <select
+          className="select"
+          value={editForm.status}
+          onChange={(e) =>
+            updateEditForm("status", e.target.value as BookingStatus)
+          }
+        >
+          <option value="pending">{texts[language].pendingOption}</option>
+          <option value="confirmed">{texts[language].confirmedOption}</option>
+          <option value="paid">{texts[language].paidOption}</option>
+        </select>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].customerId}
+        </label>
+        <input
+          className="input"
+          type="number"
+          min={1}
+          value={editForm.customerId}
+          placeholder={texts[language].customerId}
+          disabled
+          title="El Customer ID no se puede modificar una vez creada la reserva"
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].businessId}
+        </label>
+        <input
+          className="input"
+          type="number"
+          min={1}
+          value={editForm.businessId}
+          placeholder={texts[language].businessId}
+          disabled
+          title="El Business ID no se puede modificar una vez creada la reserva"
+        />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].people}
+        </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => setEditPersons((prev) => Math.max(1, prev - 1))}
+            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+          >
+            -
+          </button>
+
+          <input
+            className="input"
+            type="number"
+            min={1}
+            max={5}
+            value={editPersons}
+            onChange={(e) => {
+              let val = Number(e.target.value);
+              if (val < 1) val = 1;
+              if (val > 5) val = 5;
+              setEditPersons(val);
+            }}
+            style={{ width: "60px", textAlign: "center", fontWeight: "bold" }}
+            required
+          />
+
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => setEditPersons((prev) => Math.min(5, prev + 1))}
+            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+          {texts[language].service}
+        </label>
+        <input
+          className="input"
+          type="text"
+          value={editForm.serviceName}
+          onChange={(e) => updateEditForm("serviceName", e.target.value)}
+          placeholder={texts[language].service}
+          required
+        />
+      </div>
+    </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
@@ -652,8 +931,8 @@ export default function BookingsClient({
                 <th>Fecha</th>
                 <th>Hora</th>
                 <th>Servicio</th>
-                {user?.role !== "usuario" && <th>Customer ID</th>}
-                {user?.role !== "empresa" && <th>Comercio</th>}
+                <th>Customer</th>
+                <th>Comercio</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -665,23 +944,29 @@ export default function BookingsClient({
                   <td>{formatDate(booking.date)}</td>
                   <td>{booking.time}</td>
                   <td>{booking.serviceName}</td>
-                  {user?.role !== "usuario" && <td>{booking.customerId}</td>}
-                  {user?.role !== "empresa" && (
-                    <td>{BUSINESS_NAMES[booking.businessId] || `Comercio #${booking.businessId}`}</td>
-                  )}
+                  <td>{booking.customerId}</td>
+                  <td>{BUSINESS_NAMES[booking.businessId] || `#${booking.businessId}`}</td>
                   <td><StatusBadge status={booking.status} /></td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
-                        Editar
-                      </button>
-                      {user?.role !== "empresa" && (
-                        <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
+                  {user?.role !== "usuario" && (
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openEditForm(booking)}
+                        >
+                          {texts[language].edit}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => openDeleteModal(booking.id)}
+                        >
                           Eliminar
                         </button>
-                      )}
-                    </div>
-                  </td>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

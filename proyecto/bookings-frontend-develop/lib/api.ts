@@ -12,20 +12,6 @@ import type {
   CreatePaymentDto,
 } from "./types";
 
-export type {
-  Booking,
-  BookingStatus,
-  CreateBookingDto,
-  UpdateBookingDto,
-  Customer,
-  CreateCustomerDto,
-  UpdateCustomerDto,
-  Payment,
-  PaymentMethod,
-  PaymentStatus,
-  CreatePaymentDto,
-} from "./types";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 function getToken(): string | null {
@@ -64,7 +50,6 @@ if (!res.ok) {
     body?.message || `Error ${res.status}: ${res.statusText}`
   );
 }
-
   return res.json();
 }
 

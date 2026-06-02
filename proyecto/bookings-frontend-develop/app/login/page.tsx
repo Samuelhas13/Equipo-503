@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { useRouter } from "next/navigation"; // <-- 1. IMPORTAMOS EL ROUTER
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const router = useRouter(); // <-- 2. INICIALIZAMOS EL ROUTER
+  const router = useRouter();
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -14,14 +14,14 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
-  // <-- 3. CREAMOS ESTA FUNCIÓN PARA DECIDIR A DÓNDE ENVIAR AL USUARIO SEGÚN SU ROL
+  // Función para decidir a dónde enviar al usuario según su rol
   const redirigirPorRol = (rolUsuario: UserRole) => {
     if (rolUsuario === "admin") {
-      router.push("/dashboard"); // Va a tu carpeta (admin) actual
+      router.push("/dashboard");
     } else if (rolUsuario === "empresa") {
-      router.push("/dashboard"); // Ruta para comercios (ej: P. Nova)
+      router.push("/dashboard");
     } else if (rolUsuario === "usuario") {
-      router.push("/reservas"); // Ruta para clientes (ej: Juan Pérez)
+      router.push("/reservas");
     }
   };
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
     try {
       const success = await login(email, password, role);
       if (success) {
-        redirigirPorRol(role); // <-- 4. SI EL LOGIN ES CORRECTO, REDIRIGIMOS
+        redirigirPorRol(role);
       } else {
         setError("Las credenciales ingresadas no son válidas.");
       }
@@ -53,7 +53,7 @@ export default function LoginPage() {
     try {
       const success = await login(userEmail, userPassword, userRole);
       if (success) {
-        redirigirPorRol(userRole); // <-- 5. TAMBIÉN REDIRIGIMOS EN EL ACCESO RÁPIDO
+        redirigirPorRol(userRole);
       } else {
         setError("Error en el acceso rápido. ¿Está el backend activo?");
       }

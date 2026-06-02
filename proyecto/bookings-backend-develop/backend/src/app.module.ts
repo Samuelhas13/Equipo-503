@@ -10,6 +10,9 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { CustomersModule } from './customers/customers.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AuthModule } from './auth/auth.module';
+import { BusinessModule } from './business/business.module';
+import { ServicesModule } from './services/services.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { AuthModule } from './auth/auth.module';
     AppointmentsModule,
     CustomersModule,
     PaymentsModule,
+    BusinessModule,
+    ServicesModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

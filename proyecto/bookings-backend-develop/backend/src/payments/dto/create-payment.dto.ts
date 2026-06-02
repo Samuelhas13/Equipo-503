@@ -1,48 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsPositive } from 'class-validator';
+import { IsEnum, IsInt, IsPositive, IsString } from 'class-validator';
 import { PaymentMethod, PaymentStatus } from '../payment.entity';
 
 export class CreatePaymentDto {
-  @ApiProperty({
-    example: 28,
-    description: 'Importe del pago en euros (solo enteros)',
-  })
-  @IsInt()
-  @IsPositive()
-  amount!: number;
-
-  @ApiProperty({ example: '2026-04-15', description: 'Fecha del pago' })
-  @IsDateString()
-  date!: string;
-
-  @ApiProperty({
-    enum: PaymentStatus,
-    example: PaymentStatus.PAID,
-    description: 'Estado del cobro',
-  })
-  @IsEnum(PaymentStatus)
-  status!: PaymentStatus;
-
-  @ApiProperty({
-    enum: PaymentMethod,
-    example: PaymentMethod.CARD,
-    description: 'Método de pago: card | cash | bizum | pending',
-  })
-  @IsEnum(PaymentMethod)
-  paymentMethod!: PaymentMethod;
-
-  @ApiProperty({
-    example: 1,
-    description: 'ID del cliente que realiza el pago',
-  })
+  @ApiProperty({ example: 1, description: 'ID del cliente' })
   @IsInt()
   @IsPositive()
   customerId!: number;
 
-  @ApiProperty({
-    example: 1,
-    description: 'ID de la reserva asociada',
-  })
+  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.TARJETA })
+  @IsEnum(PaymentMethod)
+  metodo_pago!: PaymentMethod;
+
+  @ApiProperty({ enum: PaymentStatus, example: PaymentStatus.PAGADO })
+  @IsEnum(PaymentStatus)
+  estado!: PaymentStatus;
+
+  @ApiProperty({ example: 1, description: 'ID del servicio (importe)' })
+  @IsInt()
+  @IsPositive()
+  servicioId!: number;
+
+  @ApiProperty({ example: '10:30', description: 'Hora de pago' })
+  @IsString()
+  hora_pago!: string;
+
+  @ApiProperty({ example: 1, description: 'ID de la reserva asociada' })
   @IsInt()
   @IsPositive()
   appointmentId!: number;

@@ -23,7 +23,7 @@ async function bootstrap() {
   // 3. CONFIGURACIÓN DE SWAGGER
   const config = new DocumentBuilder()
     .setTitle('API de Reservas')
-    .setDescription('API para gestionar reservas, clientes y autenticación en el sistema de reservas.')
+    .setDescription('🔑 API de Reservas: acceda con su token JWT para autenticar.')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -33,8 +33,7 @@ async function bootstrap() {
         name: 'Authorization',
         description: `Escribe aquí la palabra aleatoria actual: ${palabraAleatoria}`,
         in: 'header',
-      },
-      'token-login',
+      }
     )
     .build();
 
