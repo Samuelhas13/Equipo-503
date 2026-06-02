@@ -29,8 +29,7 @@ const initialPaymentForm: PaymentForm = {
   date: "",
   status: "paid",
 };
-
-// Componente KPI con diseño visual avanzado.
+// ─── KpiCard — Variante D — Componente KPI con diseño visual avanzado.
 interface KpiCardColor {
   bar: string;
   trendBg: string;
@@ -57,10 +56,10 @@ function KpiCard({
   const barsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (loading || !barsRef.current) return;
+    if (loading || !barsRef.current || activity.length === 0) return;
 
     const container = barsRef.current;
-    const max = Math.max(...activity);
+    const max = Math.max(...activity) || 1; // Evitamos división por cero
     const bars = container.querySelectorAll(".kpi-d__dot");
 
     setTimeout(() => {
@@ -133,12 +132,29 @@ const KPI_COLORS: Record<string, KpiCardColor> = {
     trendBg: "#EEEDFE",
     trendText: "#26215C",
   },
+  // NUEVO: Color asignado para el KPI del método de pago preferido
+  blue: {
+    bar:       "#2563EB",
+    trendBg:   "#DBEAFE",
+    trendText: "#1E40AF",
+  },
 };
 
 const ACTIVITY_DATA = {
-  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
-  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  paid:     [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  pending:  [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  total:    [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  // Datos simulados para la animación de barras del nuevo KPI
+  method:   [20, 35, 40, 30, 45, 55, 40, 60, 50, 65, 70, 60, 75, 85],
+};
+
+const METHOD_LABELS: Record<string, string> = {
+  tarjeta: "Tarjeta",
+  card: "Tarjeta",
+  bizum: "Bizum",
+  efectivo: "Efectivo",
+  cash: "Efectivo",
+  pending: "Pendiente",
 };
 
 // Badge traducido según el idioma global
@@ -275,7 +291,6 @@ export default function PaymentsPage() {
   const amountRegex = /^[0-9]+$/;
   const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
 
-  // Cargamos los pagos desde el backend al montar el componente.
   useEffect(() => {
     async function load() {
       try {
@@ -297,37 +312,61 @@ export default function PaymentsPage() {
   const totalPaid = paid.reduce((sum, p) => sum + (p.amount ?? 0), 0);
   const totalPending = pending.reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
+  // NUEVO: Cálculo dinámico de la forma de pago más utilizada y su cantidad
+  const getMostUsedMethod = () => {
+    if (payments.length === 0) return { label: "Ninguno", count: 0 };
+
+    const counts = payments.reduce((acc, p) => {
+      const method = p.paymentMethod;
+      if (method) {
+        acc[String(method)] = (acc[String(method)] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    let topMethod: PaymentMethod = "card";
+    let maxCount = 0;
+
+    (Object.keys(counts) as PaymentMethod[]).forEach((method) => {
+      if (counts[method] > maxCount) {
+        maxCount = counts[method];
+        topMethod = method;
+      }
+    });
+
+    return {
+      label: METHOD_LABELS[String(topMethod)] || String(topMethod),
+      count: maxCount,
+    };
+  };
+
+  const mostUsed = getMostUsedMethod();
+
   const validatePaymentForm = () => {
     if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
       setFormError(texts[language].requiredClientBusiness);
       return false;
     }
-
     if (!nameRegex.test(paymentForm.client.trim())) {
       setFormError(texts[language].invalidClientName);
       return false;
     }
-
     if (!nameRegex.test(paymentForm.business.trim())) {
       setFormError(texts[language].invalidBusinessName);
       return false;
     }
-
     if (!amountRegex.test(paymentForm.amount.trim())) {
       setFormError(texts[language].invalidAmount);
       return false;
     }
-
     if (!paymentForm.date) {
       setFormError(texts[language].requiredDate);
       return false;
     }
-
     if (!["pending", "paid"].includes(paymentForm.status)) {
       setFormError(texts[language].invalidStatus);
       return false;
     }
-
     setFormError("");
     return true;
   };
@@ -340,9 +379,7 @@ export default function PaymentsPage() {
   };
 
   const handleSavePayment = async () => {
-    if (!validatePaymentForm()) {
-      return;
-    }
+    if (!validatePaymentForm()) return;
 
     try {
       const newPayment = await createPayment({
@@ -510,7 +547,6 @@ export default function PaymentsPage() {
               >
                 {texts[language].cancel}
               </button>
-
               <button className="primary-btn" type="submit">
                 {texts[language].savePayment}
               </button>
@@ -523,6 +559,7 @@ export default function PaymentsPage() {
         </section>
       )}
 
+      {/* Grid de KPIs - Ahora cuenta con 4 tarjetas distribuidas de forma fluida */}
       <section className="kpi-grid">
         <KpiCard
           title={texts[language].totalCharged}
@@ -542,6 +579,17 @@ export default function PaymentsPage() {
           loading={loading}
         />
 
+        {/* NUEVO: Método preferido — azul */}
+        <KpiCard
+          title="Método preferido"
+          value={loading ? "—" : mostUsed.label}
+          trend={`${mostUsed.count} usos`}
+          color={KPI_COLORS.blue}
+          activity={ACTIVITY_DATA.method}
+          loading={loading}
+        />
+
+        {/* Total pagos — purple */}
         <KpiCard
           title={texts[language].totalPayments}
           value={String(payments.length)}

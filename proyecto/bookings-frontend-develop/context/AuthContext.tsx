@@ -4,6 +4,17 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type UserRole = "admin" | "empresa" | "usuario";
 
+type RawUser = {
+  id: number;
+  nombre?: string;
+  apellido?: string;
+  name?: string;
+  email: string;
+  role: string;
+  businessId?: number;
+  customerId?: number;
+};
+
 export interface User {
   id: number;
   name: string;
@@ -11,6 +22,29 @@ export interface User {
   role: UserRole;
   businessId?: number;
   customerId?: number;
+}
+
+function normalizeRole(role: string): UserRole {
+  const value = String(role).toLowerCase();
+  if (value === "business" || value === "empresa") return "empresa";
+  if (value === "customer" || value === "usuario") return "usuario";
+  return "admin";
+}
+
+function mapUser(user: RawUser): User {
+  const fullName = [user.name, user.nombre, user.apellido]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return {
+    id: user.id,
+    name: fullName || user.email || "Usuario",
+    email: user.email,
+    role: normalizeRole(user.role),
+    businessId: user.businessId,
+    customerId: user.customerId,
+  };
 }
 
 interface AuthContextType {
@@ -52,8 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (res.ok) {
-          const profile: User = await res.json();
-          setUser(profile);
+          const profile: RawUser = await res.json();
+          setUser(mapUser(profile));
           setToken(storedToken);
         } else {
           localStorage.removeItem("bookflow_token");
@@ -62,7 +96,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         const stored = localStorage.getItem("bookflow_user");
         if (stored) {
-          try { setUser(JSON.parse(stored)); setToken(storedToken); } catch { /* ignore */ }
+          try {
+            const parsed = JSON.parse(stored);
+            setUser(mapUser(parsed));
+            setToken(storedToken);
+          } catch {
+            /* ignore */
+          }
         }
       } finally {
         setLoading(false);
@@ -82,10 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok) return false;
 
-      const data: { access_token: string; token_type: string; expires_in: number; user: User } = await res.json();
+      const data: { access_token: string; token_type: string; expires_in: number; user: RawUser } = await res.json();
 
       setToken(data.access_token);
-      setUser(data.user);
+      setUser(mapUser(data.user));
       localStorage.setItem("bookflow_token", data.access_token);
       localStorage.setItem("bookflow_user", JSON.stringify(data.user));
 

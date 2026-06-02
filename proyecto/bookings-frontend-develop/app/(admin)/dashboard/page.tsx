@@ -4,12 +4,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import {
-  getAppointments,
-  getExportReportUrl,
-  type Booking,
-  type BookingStatus,
-} from "@/lib/api";
+import { getAppointments, getExportReportUrl } from "@/lib/api";
+import type { Booking } from "@/lib/types";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
 
@@ -126,9 +122,19 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-// ─── NUEVO COMPONENTE: BusinessCalendar ──────────────────────────────────────
-function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+// ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
+interface BusinessCalendarProps {
+  bookings: Booking[];
+}
+
+function BusinessCalendar({ bookings }: BusinessCalendarProps) {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  
+  /* CAMBIO RESPONSIVE: Añadimos un estado para saber qué día está seleccionado. 
+    Por defecto toma el día de hoy en formato ISO (YYYY-MM-DD). Esto permite que
+    en pantallas de móvil podamos renderizar la lista detallada abajo al pulsar sobre un día.
+  */
+  const [selectedDateISO, setSelectedDateISO] = useState<string>(getTodayISO());
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -138,14 +144,12 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
   ];
 
-  // Estructuración de la matriz de días del mes
   const daysInMonth = useMemo(() => {
     const firstDayIndex = new Date(year, month, 1).getDay();
-    // Adaptar índice para que empiece en lunes (0: domingo -> mover al final)
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const totalDays = new Date(year, month + 1, 0).getDate();
     
-    const cells = [];
+    const cells: (number | null)[] = [];
     for (let i = 0; i < adjustedFirstDay; i++) {
       cells.push(null);
     }
@@ -158,21 +162,40 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
   const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-  // Agrupación ágil de citas indexadas por la fecha respectiva
   const bookingsByDateMap = useMemo(() => {
     const map: Record<string, Booking[]> = {};
     bookings.forEach((b) => {
-      if (!map[b.date]) map[b.date] = [];
-      map[b.date].push(b);
+      const key = bookingDate(b);
+      if (!map[key]) map[key] = [];
+      map[key].push(b);
     });
     return map;
   }, [bookings]);
+
+  /* CAMBIO RESPONSIVE: Memorizamos las citas correspondientes al día seleccionado 
+    para pasárselas a la lista del visor inferior táctil en móviles.
+  */
+  const selectedDayBookings = useMemo(() => {
+    const dayList = bookingsByDateMap[selectedDateISO] || [];
+    return [...dayList].sort((a, b) => bookingTime(a).localeCompare(bookingTime(b)));
+  }, [bookingsByDateMap, selectedDateISO]);
+
+  /* CAMBIO RESPONSIVE: Genera un string legible tipo "28 de mayo" para el encabezado 
+    de la lista de citas del día seleccionado en móvil.
+  */
+  const formattedSelectedDate = useMemo(() => {
+    const parts = selectedDateISO.split("-");
+    if (parts.length !== 3) return "";
+    const [,, dStr] = parts;
+    return `${parseInt(dStr, 10)} de ${monthNames[month]}`;
+  }, [selectedDateISO, month, monthNames]);
 
   return (
     <div className="business-calendar">
       <div className="calendar-header">
         <h3>{monthNames[month]} {year}</h3>
-        <div style={{ display: "flex", gap: "8px" }}>
+        
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button onClick={handlePrevMonth} className="calendar-nav-btn" type="button">◀</button>
           <button onClick={handleNextMonth} className="calendar-nav-btn" type="button">▶</button>
         </div>
@@ -188,31 +211,61 @@ function BusinessCalendar({ bookings }: { bookings: Booking[] }) {
             return <div key={`empty-${index}`} className="calendar-cell calendar-cell--empty" />;
           }
 
-          // Construcción exacta de la clave ISO "YYYY-MM-DD" local
           const dayString = String(day).padStart(2, "0");
           const monthString = String(month + 1).padStart(2, "0");
           const isoKey = `${year}-${monthString}-${dayString}`;
           
           const dayBookings = bookingsByDateMap[isoKey] || [];
           const isToday = isoKey === getTodayISO();
+          
+          /* CAMBIO RESPONSIVE: Validamos si este día coincide con el seleccionado por el usuario */
+          const isSelected = isoKey === selectedDateISO;
 
           return (
-            <div key={isoKey} className={`calendar-cell ${isToday ? "calendar-cell--today" : ""}`}>
+            <div 
+              key={isoKey} 
+              /* CAMBIO RESPONSIVE: Guardamos la fecha al hacer click (ideal para interacción táctil) */
+              onClick={() => setSelectedDateISO(isoKey)}
+              /* CAMBIO RESPONSIVE: Añadimos la clase condicional 'calendar-cell--selected' */
+              className={`calendar-cell ${isToday ? "calendar-cell--today" : ""} ${isSelected ? "calendar-cell--selected" : ""}`}
+            >
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
-                {dayBookings.sort((a,b) => a.time.localeCompare(b.time)).map((b) => (
+                {dayBookings.sort((a, b) => bookingTime(a).localeCompare(bookingTime(b))).map((b) => (
                   <div 
                     key={b.id} 
-                    className={`calendar-event-pill event-status--${b.status}`}
-                    title={`[${b.time}] Servicio: ${b.serviceName}`}
+                    className={`calendar-event-pill event-status--${bookingStatus(b)}`}
+                    title={`[${bookingTime(b)}] Servicio: ${bookingServiceName(b)}`}
                   >
-                    {b.time} - {b.serviceName}
+                    {bookingTime(b)} - {bookingServiceName(b)}
                   </div>
                 ))}
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* CAMBIO RESPONSIVE: Añadimos este bloque contenedor de la lista inferior. 
+        Por CSS (media queries que implementamos previamente) estará oculto en desktop y 
+        se mostrará sólo en móviles, haciendo el flujo del dashboard ultra utilizable.
+      */}
+      <div className="mobile-active-day-events">
+        <h4>Reservas para el {formattedSelectedDate}:</h4>
+        {selectedDayBookings.length === 0 ? (
+          <p style={{ fontSize: "0.85rem", color: "var(--cal-text-muted)", margin: 0 }}>
+            No hay citas agendadas para este día.
+          </p>
+        ) : (
+          <div className="mobile-event-list">
+            {selectedDayBookings.map((b) => (
+              <div key={b.id} className={`mobile-event-item event-status--${bookingStatus(b)}`}>
+                <strong>{bookingTime(b)}</strong>
+                <span>{bookingServiceName(b)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -304,7 +357,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // NUEVO ESTADO: Controla si la empresa visualiza el "predeterminado" (listado de hoy) o el "calendario"
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
 
   useEffect(() => {
@@ -332,19 +384,19 @@ export default function DashboardPage() {
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
       if (user?.role === "empresa") {
-        return b.businessId === user.businessId;
+        return bookingBusinessId(b) === user.businessId;
       }
       return true;
     });
   }, [bookings, user]);
 
   const today = getTodayISO();
-  const todayBookings = filteredBookings.filter((b) => b.date === today);
-  const pendingBookings = filteredBookings.filter((b) => b.status === "pending");
-  const paidBookings = filteredBookings.filter((b) => b.status === "paid");
+  const todayBookings = filteredBookings.filter((b) => bookingDate(b) === today);
+  const pendingBookings = filteredBookings.filter((b) => bookingStatus(b) === "pending");
+  const paidBookings = filteredBookings.filter((b) => bookingStatus(b) === "paid");
 
   const nextBooking = [...todayBookings].sort((a, b) =>
-    a.time.localeCompare(b.time)
+    bookingTime(a).localeCompare(bookingTime(b))
   )[0];
 
   const displayedBookings = showAll ? todayBookings : todayBookings.slice(0, 2);
@@ -360,7 +412,6 @@ export default function DashboardPage() {
           <h2>{texts[language].title}</h2>
           <p>{texts[language].subtitle}</p>
         </div>
-
         {/* Contenedor con botones de acción dinámica según el rol y modo */}
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {user?.role === "empresa" && (
@@ -382,14 +433,14 @@ export default function DashboardPage() {
         <KpiCard
           title={texts[language].todayBookings}
           value={todayBookings.length}
-          trend={`${todayBookings.filter((b) => b.status === "confirmed").length} ${texts[language].confirmed}`}
+          trend={`${todayBookings.filter((b) => bookingStatus(b) === "confirmed").length} ${texts[language].confirmed}`}
           color={KPI_COLORS.teal}
           activity={ACTIVITY_DATA.bookings}
           loading={loading}
         />
         <KpiCard
           title={texts[language].paidToday}
-          value={paidBookings.filter((b) => b.date === today).length}
+          value={paidBookings.filter((b) => bookingDate(b) === today).length}
           trend={`de ${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
           color={KPI_COLORS.blue}
           activity={ACTIVITY_DATA.paid}
@@ -412,7 +463,6 @@ export default function DashboardPage() {
           loading={loading}
         />
       </section>
-
       {/* Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
           Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards). */}
       {user?.role === "empresa" && viewMode === "calendar" ? (
@@ -463,12 +513,12 @@ export default function DashboardPage() {
                   <tbody>
                     {displayedBookings.map((booking) => (
                       <tr key={booking.id}>
-                        <td style={{ fontWeight: 600 }}>{booking.time}</td>
-                        <td>#{booking.customerId}</td>
-                        <td>#{booking.businessId}</td>
-                        <td>{booking.serviceName}</td>
+                        <td style={{ fontWeight: 600 }}>{bookingTime(booking)}</td>
+                        <td>#{bookingCustomerId(booking) ?? "?"}</td>
+                        <td>#{bookingBusinessId(booking) ?? "?"}</td>
+                        <td>{bookingServiceName(booking)}</td>
                         <td>
-                          <Badge status={booking.status as DashboardBookingStatus} />
+                          <Badge status={bookingStatus(booking) as DashboardBookingStatus} />
                         </td>
                       </tr>
                     ))}
@@ -484,9 +534,9 @@ export default function DashboardPage() {
               {nextBooking ? (
                 <>
                   <p className="info-box__title">
-                    {texts[language].customer} #{nextBooking.customerId}
+                    {texts[language].customer} #{bookingCustomerId(nextBooking) ?? "?"}
                   </p>
-                  <p className="info-box__text">{nextBooking.time} · {nextBooking.serviceName}</p>
+                  <p className="info-box__text">{bookingTime(nextBooking)} · {bookingServiceName(nextBooking)}</p>
                 </>
               ) : (
                 <p className="info-box__text">{texts[language].noBookings}</p>
@@ -498,7 +548,11 @@ export default function DashboardPage() {
                   ? texts[language].myBusiness
                   : texts[language].featuredBusiness}
               </p>
-              <p className="info-box__title">{user?.role === "empresa" ? user.name : "Restaurante Marea"}</p>
+              <p className="info-box__title">
+                {user?.role === "empresa"
+                  ? user.name ?? user.email ?? texts[language].business
+                  : "Restaurante Marea"}
+              </p>
               <p className="info-box__text">
                 {user?.role === "empresa"
                   ? `${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`
@@ -517,4 +571,37 @@ export default function DashboardPage() {
       )}
     </div>
   );
+}
+
+// Helpers para normalizar campos de Booking (backend usa `hora_reserva`, `service`, `customer`, `business`)
+function bookingDate(b: Booking): string {
+  const raw = (b as any).hora_reserva || "";
+  const parts = raw.split(" ");
+  return parts[0]?.includes("-") ? parts[0] : getTodayISO();
+}
+
+function bookingTime(b: Booking): string {
+  const raw = (b as any).hora_reserva || "";
+  const parts = raw.split(" ");
+  return parts.length > 1 ? parts.slice(1).join(" ") : raw;
+}
+
+function bookingServiceName(b: Booking): string {
+  const svc = (b as any).service;
+  if (!svc) return String((b as any).serviceId || "");
+  return typeof svc === "object" ? svc.nombre || String(svc.id) : String(svc);
+}
+
+function bookingCustomerId(b: Booking): number | undefined {
+  const c = (b as any).customer;
+  return typeof c === "number" ? c : c?.id;
+}
+
+function bookingBusinessId(b: Booking): number | undefined {
+  const c = (b as any).business;
+  return typeof c === "number" ? c : c?.id;
+}
+
+function bookingStatus(b: Booking): string {
+  return (b as any).status || "pending";
 }
