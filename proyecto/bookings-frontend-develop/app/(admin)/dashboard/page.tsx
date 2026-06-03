@@ -513,7 +513,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="table-responsive">
+            <div className="table-responsive-mobile">
               {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
               {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
               {!loading && !error && upcomingBookings.length === 0 && (
@@ -534,7 +534,7 @@ export default function DashboardPage() {
                   <tbody>
                     {displayedBookings.map((booking) => (
                       <tr key={booking.id}>
-                        <td style={{ fontWeight: 600 }}>{bookingTime(booking)}</td>
+                        <td style={{ fontWeight: 500 }}>{bookingTime(booking)}</td>
                         <td>#{bookingCustomerId(booking) ?? "?"}</td>
                         <td>#{bookingBusinessId(booking) ?? "?"}</td>
                         <td>{bookingServiceName(booking)}</td>
