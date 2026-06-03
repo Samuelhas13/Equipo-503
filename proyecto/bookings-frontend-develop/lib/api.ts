@@ -12,7 +12,31 @@ import type {
   CreatePaymentDto,
 } from "./types";
 
+export type { Booking, BookingStatus, PaymentMethod, PaymentStatus };
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+type BackendCustomer = {
+  id: number;
+  nombre?: string;
+  apellido?: string;
+  name?: string;
+  email?: string;
+  numero?: string;
+  phone?: string;
+  business?: { nombre?: string; name?: string } | string | null;
+  nextBooking?: string | null;
+  createdAt?: string;
+};
+
+type BackendCreateCustomerDto = {
+  nombre: string;
+  apellido: string;
+  email: string;
+  numero: string;
+};
+
+type BackendUpdateCustomerDto = Partial<BackendCreateCustomerDto>;
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -53,6 +77,49 @@ if (!res.ok) {
   return res.json();
 }
 
+function normalizeCustomer(customer: BackendCustomer): Customer {
+  const fullName = [customer.nombre, customer.apellido].filter(Boolean).join(" ").trim();
+  const business =
+    typeof customer.business === "string"
+      ? customer.business
+      : customer.business?.nombre || customer.business?.name || null;
+
+  return {
+    id: customer.id,
+    name: customer.name || fullName || customer.email || "Cliente",
+    email: customer.email || "",
+    phone: customer.phone || customer.numero || "",
+    business,
+    nextBooking: customer.nextBooking ?? null,
+    createdAt: customer.createdAt,
+  };
+}
+
+function splitCustomerName(name: string): Pick<BackendCreateCustomerDto, "nombre" | "apellido"> {
+  const [firstName, ...lastNameParts] = name.trim().split(/\s+/);
+
+  return {
+    nombre: firstName || name.trim(),
+    apellido: lastNameParts.join(" ") || "-",
+  };
+}
+
+function toBackendCustomerDto(data: CreateCustomerDto): BackendCreateCustomerDto {
+  return {
+    ...splitCustomerName(data.name),
+    email: data.email,
+    numero: data.phone.replace(/\s+/g, ""),
+  };
+}
+
+function toBackendCustomerUpdateDto(data: UpdateCustomerDto): BackendUpdateCustomerDto {
+  return {
+    ...(data.name ? splitCustomerName(data.name) : {}),
+    ...(data.email ? { email: data.email } : {}),
+    ...(data.phone ? { numero: data.phone.replace(/\s+/g, "") } : {}),
+  };
+}
+
 // ── APPOINTMENTS ────────────────────────────────────────────────
 
 export async function getAppointments(): Promise<Booking[]> {
@@ -74,15 +141,24 @@ export async function deleteAppointment(id: number): Promise<{ message: string }
 // ── CUSTOMERS ───────────────────────────────────────────────────
 
 export async function getCustomers(): Promise<Customer[]> {
-  return apiRequest<Customer[]>("/customers", { cache: "no-store" });
+  const customers = await apiRequest<BackendCustomer[]>("/customers", { cache: "no-store" });
+  return customers.map(normalizeCustomer);
 }
 
 export async function createCustomer(data: CreateCustomerDto): Promise<Customer> {
-  return apiRequest<Customer>("/customers", { method: "POST", body: JSON.stringify(data) });
+  const customer = await apiRequest<BackendCustomer>("/customers", {
+    method: "POST",
+    body: JSON.stringify(toBackendCustomerDto(data)),
+  });
+  return normalizeCustomer(customer);
 }
 
 export async function updateCustomer(id: number, data: UpdateCustomerDto): Promise<Customer> {
-  return apiRequest<Customer>(`/customers/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  const customer = await apiRequest<BackendCustomer>(`/customers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(toBackendCustomerUpdateDto(data)),
+  });
+  return normalizeCustomer(customer);
 }
 
 export async function deleteCustomer(id: number): Promise<{ message: string }> {

@@ -108,11 +108,12 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
 
   const [isSaving, setIsSaving] = useState(false);  // Estado para indicar si se está guardando un cliente.
 
+  const normalizedSearch = search.toLowerCase();
   const filteredCustomers = customers.filter((customer) =>
-    customer.name.toLowerCase().includes(search.toLowerCase()) ||
-    customer.phone.toLowerCase().includes(search.toLowerCase()) ||
-    customer.email.toLowerCase().includes(search.toLowerCase()) ||
-    (customer.business ?? "").toLowerCase().includes(search.toLowerCase())
+    (customer.name ?? "").toLowerCase().includes(normalizedSearch) ||
+    (customer.phone ?? "").toLowerCase().includes(normalizedSearch) ||
+    (customer.email ?? "").toLowerCase().includes(normalizedSearch) ||
+    (customer.business ?? "").toLowerCase().includes(normalizedSearch)
   );
 
   function handleInputChange(field: keyof typeof formData, value: string) {  // Actualiza un campo concreto del formulario sin modificar el resto.

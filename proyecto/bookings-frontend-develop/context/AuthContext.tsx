@@ -7,6 +7,8 @@ export type UserRole = "admin" | "empresa" | "usuario";
 export interface User {
   id: number;
   name: string;
+  nombre?: string;
+  apellido?: string;
   email: string;
   role: UserRole;
   businessId?: number;
@@ -34,6 +36,15 @@ export const MOCK_USERS = [
   { email: "maria@bookflow.com",  password: "maria123", name: "María López",                role: "usuario" as UserRole, customerId: 2 },
 ];
 
+function normalizeUser(user: User): User {
+  const fullName = [user.nombre, user.apellido].filter(Boolean).join(" ").trim();
+
+  return {
+    ...user,
+    name: user.name || fullName || user.email,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser]       = useState<User | null>(null);
   const [token, setToken]     = useState<string | null>(null);
@@ -53,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (res.ok) {
           const profile: User = await res.json();
-          setUser(profile);
+          setUser(normalizeUser(profile));
           setToken(storedToken);
         } else {
           localStorage.removeItem("bookflow_token");
@@ -62,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         const stored = localStorage.getItem("bookflow_user");
         if (stored) {
-          try { setUser(JSON.parse(stored)); setToken(storedToken); } catch { /* ignore */ }
+          try { setUser(normalizeUser(JSON.parse(stored))); setToken(storedToken); } catch { /* ignore */ }
         }
       } finally {
         setLoading(false);
@@ -84,10 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const data: { access_token: string; token_type: string; expires_in: number; user: User } = await res.json();
 
+      const normalizedUser = normalizeUser(data.user);
+
       setToken(data.access_token);
-      setUser(data.user);
+      setUser(normalizedUser);
       localStorage.setItem("bookflow_token", data.access_token);
-      localStorage.setItem("bookflow_user", JSON.stringify(data.user));
+      localStorage.setItem("bookflow_user", JSON.stringify(normalizedUser));
 
       return true;
     } catch (err) {

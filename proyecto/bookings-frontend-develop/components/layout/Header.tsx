@@ -40,6 +40,8 @@ export default function Header({
   actions,
 }: HeaderProps) {
   const { user, logout } = useAuth();
+  const displayName = user?.name || [user?.nombre, user?.apellido].filter(Boolean).join(" ").trim() || user?.email || "Usuario";
+  const avatarInitial = displayName.charAt(0).toUpperCase();
 
   // Obtenemos el idioma global y la función para cambiarlo desde el contexto.
   // Esto permite que otros componentes también puedan usar el mismo idioma.
@@ -89,10 +91,10 @@ const headerTexts = {
         {user && (
           <div className="user-profile-badge">
             <div className="admin-avatar">
-              {user.name.charAt(0).toUpperCase()}
+              {avatarInitial}
             </div>
             <div className="user-profile-info">
-              <span className="user-profile-name">{user.name}</span>
+              <span className="user-profile-name">{displayName}</span>
               <span className="user-profile-role">{user.role}</span>
             </div>
             <button 
