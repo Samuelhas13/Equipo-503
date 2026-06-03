@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -26,6 +27,7 @@ import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer } from './customer.entity';
+import { UserRole } from '../users/user.entity';
 
 @ApiTags('customers')
 @ApiBearerAuth()
@@ -36,40 +38,40 @@ export class CustomersController {
 
   // admin + empresa → listado completo de clientes
   @Get()
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({
     description: 'Listado completo de clientes',
     type: [Customer],
   })
-  findAll() {
-    return this.customersService.findAll();
+  findAll(@Request() req: any) {
+    return this.customersService.findAll(req.user);
   }
 
   // todos los roles → un usuario puede consultar su propio perfil
   @Get(':id')
-  @Roles('admin', 'empresa', 'usuario')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de un cliente', type: Customer })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.customersService.findOne(id, req.user);
   }
 
   // admin + empresa → pueden dar de alta clientes
   @Post()
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiCreatedResponse({
     description: 'Cliente creado exitosamente',
     type: Customer,
   })
   @ApiConflictResponse({ description: 'El email del cliente ya existe' })
   @ApiBadRequestResponse({ description: 'Datos de cliente inválidos' })
-  create(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customersService.create(createCustomerDto);
+  create(@Body() createCustomerDto: CreateCustomerDto, @Request() req: any) {
+    return this.customersService.create(createCustomerDto, req.user);
   }
 
   // admin + empresa → pueden modificar datos de clientes
   @Patch(':id')
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({
     description: 'Cliente modificado correctamente',
     type: Customer,
@@ -79,16 +81,17 @@ export class CustomersController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCustomerDto: UpdateCustomerDto,
+    @Request() req: any,
   ) {
-    return this.customersService.update(id, updateCustomerDto);
+    return this.customersService.update(id, updateCustomerDto, req.user);
   }
 
-  // solo admin → eliminar cliente
+  // admin + empresa → eliminar cliente
   @Delete(':id')
-  @Roles('admin')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Cliente eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.customersService.remove(id, req.user);
   }
 }

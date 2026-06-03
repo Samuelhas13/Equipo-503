@@ -11,13 +11,22 @@ export interface Service {
   id: number;
   nombre: string;
   precio?: number;
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
+  userId?: number;
+  serviceName: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Minimal Business type
 export interface Business {
   id: number;
   nombre: string;
-  direccion?: string;
+  direccion: string;
 }
 
 export interface Booking {
@@ -25,6 +34,7 @@ export interface Booking {
   // backend field: hora_reserva contains date+time like '2026-04-20 10:30' or '10:30'
   hora_reserva: string;
   user?: unknown;
+  userId?: number;
   customer?: Customer | number;
   business?: Business | number;
   service?: Service | number;
@@ -134,3 +144,13 @@ export type CreatePaymentDto = {
 };
 
 export type UpdatePaymentDto = Partial<CreatePaymentDto>;
+
+
+
+export type CreateBusinessDto = {
+  nombre: string;
+  direccion: string;
+};
+
+export type UpdateBusinessDto = Partial<CreateBusinessDto>;
+

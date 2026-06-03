@@ -10,6 +10,7 @@ import {
   Query,
   Res,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import {
@@ -28,6 +29,7 @@ import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment } from './appointment.entity';
+import { UserRole } from '../users/user.entity';
 
 @ApiTags('appointments')
 @ApiBearerAuth()
@@ -36,19 +38,17 @@ import { Appointment } from './appointment.entity';
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  // admin + empresa → ven el listado completo
   @Get()
-  @Roles('admin', 'empresa', 'usuario')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
-    return this.appointmentsService.findAll(pageNum, limitNum);
+    return this.appointmentsService.findAll(pageNum, limitNum, req.user);
   }
 
-  // solo admin → exportar Excel
   @Get('export')
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   @ApiOkResponse({ description: 'Reporte exportado a Excel (.xlsx)' })
   async exportExcel(@Res() res: Response) {
     const buffer = await this.appointmentsService.exportToExcel();
@@ -63,43 +63,40 @@ export class AppointmentsController {
     res.send(buffer);
   }
 
-  // todos los roles → pueden ver el detalle de una reserva concreta
   @Get(':id')
-  @Roles('admin', 'empresa', 'usuario')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.appointmentsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
+    return this.appointmentsService.findOne(id, req.user);
   }
 
-  // todos los roles → el usuario puede crear su propia reserva
   @Post()
-  @Roles('admin', 'empresa', 'usuario')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiCreatedResponse({ description: 'Reserva creada', type: Appointment })
-  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentsService.create(createAppointmentDto);
+  @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
+  create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req?: any) {
+    return this.appointmentsService.create(createAppointmentDto, req.user);
   }
 
-  // admin + empresa → pueden modificar reservas
   @Patch(':id')
-  @Roles('admin', 'empresa')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Reserva actualizada', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
+  @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @Request() req?: any,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.update(id, updateAppointmentDto, req.user);
   }
 
-  // solo admin → puede eliminar reservas
   @Delete(':id')
-  @Roles('admin')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Reserva eliminada' })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.appointmentsService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
+    return this.appointmentsService.remove(id, req.user);
   }
 }

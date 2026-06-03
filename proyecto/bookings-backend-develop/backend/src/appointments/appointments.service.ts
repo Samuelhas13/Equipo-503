@@ -1,21 +1,38 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Appointment } from './appointment.entity';
+import { Customer } from '../customers/customer.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { JwtPayload } from '../auth/jwt-payload.interface';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
   ) {}
 
-  findAll(page: number = 1, limit: number = 10) {
+  findAll(page: number = 1, limit: number = 10, currentUser?: JwtPayload) {
     const skip = (page - 1) * limit;
+    let where: any = {};
+
+    if (currentUser?.role === UserRole.BUSINESS) {
+      where.business = { id: currentUser.businessId };
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      where = [
+        { user: { id: currentUser.sub } },
+        { customer: { email: currentUser.email } },
+      ];
+    }
+
     return this.appointmentsRepository.find({
+      where,
       order: { hora_reserva: 'ASC' },
       skip,
       take: limit,
@@ -23,25 +40,50 @@ export class AppointmentsService {
     });
   }
 
-  async findOne(id: number) {
-    const appointment = await this.appointmentsRepository.findOne({ 
+  async findOne(id: number, currentUser?: JwtPayload) {
+    const appointment = await this.appointmentsRepository.findOne({
       where: { id },
       relations: ['customer', 'business', 'service', 'user'],
     });
+
     if (!appointment) {
       throw new NotFoundException(`No existe la reserva con id ${id}`);
     }
+
+    if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
+      throw new ForbiddenException('Solo puedes acceder a las reservas de tu empresa');
+    }
+
+    if (
+      currentUser?.role === UserRole.CUSTOMER &&
+      appointment.user?.id !== currentUser.sub &&
+      appointment.customer?.email !== currentUser.email
+    ) {
+      throw new ForbiddenException('Solo puedes acceder a tus propias reservas');
+    }
+
     return appointment;
   }
 
-  async create(createAppointmentDto: CreateAppointmentDto) {
+  async create(createAppointmentDto: CreateAppointmentDto, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.BUSINESS) {
+      createAppointmentDto.businessId = currentUser.businessId!;
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      createAppointmentDto.userId = currentUser.sub;
+      const customer = await this.customerRepository.findOneBy({ email: currentUser.email });
+
+      if (customer) {
+        createAppointmentDto.customerId = customer.id;
+      }
+    }
+
     const { businessId, serviceId, customerId, userId, ...rest } = createAppointmentDto;
 
     const existing = await this.appointmentsRepository.findOne({
       where: {
         hora_reserva: rest.hora_reserva,
         business: { id: businessId },
-      }
+      },
     });
 
     if (existing) {
@@ -51,7 +93,7 @@ export class AppointmentsService {
     const appointment = this.appointmentsRepository.create({
       ...rest,
       business: { id: businessId },
-      service: { id: serviceId },
+      service: serviceId ? { id: serviceId } : undefined,
       customer: customerId ? { id: customerId } : undefined,
       user: userId ? { id: userId } : undefined,
     });
@@ -59,8 +101,15 @@ export class AppointmentsService {
     return this.appointmentsRepository.save(appointment);
   }
 
-  async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    const appointment = await this.findOne(id);
+  async update(id: number, updateAppointmentDto: UpdateAppointmentDto, currentUser?: JwtPayload) {
+    const appointment = await this.findOne(id, currentUser);
+
+    if (currentUser?.role === UserRole.BUSINESS) {
+      updateAppointmentDto.businessId = currentUser.businessId!;
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      updateAppointmentDto.userId = currentUser.sub;
+    }
+
     const { businessId, serviceId, customerId, userId, ...rest } = updateAppointmentDto;
 
     const updatedAppointment = this.appointmentsRepository.merge(appointment, {
@@ -74,8 +123,8 @@ export class AppointmentsService {
     return this.appointmentsRepository.save(updatedAppointment);
   }
 
-  async remove(id: number) {
-    const appointment = await this.findOne(id);
+  async remove(id: number, currentUser?: JwtPayload) {
+    const appointment = await this.findOne(id, currentUser);
     await this.appointmentsRepository.remove(appointment);
     return { message: `Reserva ${id} eliminada correctamente` };
   }
@@ -102,9 +151,13 @@ export class AppointmentsService {
       worksheet.addRow({
         id: app.id,
         hora_reserva: app.hora_reserva,
-        serviceName: app.service ? app.service.nombre : 'N/A',
-        customerName: app.customer ? app.customer.nombre + ' ' + app.customer.apellido : 'N/A',
-        customerEmail: app.customer ? app.customer.email : 'N/A',
+        serviceName: app.serviceName || (app.service ? app.service.nombre : 'N/A'),
+        customerName: app.customer
+          ? `${app.customer.nombre} ${app.customer.apellido}`
+          : app.user
+            ? `${app.user.nombre} ${app.user.apellido}`
+            : 'N/A',
+        customerEmail: app.customer ? app.customer.email : app.user ? app.user.email : 'N/A',
         businessName: app.business ? app.business.nombre : 'N/A',
       });
     });

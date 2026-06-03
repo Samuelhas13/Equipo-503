@@ -3,20 +3,20 @@ import { IsEnum, IsInt, IsPositive, IsString } from 'class-validator';
 import { PaymentMethod, PaymentStatus } from '../payment.entity';
 
 export class CreatePaymentDto {
-  @ApiProperty({ example: 1, description: 'ID del cliente' })
+  @ApiProperty({ example: 1, description: 'id customer (para q te de el customer entero)' })
   @IsInt()
   @IsPositive()
   customerId!: number;
 
-  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.TARJETA })
+  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.TARJETA, description: 'Metodo de pago (con targata, efectivo)' })
   @IsEnum(PaymentMethod)
   metodo_pago!: PaymentMethod;
 
-  @ApiProperty({ enum: PaymentStatus, example: PaymentStatus.PAGADO })
+  @ApiProperty({ enum: PaymentStatus, example: PaymentStatus.PAGADO, description: 'Estado del pago (por cobrar, pagado, cancelado)' })
   @IsEnum(PaymentStatus)
   estado!: PaymentStatus;
 
-  @ApiProperty({ example: 1, description: 'ID del servicio (importe)' })
+  @ApiProperty({ example: 1, description: 'Id servicio(importe)' })
   @IsInt()
   @IsPositive()
   servicioId!: number;
@@ -25,7 +25,7 @@ export class CreatePaymentDto {
   @IsString()
   hora_pago!: string;
 
-  @ApiProperty({ example: 1, description: 'ID de la reserva asociada' })
+  @ApiProperty({ example: 1, description: 'Id de la reserva asociada' })
   @IsInt()
   @IsPositive()
   appointmentId!: number;

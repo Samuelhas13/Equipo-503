@@ -38,6 +38,14 @@ export class Appointment {
   @Column()
   hora_reserva: string;
 
+  @ApiProperty({ description: 'Estado de la reserva', default: 'pending' })
+  @Column({ default: 'pending' })
+  status: string;
+
+  @ApiProperty({ description: 'Nombre del servicio', required: false })
+  @Column({ nullable: true })
+  serviceName: string;
+
   @ApiProperty({ type: () => Payment, description: 'Pago asociado', required: false })
   @OneToOne(() => Payment, (payment) => payment.appointment)
   payment: Payment;

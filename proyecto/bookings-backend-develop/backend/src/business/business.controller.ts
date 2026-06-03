@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
@@ -24,28 +24,28 @@ export class BusinessController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
-  findAll() {
-    return this.businessService.findAll();
+  findAll(@Request() req: any) {
+    return this.businessService.findAll(req.user);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.businessService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.businessService.findOne(id, req.user);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateBusinessDto: UpdateBusinessDto) {
-    return this.businessService.update(id, updateBusinessDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateBusinessDto: UpdateBusinessDto, @Request() req: any) {
+    return this.businessService.update(id, updateBusinessDto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.businessService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.businessService.remove(id, req.user);
   }
 }

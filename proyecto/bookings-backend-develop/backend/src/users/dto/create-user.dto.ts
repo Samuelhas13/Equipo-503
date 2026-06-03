@@ -1,38 +1,38 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { UserRole } from '../user.entity';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'Admin', description: 'Nombre del usuario' })
+  @ApiProperty({ example: 'Admin', description: 'Nombre' })
   @IsString()
   @IsNotEmpty()
   nombre!: string;
 
-  @ApiProperty({ example: 'Principal', description: 'Apellido del usuario' })
+  @ApiProperty({ example: 'Principal', description: 'Apellido' })
   @IsString()
   @IsNotEmpty()
   apellido!: string;
 
-  @ApiProperty({ example: 'admin@bookflow.com' })
+  @ApiProperty({ example: 'admin@bookflow.com', description: 'Email' })
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: '600123456', description: 'Teléfono' })
+  @ApiProperty({ example: '600123456', description: 'Numero' })
   @IsString()
   numero!: string;
 
-  @ApiProperty({ example: 'admin123', description: 'Contraseña en texto plano' })
+  @ApiProperty({ example: 'admin123', description: 'Password' })
   @IsString()
   @IsNotEmpty()
   password!: string;
 
-  @ApiProperty({ enum: UserRole, default: UserRole.CUSTOMER })
-  @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
-
-  @ApiProperty({ example: 1, description: 'ID de la empresa (si aplica)', required: false })
+  @ApiPropertyOptional({ example: 1, description: 'Id business' })
   @IsNumber()
   @IsOptional()
   businessId?: number;
+
+  @ApiPropertyOptional({ enum: UserRole, description: 'Rol (customer, business, admin)', default: UserRole.CUSTOMER })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 }
