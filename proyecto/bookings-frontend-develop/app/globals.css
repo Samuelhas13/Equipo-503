@@ -865,6 +865,20 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
+/* MEJORA: Barra horizontal solo en pantallas móviles, no en desktop */
+.table-responsive-mobile {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+  /* En pantallas grandes: sin barra horizontal, contenido respeta los bordes */
+  .table-responsive-mobile {
+    overflow: hidden;
+  }
+}
+
 /* La tabla usa `border-collapse`, buen enfoque. */
 .data-table {
   width: 100%;

@@ -139,6 +139,23 @@ export async function getCustomerById(id: number): Promise<Customer> {
   return apiRequest<Customer>(`/customers/${id}`, { cache: "no-store" });
 }
 
+// MEJORA INNOVADORA: Búsqueda de cliente por nombre con autocomplete
+// Retorna una lista de clientes que coincidan parcialmente con el nombre
+export async function searchCustomersByName(name: string): Promise<Customer[]> {
+  if (!name || name.trim().length < 2) return [];
+  try {
+    return apiRequest<Customer[]>(`/customers?search=${encodeURIComponent(name)}`, { cache: "no-store" });
+  } catch {
+    // Si el endpoint de búsqueda no existe, fallback: obtener todos y filtrar en cliente
+    const allCustomers = await getCustomers();
+    const searchLower = name.toLowerCase();
+    return allCustomers.filter((c) => {
+      const fullName = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
+      return fullName.includes(searchLower) || (c.email || '').toLowerCase().includes(searchLower);
+    });
+  }
+}
+
 export async function createCustomer(data: CreateCustomerDto): Promise<Customer> {
   // Accept both english fields and backend spanish fields
   const payload: any = {};
@@ -164,6 +181,26 @@ export async function updateCustomer(id: number, data: UpdateCustomerDto): Promi
 
 export async function deleteCustomer(id: number): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/customers/${id}`, { method: "DELETE" });
+}
+
+// ── BUSINESSES ──────────────────────────────────────────────────
+
+// MEJORA: Obtiene todos los negocios registrados en la BD para el desplegable
+export async function getBusinesses(): Promise<any[]> {
+  try {
+    return apiRequest<any[]>("/businesses", { cache: "no-store" });
+  } catch {
+    // Fallback si el endpoint no existe aún
+    return [];
+  }
+}
+
+export async function getBusinessById(id: number): Promise<any> {
+  try {
+    return apiRequest<any>(`/businesses/${id}`, { cache: "no-store" });
+  } catch {
+    return null;
+  }
 }
 
 // ── PAYMENTS ────────────────────────────────────────────────────

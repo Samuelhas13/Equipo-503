@@ -15,6 +15,8 @@ import {
   createAppointment,
   deleteAppointment,
   getCustomerById,
+  getCustomers,
+  getBusinesses,
   updateAppointment,
 } from "@/lib/api";
 
@@ -28,10 +30,10 @@ const BUSINESS_NAMES: Record<number, string> = {
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const map: Record<BookingStatus, string> = {
-    pending:   "Pendiente",
+    pending: "Pendiente",
     confirmed: "Confirmada",
-    paid:      "Pagada",
-    canceled:  "Cancelada",
+    paid: "Pagada",
+    canceled: "Cancelada",
     completed: "Completada",
   };
   return <span className={`badge badge--${status}`}>{map[status] ?? status}</span>;
@@ -137,32 +139,32 @@ function KpiCard({ title, value, trend, color, activity }: KpiCardProps) {
 
 const KPI_COLORS: Record<string, KpiCardColor> = {
   teal: {
-    bar:       "#1D9E75",
-    trendBg:   "#E1F5EE",
+    bar: "#1D9E75",
+    trendBg: "#E1F5EE",
     trendText: "#085041",
   },
   amber: {
-    bar:       "#EF9F27",
-    trendBg:   "#FAEEDA",
+    bar: "#EF9F27",
+    trendBg: "#FAEEDA",
     trendText: "#412402",
   },
   green: {
-    bar:       "#22C55E",
-    trendBg:   "#DCFCE7",
+    bar: "#22C55E",
+    trendBg: "#DCFCE7",
     trendText: "#14532D",
   },
   purple: {
-    bar:       "#7F77DD",
-    trendBg:   "#EEEDFE",
+    bar: "#7F77DD",
+    trendBg: "#EEEDFE",
     trendText: "#26215C",
   },
 };
 
 const ACTIVITY_DATA = {
-  total:     [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
-  pending:   [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
   confirmed: [40, 55, 35, 70, 60, 80, 75, 90, 65, 85, 70, 95, 80, 100],
-  paid:      [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
 };
 
 export default function BookingsClient({
@@ -269,6 +271,14 @@ export default function BookingsClient({
   const [createPersons, setCreatePersons] = useState<number>(1);
   const [editPersons, setEditPersons] = useState<number>(1);
 
+  // MEJORA: Sistema de búsqueda de clientes igual al de la página customers
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [availableBusinesses, setAvailableBusinesses] = useState<any[]>([]);
+  const [loadingBusinesses, setLoadingBusinesses] = useState(false);
+
   async function findCustomer(id: number) {
     if (!id || isNaN(id)) return;
     setSearchingCustomer(true);
@@ -284,6 +294,71 @@ export default function BookingsClient({
       setSearchingCustomer(false);
     }
   }
+
+  // MEJORA: Sistema de búsqueda de clientes igual al de customers (filtrado local)
+  // Filtra clientes por nombre, email, teléfono o negocio en tiempo real
+  const filteredCustomersForSearch = allCustomers.filter((customer) =>
+    (customer.nombre ?? "").toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    (customer.apellido ?? "").toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    (customer.phone ?? customer.numero ?? "").toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    (customer.email ?? "").toLowerCase().includes(customerSearchQuery.toLowerCase())
+  );
+
+  // Cuando el usuario escribe en el buscador
+  function handleCustomerSearchInput(query: string) {
+    setCustomerSearchQuery(query);
+    setShowCustomerSuggestions(true);
+    setSearchedCustomer(null);
+  }
+
+  // Cuando el usuario selecciona un cliente de las sugerencias
+  function selectCustomerFromSuggestions(customer: any) {
+    setCustomerSearchQuery(`${customer.nombre || ""} ${customer.apellido || ""}`.trim());
+    setSearchedCustomer({
+      id: customer.id,
+      name: `${customer.nombre || ""} ${customer.apellido || ""}`.trim(),
+      email: customer.email,
+      phone: customer.numero || customer.phone,
+    });
+    updateCreateForm("customerId", customer.id);
+    setShowCustomerSuggestions(false);
+  }
+
+  // MEJORA: Cargamos todos los clientes y negocios disponibles al montar el componente
+  useEffect(() => {
+    async function loadInitialData() {
+      setLoadingCustomers(true);
+      setLoadingBusinesses(true);
+      try {
+        // Cargar clientes - sistema igual al de customers
+        const customers = await getCustomers();
+        setAllCustomers(customers);
+      } catch (err) {
+        console.error("Error cargando clientes:", err);
+        setAllCustomers([]);
+      } finally {
+        setLoadingCustomers(false);
+      }
+
+      try {
+        // Cargar negocios disponibles
+        const businesses = await getBusinesses();
+        setAvailableBusinesses(businesses);
+      } catch (err) {
+        console.error("Error cargando negocios:", err);
+        // Fallback si el endpoint no existe aún
+        setAvailableBusinesses(
+          Object.entries(BUSINESS_NAMES).map(([id, name]) => ({
+            id: Number(id),
+            nombre: name,
+          }))
+        );
+      } finally {
+        setLoadingBusinesses(false);
+      }
+    }
+    loadInitialData();
+  }, []);
 
   // 2. Creamos las referencias para los contenedores de los formularios
   const createFormRef = useRef<HTMLDivElement>(null);
@@ -323,7 +398,7 @@ export default function BookingsClient({
   }
 
   function resetCreateForm() { setCreateForm(emptyForm); }
-  function resetEditForm()   { setEditForm(emptyForm); }
+  function resetEditForm() { setEditForm(emptyForm); }
 
   // 3. Modificamos la apertura para añadir el scroll
   function openCreateForm() {
@@ -334,6 +409,11 @@ export default function BookingsClient({
     setDeleteTargetId(null);
     resetEditForm();
     setIsCreateOpen(true);
+
+    // Limpiar estados de búsqueda de cliente (sistema igual a customers)
+    setCustomerSearchQuery("");
+    setShowCustomerSuggestions(false);
+    setSearchedCustomer(null);
 
     // Auto-asignamos los identificadores reales que vienen del token/auth
     const initialCustomerId = user?.role === "usuario" ? (user.customerId || 1) : 1;
@@ -583,51 +663,129 @@ export default function BookingsClient({
                   <option value="paid">Pagada</option>
                 </select>
               </div>
-              
+
               {user?.role !== "usuario" && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].customerId}</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      className="input"
-                      type="number"
-                      min={1}
-                      value={createForm.customerId}
-                      onChange={(e) => {
-                        updateCreateForm("customerId", Number(e.target.value));
-                        setSearchedCustomer(null);
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                    {/* MEJORA: Sistema de búsqueda de clientes igual a la página de customers */}
+                    Buscar Cliente por Nombre
+                  </label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Busca por nombre, apellido, email o teléfono..."
+                    value={customerSearchQuery}
+                    onChange={(e) => handleCustomerSearchInput(e.target.value)}
+                    onFocus={() => setShowCustomerSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowCustomerSuggestions(false), 200)}
+                    style={{ flex: 1 }}
+                  />
+                  
+                  {/* Panel de sugerencias inspirado en customers: lista filtrada localmente */}
+                  {showCustomerSuggestions && customerSearchQuery.length >= 1 && filteredCustomersForSearch.length > 0 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        marginTop: "4px",
+                        backgroundColor: "#fff",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        zIndex: 1000,
+                        maxHeight: "280px",
+                        overflowY: "auto",
                       }}
-                      placeholder="Customer ID"
-                      required
-                      style={{ flex: 1 }}
-                    />
-                    <button
-                      type="button"
-                      className="secondary-btn"
-                                      onClick={() => findCustomer(createForm.customerId ?? 0)}
-                      disabled={searchingCustomer}
-                      style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
                     >
-                      {searchingCustomer ? "Buscando..." : "Buscar"}
-                    </button>
-                  </div>
+                      {filteredCustomersForSearch.map((customer) => (
+                        <div
+                          key={customer.id}
+                          onClick={() => selectCustomerFromSuggestions(customer)}
+                          style={{
+                            padding: "12px 14px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid rgba(0,0,0,0.05)",
+                            transition: "background-color 0.2s",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "rgba(29, 158, 117, 0.08)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                          }}
+                        >
+                          <strong style={{ fontSize: "13px", color: "#1f2937" }}>
+                            👤 {customer.nombre || ""} {customer.apellido || ""}
+                          </strong>
+                          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                            📧 {customer.email || "Sin email"}
+                          </span>
+                          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                            📱 {customer.numero || customer.phone || "Sin teléfono"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {showCustomerSuggestions && customerSearchQuery.length >= 1 && filteredCustomersForSearch.length === 0 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        marginTop: "4px",
+                        backgroundColor: "#fff",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: "8px",
+                        padding: "12px 14px",
+                        fontSize: "13px",
+                        color: "var(--text-muted)",
+                        zIndex: 1000,
+                      }}
+                    >
+                      ❌ No se encontraron clientes con esa búsqueda
+                    </div>
+                  )}
+
+                  {loadingCustomers && (
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                      ⏳ Cargando clientes...
+                    </div>
+                  )}
                 </div>
               )}
 
               {user?.role === "admin" && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].businessId}</label>
-                  <input
-                    className="input"
-                    type="number"
-                    min={1}
+                  <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                    {/* MEJORA: Cambio de "ID Negocio" a "Nombre del Negocio" con desplegable */}
+                    {texts[language].business}
+                  </label>
+                  <select
+                    className="select"
                     value={createForm.businessId}
-                    onChange={(e) =>
-                      updateCreateForm("businessId", Number(e.target.value))
-                    }
-                    placeholder="Business ID"
+                    onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
                     required
-                  />
+                    style={{ padding: "13px 16px" }}
+                  >
+                    <option value="">-- Selecciona un negocio --</option>
+                    {availableBusinesses.length > 0 ? (
+                      availableBusinesses.map((business) => (
+                        <option key={business.id} value={business.id}>
+                          {business.nombre || business.name || `Negocio #${business.id}`}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>Cargando negocios...</option>
+                    )}
+                  </select>
                 </div>
               )}
 
@@ -641,9 +799,18 @@ export default function BookingsClient({
                     required
                     style={{ padding: "13px 16px" }}
                   >
-                    {Object.entries(BUSINESS_NAMES).map(([id, name]) => (
-                      <option key={id} value={id}>{name}</option>
-                    ))}
+                    <option value="">-- Selecciona un negocio --</option>
+                    {availableBusinesses.length > 0 ? (
+                      availableBusinesses.map((business) => (
+                        <option key={business.id} value={business.id}>
+                          {business.nombre || business.name || `Negocio #${business.id}`}
+                        </option>
+                      ))
+                    ) : (
+                      Object.entries(BUSINESS_NAMES).map(([id, name]) => (
+                        <option key={id} value={id}>{name}</option>
+                      ))
+                    )}
                   </select>
                 </div>
               )}
@@ -699,26 +866,26 @@ export default function BookingsClient({
             </div>
 
             {searchedCustomer && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6,
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  backgroundColor: 'rgba(46, 204, 113, 0.08)',
-                  border: '1px solid rgba(46, 204, 113, 0.3)',
-                  color: '#27ae60',
-                  fontSize: '13px'
-            }}>
-                  <strong style={{ fontSize: "14px", color: "#219653" }}>
-                    ✓ {texts[language].customerFound}
-                  </strong>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                    <span><strong>{texts[language].name}:</strong> {searchedCustomer.name ?? "-"}</span>
-                    <span><strong>Email:</strong> {searchedCustomer.email ?? "-"}</span>
-                    <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone ?? "-"}</span>
-                  </div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                padding: '12px 16px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(46, 204, 113, 0.08)',
+                border: '1px solid rgba(46, 204, 113, 0.3)',
+                color: '#27ae60',
+                fontSize: '13px'
+              }}>
+                <strong style={{ fontSize: "14px", color: "#219653" }}>
+                  ✓ {texts[language].customerFound}
+                </strong>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                  <span><strong>{texts[language].name}:</strong> {searchedCustomer.name ?? "-"}</span>
+                  <span><strong>Email:</strong> {searchedCustomer.email ?? "-"}</span>
+                  <span><strong>{texts[language].phone}:</strong> {searchedCustomer.phone ?? "-"}</span>
                 </div>
+              </div>
             )}
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
@@ -734,146 +901,146 @@ export default function BookingsClient({
 
       {editingBookingId !== null && (
         <section ref={editFormRef} className="section-card booking-form-card">
-  <div className="panel-title-row">
-    <h3 className="panel-title">
-      {texts[language].editBookingTitle} #{editingBookingId}
-    </h3>
+          <div className="panel-title-row">
+            <h3 className="panel-title">
+              {texts[language].editBookingTitle} #{editingBookingId}
+            </h3>
 
-    <button type="button" className="secondary-btn" onClick={closeEditForm}>
-      {texts[language].cancel}
-    </button>
-  </div>
+            <button type="button" className="secondary-btn" onClick={closeEditForm}>
+              {texts[language].cancel}
+            </button>
+          </div>
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].date}
-        </label>
-        <input
-          className="input"
-          type="date"
-          min={getTodayString()}
-          value={editForm.date}
-          onChange={(e) => updateEditForm("date", e.target.value)}
-          required
-        />
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].date}
+                </label>
+                <input
+                  className="input"
+                  type="date"
+                  min={getTodayString()}
+                  value={editForm.date}
+                  onChange={(e) => updateEditForm("date", e.target.value)}
+                  required
+                />
+              </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].time}
-        </label>
-        <input
-          className="input"
-          type="time"
-          value={editForm.time}
-          onChange={(e) => updateEditForm("time", e.target.value)}
-          required
-        />
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].time}
+                </label>
+                <input
+                  className="input"
+                  type="time"
+                  value={editForm.time}
+                  onChange={(e) => updateEditForm("time", e.target.value)}
+                  required
+                />
+              </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].status}
-        </label>
-        <select
-          className="select"
-          value={editForm.status}
-          onChange={(e) =>
-            updateEditForm("status", e.target.value as BookingStatus)
-          }
-        >
-          <option value="pending">{texts[language].pendingOption}</option>
-          <option value="confirmed">{texts[language].confirmedOption}</option>
-          <option value="paid">{texts[language].paidOption}</option>
-        </select>
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].status}
+                </label>
+                <select
+                  className="select"
+                  value={editForm.status}
+                  onChange={(e) =>
+                    updateEditForm("status", e.target.value as BookingStatus)
+                  }
+                >
+                  <option value="pending">{texts[language].pendingOption}</option>
+                  <option value="confirmed">{texts[language].confirmedOption}</option>
+                  <option value="paid">{texts[language].paidOption}</option>
+                </select>
+              </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].customerId}
-        </label>
-        <input
-          className="input"
-          type="number"
-          min={1}
-          value={editForm.customerId}
-          placeholder={texts[language].customerId}
-          disabled
-          title="El Customer ID no se puede modificar una vez creada la reserva"
-        />
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].customerId}
+                </label>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={editForm.customerId}
+                  placeholder={texts[language].customerId}
+                  disabled
+                  title="El Customer ID no se puede modificar una vez creada la reserva"
+                />
+              </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].businessId}
-        </label>
-        <input
-          className="input"
-          type="number"
-          min={1}
-          value={editForm.businessId}
-          placeholder={texts[language].businessId}
-          disabled
-          title="El Business ID no se puede modificar una vez creada la reserva"
-        />
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].businessId}
+                </label>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={editForm.businessId}
+                  placeholder={texts[language].businessId}
+                  disabled
+                  title="El Business ID no se puede modificar una vez creada la reserva"
+                />
+              </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].people}
-        </label>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button
-            type="button"
-            className="secondary-btn"
-            onClick={() => setEditPersons((prev) => Math.max(1, prev - 1))}
-            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
-          >
-            -
-          </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].people}
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setEditPersons((prev) => Math.max(1, prev - 1))}
+                    style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+                  >
+                    -
+                  </button>
 
-          <input
-            className="input"
-            type="number"
-            min={1}
-            max={5}
-            value={editPersons}
-            onChange={(e) => {
-              let val = Number(e.target.value);
-              if (val < 1) val = 1;
-              if (val > 5) val = 5;
-              setEditPersons(val);
-            }}
-            style={{ width: "60px", textAlign: "center", fontWeight: "bold" }}
-            required
-          />
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={editPersons}
+                    onChange={(e) => {
+                      let val = Number(e.target.value);
+                      if (val < 1) val = 1;
+                      if (val > 5) val = 5;
+                      setEditPersons(val);
+                    }}
+                    style={{ width: "60px", textAlign: "center", fontWeight: "bold" }}
+                    required
+                  />
 
-          <button
-            type="button"
-            className="secondary-btn"
-            onClick={() => setEditPersons((prev) => Math.min(5, prev + 1))}
-            style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
-          >
-            +
-          </button>
-        </div>
-      </div>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setEditPersons((prev) => Math.min(5, prev + 1))}
+                    style={{ padding: "8px 16px", fontSize: "16px", fontWeight: "bold" }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
 
-      <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
-          {texts[language].service}
-        </label>
-        <input
-          className="input"
-          type="text"
-          value={editForm.serviceName}
-          onChange={(e) => updateEditForm("serviceName", e.target.value)}
-          placeholder={texts[language].service}
-          required
-        />
-      </div>
-    </div>
+              <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                  {texts[language].service}
+                </label>
+                <input
+                  className="input"
+                  type="text"
+                  value={editForm.serviceName}
+                  onChange={(e) => updateEditForm("serviceName", e.target.value)}
+                  placeholder={texts[language].service}
+                  required
+                />
+              </div>
+            </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
@@ -923,7 +1090,7 @@ export default function BookingsClient({
         </div>
 
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
-        {errorMessage   ? <div className="message-error"   style={{ marginBottom: 12 }}>{errorMessage}</div>   : null}
+        {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
         <div className="table-responsive">
           <table className="data-table">
