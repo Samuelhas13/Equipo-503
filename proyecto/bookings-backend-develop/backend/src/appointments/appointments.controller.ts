@@ -38,9 +38,9 @@ import { UserRole } from '../users/user.entity';
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  // admin + empresa → ven el listado completo
+  // admin + empresa + cliente → ven el listado filtrado por rol
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
     const pageNum = page ? parseInt(page, 10) : 1;
@@ -67,7 +67,7 @@ export class AppointmentsController {
 
   // todos los roles → pueden ver el detalle de una reserva concreta
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {

@@ -125,16 +125,48 @@ function toBackendCustomerUpdateDto(data: UpdateCustomerDto): BackendUpdateCusto
 
 // ── APPOINTMENTS ────────────────────────────────────────────────
 
+function normalizeBooking(app: any): Booking {
+  const parts = (app.hora_reserva || "").split(" ");
+  const date = parts[0] || "";
+  const time = parts[1] || "";
+
+  return {
+    id: app.id,
+    date,
+    time,
+    status: app.status || "pending",
+    customerId: app.customerId || (app.customer ? app.customer.id : 1),
+    businessId: app.businessId || (app.business ? app.business.id : 1),
+    userId: app.userId || (app.user ? app.user.id : undefined),
+    serviceName: app.serviceName || (app.service ? app.service.nombre : ""),
+    createdAt: app.createdAt,
+    updatedAt: app.updatedAt,
+  };
+}
+
 export async function getAppointments(): Promise<Booking[]> {
-  return apiRequest<Booking[]>("/appointments", { cache: "no-store" });
+  const apps = await apiRequest<any[]>("/appointments", { cache: "no-store" });
+  return apps.map(normalizeBooking);
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
-  return apiRequest<Booking>("/appointments", { method: "POST", body: JSON.stringify(data) });
+  const { date, time, ...rest } = data;
+  const body = {
+    ...rest,
+    hora_reserva: `${date} ${time}`,
+  };
+  const created = await apiRequest<any>("/appointments", { method: "POST", body: JSON.stringify(body) });
+  return normalizeBooking(created);
 }
 
 export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
-  return apiRequest<Booking>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  const { date, time, ...rest } = data;
+  const body: any = { ...rest };
+  if (date || time) {
+    body.hora_reserva = `${date} ${time}`;
+  }
+  const updated = await apiRequest<any>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  return normalizeBooking(updated);
 }
 
 export async function deleteAppointment(id: number): Promise<{ message: string }> {

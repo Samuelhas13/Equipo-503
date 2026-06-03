@@ -19,13 +19,24 @@ export class CreateAppointmentDto {
   @IsPositive()
   businessId!: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1, required: false })
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  serviceId!: number;
+  serviceId?: number;
 
   @ApiProperty({ example: '2026-04-20 10:30' })
   @IsString()
   @IsNotEmpty()
   hora_reserva!: string;
+
+  @ApiProperty({ example: 'pending', required: false })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiProperty({ example: 'Corte + Peinado', required: false })
+  @IsOptional()
+  @IsString()
+  serviceName?: string;
 }

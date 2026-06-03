@@ -13,6 +13,7 @@ export interface Booking {
   status: BookingStatus;
   customerId: number;
   businessId: number;
+  userId?: number;
   serviceName: string;
   createdAt?: string;
   updatedAt?: string;
