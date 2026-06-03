@@ -79,6 +79,7 @@ function normalizeBooking(app: any): Booking {
 
   return {
     id: app.id,
+    hora_reserva: app.hora_reserva || `${date} ${time}`.trim(),
     date,
     time,
     status: app.status || "pending",
@@ -183,25 +184,7 @@ export async function deleteCustomer(id: number): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/customers/${id}`, { method: "DELETE" });
 }
 
-// ── BUSINESSES ──────────────────────────────────────────────────
 
-// MEJORA: Obtiene todos los negocios registrados en la BD para el desplegable
-export async function getBusinesses(): Promise<any[]> {
-  try {
-    return apiRequest<any[]>("/businesses", { cache: "no-store" });
-  } catch {
-    // Fallback si el endpoint no existe aún
-    return [];
-  }
-}
-
-export async function getBusinessById(id: number): Promise<any> {
-  try {
-    return apiRequest<any>(`/businesses/${id}`, { cache: "no-store" });
-  } catch {
-    return null;
-  }
-}
 
 // ── PAYMENTS ────────────────────────────────────────────────────
 
