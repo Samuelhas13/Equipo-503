@@ -10,6 +10,9 @@ import type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  Business,
+  CreateBusinessDto,
+  UpdateBusinessDto,
 } from "./types";
 
 export type { Booking, BookingStatus, PaymentMethod, PaymentStatus };
@@ -178,4 +181,32 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
 export function getExportReportUrl(): string {
   const token = getToken();
   const query = token ? `?token=${encodeURIComponent(token)}` : "";
-  return `${API_URL}/appointments/export${query}`;}
+  return `${API_URL}/appointments/export${query}`;
+}
+
+// ── BUSINESSES ───────────────────────────────────────────────────
+
+export async function getBusinesses(): Promise<Business[]> {
+  return apiRequest<Business[]>("/business", { cache: "no-store" });
+}
+
+export async function createBusiness(data: CreateBusinessDto): Promise<Business> {
+  return apiRequest<Business>("/business", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBusiness(id: number, data: UpdateBusinessDto): Promise<Business> {
+  return apiRequest<Business>(`/business/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBusiness(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/business/${id}`, {
+    method: "DELETE",
+  });
+}
+

@@ -81,6 +81,7 @@ export default function Sidebar({
   const adminMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
     { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
     { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
@@ -89,12 +90,13 @@ export default function Sidebar({
   const empresaMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
     { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
+    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 
   const usuarioMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
-    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "🏢" },
+    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 
@@ -190,9 +192,8 @@ export default function Sidebar({
               onNavigate?.(item.href);
             };
 
-            const linkClasses = `admin-sidebar__link ${
-              isActive ? "admin-sidebar__link--active" : ""
-            } admin-sidebar__link--hoverable`;
+            const linkClasses = `admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""
+              } admin-sidebar__link--hoverable`;
 
             return (
               <Link

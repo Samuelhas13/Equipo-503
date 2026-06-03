@@ -92,3 +92,17 @@ export type CreatePaymentDto = {
 // Datos para actualizar un pago.
 // Partial permite enviar solo los campos que se quieran modificar.
 export type UpdatePaymentDto = Partial<CreatePaymentDto>;
+
+export interface Business {
+  id: number;
+  nombre: string;
+  direccion: string;
+}
+
+export type CreateBusinessDto = {
+  nombre: string;
+  direccion: string;
+};
+
+export type UpdateBusinessDto = Partial<CreateBusinessDto>;
+
