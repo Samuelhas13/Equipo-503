@@ -18,7 +18,6 @@ export class CreateAppointmentDto {
   @IsInt()
   @IsPositive()
   businessId!: number;
-
   @ApiProperty({ example: 1, description: 'Id servicios' })
   @IsInt()
   @IsPositive()
@@ -34,4 +33,14 @@ export class CreateAppointmentDto {
   @IsString()
   @IsNotEmpty()
   hora_reserva!: string;
+
+  @ApiProperty({ example: 'pending', required: false })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiProperty({ example: 'Corte + Peinado', required: false })
+  @IsOptional()
+  @IsString()
+  serviceName?: string;
 }

@@ -42,7 +42,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
           router.push("/bookings");
         }
       } else if (user.role === "empresa") {
-        const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto"];
+        const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers"];
         const isAllowed = allowedEmpresaPaths.some(
           (path) => pathname === path || pathname.startsWith(path + "/")
         );
@@ -81,7 +81,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     );
     if (!isAllowed) return null;
   } else if (user && user.role === "empresa") {
-    const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto"];
+    const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers"];
     const isAllowed = allowedEmpresaPaths.some(
       (path) => pathname === path || pathname.startsWith(path + "/")
     );

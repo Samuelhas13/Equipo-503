@@ -61,16 +61,34 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const MOCK_USERS = [
-  { email: "admin@bookflow.com",  password: "admin123", name: "Administrador de Sistema", role: "admin"   as UserRole },
-  { email: "nova@bookflow.com",   password: "nova123",  name: "Peluquería Nova",           role: "empresa" as UserRole, businessId: 1 },
-  { email: "marea@bookflow.com",  password: "marea123", name: "Restaurante Marea",          role: "empresa" as UserRole, businessId: 2 },
-  { email: "juan@bookflow.com",   password: "juan123",  name: "Juan Pérez",                 role: "usuario" as UserRole, customerId: 1 },
-  { email: "maria@bookflow.com",  password: "maria123", name: "María López",                role: "usuario" as UserRole, customerId: 2 },
+  { email: "admin@bookflow.com", password: "admin123", name: "Administrador de Sistema", role: "admin" as UserRole },
+  { email: "nova@bookflow.com", password: "nova123", name: "Peluquería Nova", role: "empresa" as UserRole, businessId: 1 },
+  { email: "marea@bookflow.com", password: "marea123", name: "Restaurante Marea", role: "empresa" as UserRole, businessId: 2 },
+  { email: "juan@bookflow.com", password: "juan123", name: "Juan Pérez", role: "usuario" as UserRole, customerId: 1 },
+  { email: "maria@bookflow.com", password: "maria123", name: "María López", role: "usuario" as UserRole, customerId: 2 },
 ];
 
+
+function normalizeUser(user: User): User {
+  const fullName = [user.nombre, user.apellido].filter(Boolean).join(" ").trim();
+
+  let role = user.role;
+  if ((user.role as string) === "business") {
+    role = "empresa";
+  } else if ((user.role as string) === "customer") {
+    role = "usuario";
+  }
+
+  return {
+    ...user,
+    role,
+    name: user.name || fullName || user.email,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser]       = useState<User | null>(null);
-  const [token, setToken]     = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

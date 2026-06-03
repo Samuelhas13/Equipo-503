@@ -293,7 +293,7 @@ export default function BookingsClient({
     if (user?.role === "empresa") {
       return bookings.filter((b) => b.businessId === user.businessId);
     } else if (user?.role === "usuario") {
-      return bookings.filter((b) => b.customerId === user.customerId);
+      return bookings.filter((b) => b.userId === user.id);
     }
     return bookings;
   }, [bookings, user]);

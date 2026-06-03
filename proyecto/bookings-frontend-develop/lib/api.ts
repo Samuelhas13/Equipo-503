@@ -10,6 +10,9 @@ import type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  Business,
+  CreateBusinessDto,
+  UpdateBusinessDto,
 } from "./types";
 
 export type {
@@ -46,34 +49,55 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
     headers: authHeaders(options.headers as Record<string, string>),
   });
 
-if (!res.ok) {
-  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
 
-  if (res.status === 401) {
-    throw new Error("No has iniciado sesión.");
-  }
+    if (res.status === 401) {
+      throw new Error("No has iniciado sesión.");
+    }
 
-  if (res.status === 403) {
+    if (res.status === 403) {
+      throw new Error(
+        body?.message ||
+        "No tienes permisos para acceder a este recurso."
+      );
+    }
+
     throw new Error(
-      body?.message ||
-      "No tienes permisos para acceder a este recurso."
+      body?.message || `Error ${res.status}: ${res.statusText}`
     );
   }
-
-  throw new Error(
-    body?.message || `Error ${res.status}: ${res.statusText}`
-  );
-}
   return res.json();
 }
 
 // ── APPOINTMENTS ────────────────────────────────────────────────
 
+function normalizeBooking(app: any): Booking {
+  const parts = (app.hora_reserva || "").split(" ");
+  const date = parts[0] || "";
+  const time = parts[1] || "";
+
+  return {
+    id: app.id,
+    date,
+    time,
+    status: app.status || "pending",
+    customerId: app.customerId || (app.customer ? app.customer.id : 1),
+    businessId: app.businessId || (app.business ? app.business.id : 1),
+    userId: app.userId || (app.user ? app.user.id : undefined),
+    serviceName: app.serviceName || (app.service ? app.service.nombre : ""),
+    createdAt: app.createdAt,
+    updatedAt: app.updatedAt,
+  };
+}
+
 export async function getAppointments(): Promise<Booking[]> {
-  return apiRequest<Booking[]>("/appointments", { cache: "no-store" });
+  const apps = await apiRequest<any[]>("/appointments", { cache: "no-store" });
+  return apps.map(normalizeBooking);
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
+
   // Normalize possible frontend shapes to backend CreateAppointmentDto
   const payload: any = {};
   // hora_reserva: accept explicit or build from date+time
@@ -90,17 +114,15 @@ export async function createAppointment(data: CreateBookingDto): Promise<Booking
   return apiRequest<Booking>("/appointments", { method: "POST", body: JSON.stringify(payload) });
 }
 
-export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
-  const payload: any = {};
-  if ((data as any).hora_reserva) payload.hora_reserva = (data as any).hora_reserva;
-  else if ((data as any).date && (data as any).time) payload.hora_reserva = `${(data as any).date} ${(data as any).time}`;
-  if ((data as any).userId) payload.userId = (data as any).userId;
-  if ((data as any).customerId) payload.customerId = (data as any).customerId;
-  if ((data as any).businessId) payload.businessId = (data as any).businessId;
-  if ((data as any).serviceId) payload.serviceId = (data as any).serviceId;
-  if (!payload.serviceId && (data as any).service) payload.serviceId = (data as any).service?.id || undefined;
 
-  return apiRequest<Booking>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
+  const { date, time, ...rest } = data;
+  const body: any = { ...rest };
+  if (date || time) {
+    body.hora_reserva = `${date} ${time}`;
+  }
+  const updated = await apiRequest<any>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  return normalizeBooking(updated);
 }
 
 export async function deleteAppointment(id: number): Promise<{ message: string }> {
@@ -179,4 +201,33 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
 export function getExportReportUrl(): string {
   const token = getToken();
   const query = token ? `?token=${encodeURIComponent(token)}` : "";
-  return `${API_URL}/appointments/export${query}`;}
+
+  return `${API_URL}/appointments/export${query}`;
+}
+
+
+// ── BUSINESSES ───────────────────────────────────────────────────
+
+export async function getBusinesses(): Promise<Business[]> {
+  return apiRequest<Business[]>("/business", { cache: "no-store" });
+}
+
+export async function createBusiness(data: CreateBusinessDto): Promise<Business> {
+  return apiRequest<Business>("/business", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBusiness(id: number, data: UpdateBusinessDto): Promise<Business> {
+  return apiRequest<Business>(`/business/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBusiness(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/business/${id}`, {
+    method: "DELETE",
+  });
+}

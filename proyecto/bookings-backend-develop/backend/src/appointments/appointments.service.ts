@@ -21,14 +21,16 @@ export class AppointmentsService {
   findAll(page: number = 1, limit: number = 10, currentUser?: JwtPayload) {
     const skip = (page - 1) * limit;
     let where: any = {};
+
     if (currentUser?.role === UserRole.BUSINESS) {
       where.business = { id: currentUser.businessId };
     } else if (currentUser?.role === UserRole.CUSTOMER) {
       where = [
         { user: { id: currentUser.sub } },
-        { customer: { email: currentUser.email } }
+        { customer: { email: currentUser.email } },
       ];
     }
+
     return this.appointmentsRepository.find({
       where,
       order: { hora_reserva: 'ASC' },
@@ -39,21 +41,27 @@ export class AppointmentsService {
   }
 
   async findOne(id: number, currentUser?: JwtPayload) {
-    const appointment = await this.appointmentsRepository.findOne({ 
+    const appointment = await this.appointmentsRepository.findOne({
       where: { id },
       relations: ['customer', 'business', 'service', 'user'],
     });
+
     if (!appointment) {
       throw new NotFoundException(`No existe la reserva con id ${id}`);
     }
+
     if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
       throw new ForbiddenException('Solo puedes acceder a las reservas de tu empresa');
     }
-    if (currentUser?.role === UserRole.CUSTOMER && 
-        appointment.user?.id !== currentUser.sub && 
-        appointment.customer?.email !== currentUser.email) {
+
+    if (
+      currentUser?.role === UserRole.CUSTOMER &&
+      appointment.user?.id !== currentUser.sub &&
+      appointment.customer?.email !== currentUser.email
+    ) {
       throw new ForbiddenException('Solo puedes acceder a tus propias reservas');
     }
+
     return appointment;
   }
 
@@ -62,8 +70,8 @@ export class AppointmentsService {
       createAppointmentDto.businessId = currentUser.businessId!;
     } else if (currentUser?.role === UserRole.CUSTOMER) {
       createAppointmentDto.userId = currentUser.sub;
-      // Buscar si existe un Customer asociado en la tabla customers por el email
       const customer = await this.customerRepository.findOneBy({ email: currentUser.email });
+
       if (customer) {
         createAppointmentDto.customerId = customer.id;
       }
@@ -75,7 +83,7 @@ export class AppointmentsService {
       where: {
         hora_reserva: rest.hora_reserva,
         business: { id: businessId },
-      }
+      },
     });
 
     if (existing) {
@@ -85,7 +93,7 @@ export class AppointmentsService {
     const appointment = this.appointmentsRepository.create({
       ...rest,
       business: { id: businessId },
-      service: { id: serviceId },
+      service: serviceId ? { id: serviceId } : undefined,
       customer: customerId ? { id: customerId } : undefined,
       user: userId ? { id: userId } : undefined,
     });
@@ -95,7 +103,7 @@ export class AppointmentsService {
 
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto, currentUser?: JwtPayload) {
     const appointment = await this.findOne(id, currentUser);
-    
+
     if (currentUser?.role === UserRole.BUSINESS) {
       updateAppointmentDto.businessId = currentUser.businessId!;
     } else if (currentUser?.role === UserRole.CUSTOMER) {
@@ -143,9 +151,13 @@ export class AppointmentsService {
       worksheet.addRow({
         id: app.id,
         hora_reserva: app.hora_reserva,
-        serviceName: app.service ? app.service.nombre : 'N/A',
-        customerName: app.customer ? app.customer.nombre + ' ' + app.customer.apellido : 'N/A',
-        customerEmail: app.customer ? app.customer.email : 'N/A',
+        serviceName: app.serviceName || (app.service ? app.service.nombre : 'N/A'),
+        customerName: app.customer
+          ? `${app.customer.nombre} ${app.customer.apellido}`
+          : app.user
+            ? `${app.user.nombre} ${app.user.apellido}`
+            : 'N/A',
+        customerEmail: app.customer ? app.customer.email : app.user ? app.user.email : 'N/A',
         businessName: app.business ? app.business.nombre : 'N/A',
       });
     });
