@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Appointment } from './appointment.entity';
+import { Customer } from '../customers/customer.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
@@ -13,13 +14,20 @@ export class AppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
   ) {}
 
   findAll(page: number = 1, limit: number = 10, currentUser?: JwtPayload) {
     const skip = (page - 1) * limit;
-    const where: any = {};
+    let where: any = {};
     if (currentUser?.role === UserRole.BUSINESS) {
       where.business = { id: currentUser.businessId };
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      where = [
+        { user: { id: currentUser.sub } },
+        { customer: { email: currentUser.email } }
+      ];
     }
     return this.appointmentsRepository.find({
       where,
@@ -41,6 +49,11 @@ export class AppointmentsService {
     if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
       throw new ForbiddenException('Solo puedes acceder a las reservas de tu empresa');
     }
+    if (currentUser?.role === UserRole.CUSTOMER && 
+        appointment.user?.id !== currentUser.sub && 
+        appointment.customer?.email !== currentUser.email) {
+      throw new ForbiddenException('Solo puedes acceder a tus propias reservas');
+    }
     return appointment;
   }
 
@@ -49,6 +62,11 @@ export class AppointmentsService {
       createAppointmentDto.businessId = currentUser.businessId!;
     } else if (currentUser?.role === UserRole.CUSTOMER) {
       createAppointmentDto.userId = currentUser.sub;
+      // Buscar si existe un Customer asociado en la tabla customers por el email
+      const customer = await this.customerRepository.findOneBy({ email: currentUser.email });
+      if (customer) {
+        createAppointmentDto.customerId = customer.id;
+      }
     }
 
     const { businessId, serviceId, customerId, userId, ...rest } = createAppointmentDto;
@@ -80,6 +98,8 @@ export class AppointmentsService {
     
     if (currentUser?.role === UserRole.BUSINESS) {
       updateAppointmentDto.businessId = currentUser.businessId!;
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      updateAppointmentDto.userId = currentUser.sub;
     }
 
     const { businessId, serviceId, customerId, userId, ...rest } = updateAppointmentDto;

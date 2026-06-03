@@ -34,26 +34,26 @@ import { UserRole } from '../users/user.entity';
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  // admin + empresa → listado de pagos
+  // admin + empresa + cliente → listado de pagos
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado completo de cobros', type: [Payment] })
   findAll(@Request() req: any) {
     return this.paymentsService.findAll(req.user);
   }
 
-  // admin + empresa → detalle de un pago
+  // admin + empresa + cliente → detalle de un pago
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de un cobro', type: Payment })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     return this.paymentsService.findOne(id, req.user);
   }
 
-  // admin + empresa → registrar un pago
+  // admin + empresa → registrar un pago (el cliente no puede crear cobros directos)
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiCreatedResponse({
     description: 'Cobro creado correctamente',
     type: Payment,
@@ -62,9 +62,9 @@ export class PaymentsController {
     return this.paymentsService.create(createPaymentDto, req.user);
   }
 
-  // admin + empresa → modificar un pago
+  // admin + empresa + cliente → modificar un pago
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({
     description: 'Cobro actualizado correctamente',
     type: Payment,
@@ -78,9 +78,9 @@ export class PaymentsController {
     return this.paymentsService.update(id, updatePaymentDto, req.user);
   }
 
-  // solo admin → eliminar un pago
+  // admin + empresa → eliminar un pago (autorizado según pertenencia en el service)
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Cobro eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {

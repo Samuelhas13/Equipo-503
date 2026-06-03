@@ -21,6 +21,8 @@ export class PaymentsService {
     const where: any = {};
     if (currentUser?.role === UserRole.BUSINESS) {
       where.appointment = { business: { id: currentUser.businessId } };
+    } else if (currentUser?.role === UserRole.CUSTOMER) {
+      where.customer = { email: currentUser.email };
     }
     return this.paymentsRepository.find({
       where,
@@ -41,6 +43,10 @@ export class PaymentsService {
 
     if (currentUser?.role === UserRole.BUSINESS && payment.appointment?.business?.id !== currentUser.businessId) {
       throw new ForbiddenException('Solo puedes acceder a los pagos de tu empresa');
+    }
+
+    if (currentUser?.role === UserRole.CUSTOMER && payment.customer?.email !== currentUser.email) {
+      throw new ForbiddenException('Solo puedes acceder a tus propios pagos');
     }
 
     return payment;
@@ -97,6 +103,12 @@ export class PaymentsService {
   async update(id: number, updatePaymentDto: UpdatePaymentDto, currentUser?: JwtPayload) {
     const payment = await this.findOne(id, currentUser);
     
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      // El cliente no puede cambiar asociaciones clave
+      delete updatePaymentDto.customerId;
+      delete updatePaymentDto.appointmentId;
+    }
+
     if (updatePaymentDto.appointmentId && updatePaymentDto.appointmentId !== payment.appointment?.id) {
       const newAppointment = await this.appointmentsRepository.findOne({
         where: { id: updatePaymentDto.appointmentId },

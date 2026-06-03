@@ -30,7 +30,8 @@ async function seed() {
     await runQuery('DELETE FROM "users";');
     await runQuery('DELETE FROM "customers";');
     await runQuery('DELETE FROM "business";');
-    await runQuery('DELETE FROM sqlite_sequence WHERE name IN ("users", "customers", "business");');
+    await runQuery('DELETE FROM "services";');
+    await runQuery('DELETE FROM sqlite_sequence WHERE name IN ("users", "customers", "business", "services");');
 
     // 2. Insertar Empresas
     console.log('Insertando empresas...');
@@ -80,6 +81,12 @@ async function seed() {
         [nombre, apellido, email, numero, businessId]
       );
     }
+
+    // 6. Insertar Servicios de prueba
+    console.log('Insertando servicios...');
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Corte de pelo moderno', 25.0, 1]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Masaje relajante', 50.0, 1]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Cena gourmet', 120.0, 2]);
 
     console.log('¡Seeding completado con éxito!');
   } catch (error) {

@@ -38,9 +38,9 @@ import { UserRole } from '../users/user.entity';
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  // admin + empresa → ven el listado completo
+  // admin + empresa + cliente → listado de reservas
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
     const pageNum = page ? parseInt(page, 10) : 1;
@@ -67,7 +67,7 @@ export class AppointmentsController {
 
   // todos los roles → pueden ver el detalle de una reserva concreta
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
@@ -97,9 +97,9 @@ export class AppointmentsController {
     return this.appointmentsService.update(id, updateAppointmentDto, req.user);
   }
 
-  // solo admin → puede eliminar reservas
+  // todos los roles → eliminar reservas (autorizado según pertenencia en el service)
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Reserva eliminada' })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {

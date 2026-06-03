@@ -56,7 +56,7 @@ export class Payment {
   hora_pago: string;
 
   @ApiProperty({ type: () => Appointment, description: 'Reserva asociada' })
-  @OneToOne(() => Appointment, (appointment) => appointment.payment)
+  @OneToOne(() => Appointment, (appointment) => appointment.payment, { onDelete: 'CASCADE' })
   @JoinColumn()
   appointment: Appointment;
 }

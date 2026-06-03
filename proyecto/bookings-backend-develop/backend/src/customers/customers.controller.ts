@@ -86,9 +86,9 @@ export class CustomersController {
     return this.customersService.update(id, updateCustomerDto, req.user);
   }
 
-  // solo admin → eliminar cliente
+  // admin + empresa → eliminar cliente
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Cliente eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
