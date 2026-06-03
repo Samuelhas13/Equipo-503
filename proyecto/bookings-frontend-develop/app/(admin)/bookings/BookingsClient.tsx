@@ -330,9 +330,11 @@ export default function BookingsClient({
       setLoadingCustomers(true);
       setLoadingBusinesses(true);
       try {
-        // Cargar clientes - sistema igual al de customers
-        const customers = await getCustomers();
-        setAllCustomers(customers);
+        // Cargar clientes solo si el usuario es admin o empresa
+        if (user?.role === "admin" || user?.role === "empresa") {
+          const customers = await getCustomers();
+          setAllCustomers(customers);
+        }
       } catch (err) {
         console.error("Error cargando clientes:", err);
         setAllCustomers([]);
