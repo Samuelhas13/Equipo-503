@@ -38,7 +38,6 @@ import { UserRole } from '../users/user.entity';
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  // admin + empresa + cliente → listado de reservas
   @Get()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
@@ -48,7 +47,6 @@ export class AppointmentsController {
     return this.appointmentsService.findAll(pageNum, limitNum, req.user);
   }
 
-  // solo admin → exportar Excel
   @Get('export')
   @Roles(UserRole.ADMIN)
   @ApiOkResponse({ description: 'Reporte exportado a Excel (.xlsx)' })
@@ -65,7 +63,6 @@ export class AppointmentsController {
     res.send(buffer);
   }
 
-  // todos los roles → pueden ver el detalle de una reserva concreta
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
@@ -74,21 +71,19 @@ export class AppointmentsController {
     return this.appointmentsService.findOne(id, req.user);
   }
 
-  // todos los roles → el usuario puede crear su propia reserva
   @Post()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiCreatedResponse({ description: 'Reserva creada', type: Appointment })
-  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
+  @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
   create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req?: any) {
     return this.appointmentsService.create(createAppointmentDto, req.user);
   }
 
-  // admin + empresa → pueden modificar reservas
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Reserva actualizada', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  @ApiBadRequestResponse({ description: 'Datos de reserva inválidos' })
+  @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -97,7 +92,6 @@ export class AppointmentsController {
     return this.appointmentsService.update(id, updateAppointmentDto, req.user);
   }
 
-  // todos los roles → eliminar reservas (autorizado según pertenencia en el service)
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Reserva eliminada' })

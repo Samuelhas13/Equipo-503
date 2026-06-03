@@ -11,6 +11,15 @@ export interface Service {
   id: number;
   nombre: string;
   precio?: number;
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
+  userId?: number;
+  serviceName: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Minimal Business type
@@ -134,3 +143,17 @@ export type CreatePaymentDto = {
 };
 
 export type UpdatePaymentDto = Partial<CreatePaymentDto>;
+
+export interface Business {
+  id: number;
+  nombre: string;
+  direccion: string;
+}
+
+export type CreateBusinessDto = {
+  nombre: string;
+  direccion: string;
+};
+
+export type UpdateBusinessDto = Partial<CreateBusinessDto>;
+
