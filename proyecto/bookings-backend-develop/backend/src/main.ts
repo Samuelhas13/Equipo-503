@@ -40,13 +40,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // 4. Redirigir la raíz al Swagger
-  app.getHttpAdapter().get('/', (req: any, res: any) => {
-    res.redirect('/api-docs');
-  });
-
-  // 5. Montar el Swagger
-  SwaggerModule.setup('api-docs', app, document, {
+  // 5. Montar el Swagger en la raíz
+  SwaggerModule.setup('/', app, document, {
     swaggerOptions: {
       docExpansion: 'none',
     }
