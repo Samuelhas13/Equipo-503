@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import basicAuth from 'express-basic-auth';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,14 +12,7 @@ async function bootstrap() {
   // 1. CORS - permitir peticiones del frontend
   app.enableCors();
 
-  // 2. Proteger solo el Swagger con basicAuth
-  app.use('/api-docs', basicAuth({
-    challenge: true,
-    users: { 'admin': 'password123' },
-    unauthorizedResponse: 'Requiere autenticación estricta.',
-  }));
-
-  // 3. CONFIGURACIÓN DE SWAGGER
+  // 2. CONFIGURACIÓN DE SWAGGER
   const config = new DocumentBuilder()
     .setTitle('API de Reservas')
     .setDescription('🔑 API de Reservas: acceda con su token JWT para autenticar.')
