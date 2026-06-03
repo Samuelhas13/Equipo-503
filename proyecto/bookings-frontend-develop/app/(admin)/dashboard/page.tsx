@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { getAppointments, getExportReportUrl } from "@/lib/api";
@@ -112,10 +111,10 @@ const KPI_COLORS: Record<string, KpiCardColor> = {
 };
 
 const ACTIVITY_DATA = {
-  bookings:  [40, 55, 35, 70, 60, 80, 75, 90, 65, 85, 70, 95, 80, 100],
-  paid:      [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
-  pending:   [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total:     [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  bookings: [40, 55, 35, 70, 60, 80, 75, 90, 65, 85, 70, 95, 80, 100],
+  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
 };
 
 function getTodayISO() {
@@ -125,11 +124,12 @@ function getTodayISO() {
 // ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
 interface BusinessCalendarProps {
   bookings: Booking[];
+  onBookingClick: () => void;
 }
 
-function BusinessCalendar({ bookings }: BusinessCalendarProps) {
+function BusinessCalendar({ bookings, onBookingClick }: BusinessCalendarProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  
+
   /* CAMBIO RESPONSIVE: Añadimos un estado para saber qué día está seleccionado. 
     Por defecto toma el día de hoy en formato ISO (YYYY-MM-DD). Esto permite que
     en pantallas de móvil podamos renderizar la lista detallada abajo al pulsar sobre un día.
@@ -148,7 +148,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
     const firstDayIndex = new Date(year, month, 1).getDay();
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const totalDays = new Date(year, month + 1, 0).getDate();
-    
+
     const cells: (number | null)[] = [];
     for (let i = 0; i < adjustedFirstDay; i++) {
       cells.push(null);
@@ -186,7 +186,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
   const formattedSelectedDate = useMemo(() => {
     const parts = selectedDateISO.split("-");
     if (parts.length !== 3) return "";
-    const [,, dStr] = parts;
+    const [, , dStr] = parts;
     return `${parseInt(dStr, 10)} de ${monthNames[month]}`;
   }, [selectedDateISO, month, monthNames]);
 
@@ -194,7 +194,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
     <div className="business-calendar">
       <div className="calendar-header">
         <h3>{monthNames[month]} {year}</h3>
-        
+
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button onClick={handlePrevMonth} className="calendar-nav-btn" type="button">◀</button>
           <button onClick={handleNextMonth} className="calendar-nav-btn" type="button">▶</button>
@@ -214,16 +214,16 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
           const dayString = String(day).padStart(2, "0");
           const monthString = String(month + 1).padStart(2, "0");
           const isoKey = `${year}-${monthString}-${dayString}`;
-          
+
           const dayBookings = bookingsByDateMap[isoKey] || [];
           const isToday = isoKey === getTodayISO();
-          
+
           /* CAMBIO RESPONSIVE: Validamos si este día coincide con el seleccionado por el usuario */
           const isSelected = isoKey === selectedDateISO;
 
           return (
-            <div 
-              key={isoKey} 
+            <div
+              key={isoKey}
               /* CAMBIO RESPONSIVE: Guardamos la fecha al hacer click (ideal para interacción táctil) */
               onClick={() => setSelectedDateISO(isoKey)}
               /* CAMBIO RESPONSIVE: Añadimos la clase condicional 'calendar-cell--selected' */
@@ -232,10 +232,15 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
                 {dayBookings.sort((a, b) => bookingTime(a).localeCompare(bookingTime(b))).map((b) => (
-                  <div 
-                    key={b.id} 
+                  <div
+                    key={b.id}
                     className={`calendar-event-pill event-status--${bookingStatus(b)}`}
                     title={`[${bookingTime(b)}] Servicio: ${bookingServiceName(b)}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBookingClick();
+                    }}
+                    style={{ cursor: "pointer" }}
                   >
                     {bookingTime(b)} - {bookingServiceName(b)}
                   </div>
@@ -259,7 +264,12 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
         ) : (
           <div className="mobile-event-list">
             {selectedDayBookings.map((b) => (
-              <div key={b.id} className={`mobile-event-item event-status--${bookingStatus(b)}`}>
+              <div
+                key={b.id}
+                className={`mobile-event-item event-status--${bookingStatus(b)}`}
+                onClick={onBookingClick}
+                style={{ cursor: "pointer" }}
+              >
                 <strong>{bookingTime(b)}</strong>
                 <span>{bookingServiceName(b)}</span>
               </div>
@@ -274,7 +284,6 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
 // ─── COMPONENTE RAÍZ PRINCIPAL ───────────────────────────────────────────────
 export default function DashboardPage() {
   const { user } = useAuth();
-  const router = useRouter();
 
   // Obtenemos el idioma global para traducir los textos del dashboard
   const { language } = useLanguage();
@@ -298,6 +307,7 @@ export default function DashboardPage() {
       seeLess: "Ver menos",
       loadingBookings: "Cargando reservas...",
       noBookingsToday: "No hay reservas para hoy.",
+      noUpcomingBookings: "No hay próximas reservas.",
       time: "Hora",
       customer: "Cliente",
       business: "Comercio",
@@ -332,6 +342,7 @@ export default function DashboardPage() {
       seeLess: "See less",
       loadingBookings: "Loading bookings...",
       noBookingsToday: "No bookings for today.",
+      noUpcomingBookings: "No upcoming bookings.",
       time: "Time",
       customer: "Customer",
       business: "Business",
@@ -359,12 +370,7 @@ export default function DashboardPage() {
 
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
 
-  useEffect(() => {
-    if (user?.role === "usuario") {
-      router.push("/bookings");
-    }
-  }, [user, router]);
-
+  // No redirigimos a /bookings en Dashboard: el panel debe mostrar datos para cualquier rol.
   useEffect(() => {
     async function load() {
       try {
@@ -395,11 +401,21 @@ export default function DashboardPage() {
   const pendingBookings = filteredBookings.filter((b) => bookingStatus(b) === "pending");
   const paidBookings = filteredBookings.filter((b) => bookingStatus(b) === "paid");
 
-  const nextBooking = [...todayBookings].sort((a, b) =>
-    bookingTime(a).localeCompare(bookingTime(b))
-  )[0];
+  // Mostramos las próximas reservas basadas en la misma fuente de datos que BookingsClient.
+  // Esto incluye reservas futuras y de hoy, ordenadas por fecha y hora.
+  const upcomingBookings = useMemo(() => {
+    return [...filteredBookings]
+      .filter((b) => bookingDate(b) >= today)
+      .sort((a, b) => {
+        const dateCompare = bookingDate(a).localeCompare(bookingDate(b));
+        return dateCompare !== 0
+          ? dateCompare
+          : bookingTime(a).localeCompare(bookingTime(b));
+      });
+  }, [filteredBookings, today]);
 
-  const displayedBookings = showAll ? todayBookings : todayBookings.slice(0, 2);
+  const nextBooking = upcomingBookings[0];
+  const displayedBookings = showAll ? upcomingBookings : upcomingBookings.slice(0, 4);
 
   const handleExportReport = () => {
     window.location.href = getExportReportUrl();
@@ -415,9 +431,9 @@ export default function DashboardPage() {
         {/* Contenedor con botones de acción dinámica según el rol y modo */}
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {user?.role === "empresa" && (
-            <button 
-              className="secondary-btn" 
-              type="button" 
+            <button
+              className="secondary-btn"
+              type="button"
               onClick={() => setViewMode(viewMode === "default" ? "calendar" : "default")}
             >
               {viewMode === "default" ? texts[language].viewCalendar : texts[language].viewDefault}
@@ -475,7 +491,12 @@ export default function DashboardPage() {
           ) : error ? (
             <p className="table-feedback table-feedback--error">{error}</p>
           ) : (
-            <BusinessCalendar bookings={filteredBookings} />
+            <BusinessCalendar
+              bookings={filteredBookings}
+              onBookingClick={() => {
+                /* No redirigimos desde el calendario del dashboard para mantener el flujo en la misma página. */
+              }}
+            />
           )}
         </section>
       ) : (
@@ -495,11 +516,11 @@ export default function DashboardPage() {
             <div className="table-responsive">
               {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
               {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
-              {!loading && !error && todayBookings.length === 0 && (
-                <p className="table-feedback">{texts[language].noBookingsToday}</p>
+              {!loading && !error && upcomingBookings.length === 0 && (
+                <p className="table-feedback">{texts[language].noUpcomingBookings}</p>
               )}
 
-              {!loading && !error && todayBookings.length > 0 && (
+              {!loading && !error && upcomingBookings.length > 0 && (
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -575,12 +596,18 @@ export default function DashboardPage() {
 
 // Helpers para normalizar campos de Booking (backend usa `hora_reserva`, `service`, `customer`, `business`)
 function bookingDate(b: Booking): string {
+  // Formato backend nuevo: campo "date" directo
+  if ((b as any).date) return (b as any).date;
+  // Formato antiguo: "hora_reserva" = "2026-06-03 14:30"
   const raw = (b as any).hora_reserva || "";
   const parts = raw.split(" ");
   return parts[0]?.includes("-") ? parts[0] : getTodayISO();
 }
 
 function bookingTime(b: Booking): string {
+  // Formato backend nuevo: campo "time" directo
+  if ((b as any).time) return (b as any).time;
+  // Formato antiguo
   const raw = (b as any).hora_reserva || "";
   const parts = raw.split(" ");
   return parts.length > 1 ? parts.slice(1).join(" ") : raw;
