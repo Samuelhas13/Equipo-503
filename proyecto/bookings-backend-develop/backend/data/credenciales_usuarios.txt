@@ -1,35 +1,17 @@
-=== CREDENCIALES DE USUARIO ===
+1. Rol Administrador (Admin)
+Tiene acceso global a todo el sistema.
 
-1. ADMIN (Acceso Global)
 Email: admin@bookings.com
-Contraseña: Admin123!
-Rol: admin
-businessId: null
+2. Rol Empresa (Business)
+Tienes 500 dueños de empresa creados. Cada uno gestiona su propia empresa y sus 40 servicios.
 
-2. BUSINESS 1 (Empresa Alfa - businessId: 1)
-Email: business1@bookings.com
-Contraseña: Business123!
-Rol: business
+Ejemplo 1: business1@empresa.com
+Ejemplo 2: business2@empresa.com
+(...hasta business500@empresa.com)
+3. Rol Cliente (Usuario)
+Tienes 10.000 clientes creados, cada uno con reservas y pagos enlazados a alguna de las empresas.
 
-3. BUSINESS 2 (Empresa Beta - businessId: 2)
-Email: business2@bookings.com
-Contraseña: Business123!
-Rol: business
-
-4. CUSTOMERS (Clientes de Prueba)
-Contraseña común: Customer123!
-Rol: customer
-
-Asociados a la Empresa Alfa (businessId: 1):
-- customer1@bookings.com
-- customer2@bookings.com
-- customer3@bookings.com
-- customer4@bookings.com
-- customer5@bookings.com
-
-Asociados a la Empresa Beta (businessId: 2):
-- customer6@bookings.com
-- customer7@bookings.com
-- customer8@bookings.com
-- customer9@bookings.com
-- customer10@bookings.com
+Ejemplo 1: cliente1@masivo.com
+Ejemplo 2: cliente2@masivo.com
+(...hasta cliente10000@masivo.com)
+Cualquiera de esos emails con la contraseña Password123! te dejará entrar en http://localhost:3001 y verás los datos correspondientes a ese rol.

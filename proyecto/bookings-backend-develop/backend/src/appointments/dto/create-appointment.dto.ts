@@ -18,10 +18,11 @@ export class CreateAppointmentDto {
   @IsInt()
   @IsPositive()
   businessId!: number;
-  @ApiProperty({ example: 1, description: 'Id servicios' })
+  @ApiPropertyOptional({ example: 1, description: 'Id servicios' })
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  serviceId!: number;
+  serviceId?: number;
 
   @ApiPropertyOptional({ example: 1, description: 'Id pago' })
   @IsOptional()

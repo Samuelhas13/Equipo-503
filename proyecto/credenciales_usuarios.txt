@@ -1,35 +1,30 @@
-=== CREDENCIALES DE USUARIO SEMBRADOS (SEEDED) ===
+=== CREDENCIALES DE USUARIO SEMBRADOS (SEEDED MASIVO) ===
+
+Contraseña común para ABSOLUTAMENTE TODOS los usuarios: Password123!
 
 1. ADMIN (Global)
 Email: admin@bookings.com
-Contraseña: Admin123!
 Rol: admin
 businessId: null (acceso total a todas las empresas)
 
-2. BUSINESS 1 (Empresa Alfa - businessId: 1)
-Email: business1@bookings.com
-Contraseña: Business123!
-Rol: business
+2. BUSINESS (Dueños de empresa)
+Hay 500 empresas creadas en total. Cada una tiene su propio usuario.
+Rol: business / empresa
 
-3. BUSINESS 2 (Empresa Beta - businessId: 2)
-Email: business2@bookings.com
-Contraseña: Business123!
-Rol: business
+Ejemplos:
+- business1@empresa.com (Empresa 1)
+- business2@empresa.com (Empresa 2)
+- business3@empresa.com (Empresa 3)
+...
+- business500@empresa.com (Empresa 500)
 
-4. CUSTOMERS (Clientes de Prueba)
-Contraseña común para todos: Customer123!
-Rol: customer
+3. CUSTOMERS (Clientes de Prueba)
+Hay 10.000 clientes creados y repartidos equitativamente entre las 500 empresas.
+Rol: customer / usuario
 
-Asociados a la Empresa Alfa (businessId: 1):
-- customer1@bookings.com
-- customer2@bookings.com
-- customer3@bookings.com
-- customer4@bookings.com
-- customer5@bookings.com
-
-Asociados a la Empresa Beta (businessId: 2):
-- customer6@bookings.com
-- customer7@bookings.com
-- customer8@bookings.com
-- customer9@bookings.com
-- customer10@bookings.com
+Ejemplos:
+- cliente1@masivo.com
+- cliente2@masivo.com
+- cliente3@masivo.com
+...
+- cliente10000@masivo.com
