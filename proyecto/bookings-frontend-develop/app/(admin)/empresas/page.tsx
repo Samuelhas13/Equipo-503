@@ -213,7 +213,7 @@ export default function EmpresasPage() {
   const filteredBusinesses = enrichedBusinesses.filter(
     (b) =>
       b.nombre.toLowerCase().includes(normalizedSearch) ||
-      b.direccion.toLowerCase().includes(normalizedSearch)
+      (b.direccion || "").toLowerCase().includes(normalizedSearch)
   );
 
   const ITEMS_PER_PAGE = 9;
@@ -246,7 +246,7 @@ export default function EmpresasPage() {
   const handleOpenEdit = (business: EnrichedBusiness) => {
     setFormMode("edit");
     setSelectedBusiness(business);
-    setFormData({ nombre: business.nombre, direccion: business.direccion });
+    setFormData({ nombre: business.nombre, direccion: business.direccion || "" });
     setIsFormOpen(true);
     setError(null);
   };

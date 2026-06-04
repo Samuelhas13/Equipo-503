@@ -24,6 +24,8 @@ export interface User {
   role: UserRole;
   businessId?: number;
   customerId?: number;
+  nombre?: string;
+  apellido?: string;
 }
 
 function normalizeRole(role: string): UserRole {

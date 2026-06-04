@@ -7,6 +7,7 @@ import { JwtPayload } from '../auth/jwt-payload.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Business } from '../business/business.entity';
+import { Customer } from '../customers/customer.entity';
 
 @Injectable()
 export class UsersService {
@@ -59,6 +60,43 @@ export class UsersService {
     
     return this.userRepository.save(user);
   }
+
+  async register(createUserDto: CreateUserDto) {
+    const existing = await this.userRepository.findOneBy({ email: createUserDto.email });
+    if (existing) {
+      throw new ConflictException('Email already in use');
+    }
+
+    const { password, ...rest } = createUserDto;
+    
+    // Hash password
+    const saltOrRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+
+    const user = this.userRepository.create({
+      ...rest,
+      password: hashedPassword,
+      role: UserRole.CUSTOMER, // Siempre cliente
+    });
+    
+    const savedUser = await this.userRepository.save(user);
+
+    // Creamos también el Customer correspondiente en la base de datos
+    const customerRepo = this.dataSource.getRepository(Customer);
+    const existingCustomer = await customerRepo.findOneBy({ email: createUserDto.email });
+    if (!existingCustomer) {
+      const customer = customerRepo.create({
+        nombre: createUserDto.nombre,
+        apellido: createUserDto.apellido,
+        email: createUserDto.email,
+        numero: createUserDto.numero,
+      });
+      await customerRepo.save(customer);
+    }
+
+    return savedUser;
+  }
+
 
   findAll(currentUser: JwtPayload) {
     if (currentUser.role === UserRole.BUSINESS) {

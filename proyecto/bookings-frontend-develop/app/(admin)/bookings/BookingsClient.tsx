@@ -366,12 +366,21 @@ export default function BookingsClient({
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
+  // Filtra las reservas según el rol del usuario.
+  // IMPORTANTE: comparamos con Number() para evitar que la comparación
+  // === falle si businessId/userId vienen como string desde el backend.
   const roleFilteredBookings = useMemo(() => {
     if (user?.role === "empresa") {
-      return bookings.filter((b) => b.businessId === user.businessId);
+      // El backend ya filtra por empresa, pero hacemos doble comprobación local
+      return bookings.filter((b) => Number(b.businessId) === Number(user.businessId));
     } else if (user?.role === "usuario") {
-      return bookings.filter((b) => b.userId === user.id);
+      // El usuario ve solo sus propias reservas (comparamos por userId o customerId)
+      return bookings.filter(
+        (b) => Number((b as any).userId) === Number(user.id) ||
+               Number(b.customerId) === Number(user.customerId)
+      );
     }
+    // admin ve todo
     return bookings;
   }, [bookings, user]);
 
@@ -1114,9 +1123,11 @@ export default function BookingsClient({
                   <td style={{ fontWeight: 600 }}>{booking.id}</td>
                   <td>{formatDate(booking.date ?? "")}</td>
                   <td>{booking.time}</td>
-                  <td>{booking.serviceName}</td>
-                  <td>{booking.customerId}</td>
-                  <td>{BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
+                  <td>{booking.serviceName || (booking as any).service?.nombre || "—"}</td>
+                  {/* Nombre del cliente: viene del campo customerName inyectado por normalizeBooking() */}
+                  <td>{(booking as any).customerName || booking.customerId || "—"}</td>
+                  {/* Nombre del negocio: viene del campo businessName inyectado por normalizeBooking() */}
+                  <td>{(booking as any).businessName || BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
                   <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
                   {user?.role !== "usuario" && (
                     <td>

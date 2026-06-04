@@ -72,10 +72,34 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
 
 // ── APPOINTMENTS ────────────────────────────────────────────────
 
+// Normaliza un appointment crudo del backend al tipo Booking del frontend.
+// El backend devuelve relaciones anidadas (customer, business, service, user)
+// como objetos completos. Extraemos los campos útiles para el frontend.
 function normalizeBooking(app: any): Booking {
   const parts = (app.hora_reserva || "").split(" ");
   const date = parts[0] || "";
   const time = parts[1] || "";
+
+  // Extraer IDs desde el campo directo o desde el objeto anidado
+  const customerId: number | undefined =
+    app.customerId ?? (app.customer ? app.customer.id : undefined);
+  const businessId: number | undefined =
+    app.businessId ?? (app.business ? app.business.id : undefined);
+
+  // Extraer nombres reales para mostrar en la UI (dashboard, tabla de reservas)
+  const customerName: string =
+    app.customer
+      ? `${app.customer.nombre || ""} ${app.customer.apellido || ""}`.trim() ||
+        app.customer.email ||
+        String(app.customer.id)
+      : app.user
+        ? `${app.user.nombre || ""} ${app.user.apellido || ""}`.trim() ||
+          app.user.email ||
+          String(app.user.id)
+        : "";
+
+  const businessName: string =
+    app.business ? app.business.nombre || String(app.business.id) : "";
 
   return {
     id: app.id,
@@ -83,31 +107,40 @@ function normalizeBooking(app: any): Booking {
     date,
     time,
     status: app.status || "pending",
-    customerId: app.customerId || (app.customer ? app.customer.id : 1),
-    businessId: app.businessId || (app.business ? app.business.id : 1),
-    userId: app.userId || (app.user ? app.user.id : undefined),
+    // Preservamos los IDs (pueden ser undefined si el backend no los devuelve)
+    customerId,
+    businessId,
+    userId: app.userId ?? (app.user ? app.user.id : undefined),
+    // Nombre del servicio: del campo normalizado o del objeto anidado
     serviceName: app.serviceName || (app.service ? app.service.nombre : ""),
+    // Nombres extra para la UI (no son parte del tipo Booking oficial pero
+    // los adjuntamos dinámicamente para no hacer peticiones adicionales)
+    ...(customerName && { customerName } as any),
+    ...(businessName && { businessName } as any),
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
   };
 }
 
+// Obtiene todas las citas del usuario autenticado.
+// Pedimos limit=1000 para evitar que la paginación del backend
+// corte los resultados (por defecto el backend devuelve sólo 10).
 export async function getAppointments(): Promise<Booking[]> {
-  const apps = await apiRequest<any[]>("/appointments", { cache: "no-store" });
+  const apps = await apiRequest<any[]>("/appointments?page=1&limit=1000", { cache: "no-store" });
   return apps.map(normalizeBooking);
 }
 
 // NUEVO: Obtiene citas filtradas por rango de fechas enviando los parámetros
 // `from` y `to` (formato YYYY-MM-DD) como query params al backend.
 // Si el backend aún no soporta esos parámetros, el bloque catch hace fallback:
-// trae todas las citas y filtra en cliente para no romper la app.
+// trae todas las citas (hasta 1000) y filtra en cliente para no romper la app.
 export async function getAppointmentsByRange(
   from: string,
   to: string
 ): Promise<Booking[]> {
   try {
     const apps = await apiRequest<any[]>(
-      `/appointments?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      `/appointments?page=1&limit=1000&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
       { cache: "no-store" }
     );
     return apps.map(normalizeBooking);
@@ -156,12 +189,27 @@ export async function deleteAppointment(id: number): Promise<{ message: string }
 
 // ── CUSTOMERS ───────────────────────────────────────────────────
 
+// El backend devuelve clientes con campos en español (nombre, apellido, numero).
+// Este helper mapea esos campos a los alias de conveniencia del frontend
+// (name, phone) que usan los componentes CustomerCard y BookingsClient.
+function normalizeCustomer(c: any): Customer {
+  return {
+    ...c,
+    // Alias para CustomerCard y otros componentes del frontend
+    name: c.name || `${c.nombre || ""} ${c.apellido || ""}`.trim() || c.email || "",
+    phone: c.phone || c.numero || "",
+  };
+}
+
 export async function getCustomers(): Promise<Customer[]> {
-  return apiRequest<Customer[]>("/customers", { cache: "no-store" });
+  const data = await apiRequest<any[]>("/customers", { cache: "no-store" });
+  // Normalizamos para que los campos nombre/apellido queden mapeados a name/phone
+  return data.map(normalizeCustomer);
 }
 
 export async function getCustomerById(id: number): Promise<Customer> {
-  return apiRequest<Customer>(`/customers/${id}`, { cache: "no-store" });
+  const c = await apiRequest<any>(`/customers/${id}`, { cache: "no-store" });
+  return normalizeCustomer(c);
 }
 
 // MEJORA INNOVADORA: Búsqueda de cliente por nombre con autocomplete
@@ -275,3 +323,14 @@ export async function deleteBusiness(id: number): Promise<{ message: string }> {
     method: "DELETE",
   });
 }
+
+// ── AUTH ──────────────────────────────────────────────────────────
+
+// Registro público de nuevos usuarios (rol customer por defecto en el backend)
+export async function registerUser(data: any): Promise<any> {
+  return apiRequest<any>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
