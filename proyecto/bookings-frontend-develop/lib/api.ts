@@ -79,6 +79,7 @@ function normalizeBooking(app: any): Booking {
 
   return {
     id: app.id,
+    hora_reserva: app.hora_reserva || "",
     date,
     time,
     status: app.status || "pending",
@@ -229,5 +230,12 @@ export async function updateBusiness(id: number, data: UpdateBusinessDto): Promi
 export async function deleteBusiness(id: number): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/business/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function registerUser(data: any): Promise<any> {
+  return apiRequest<any>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(data),
   });
 }

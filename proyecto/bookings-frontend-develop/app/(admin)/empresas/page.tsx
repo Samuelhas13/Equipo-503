@@ -212,7 +212,7 @@ export default function EmpresasPage() {
   const filteredBusinesses = enrichedBusinesses.filter(
     (b) =>
       b.nombre.toLowerCase().includes(normalizedSearch) ||
-      b.direccion.toLowerCase().includes(normalizedSearch)
+      (b.direccion || "").toLowerCase().includes(normalizedSearch)
   );
 
   // Funciones de ayuda para obtener la fecha de hoy en formato string YYYY-MM-DD
@@ -236,7 +236,7 @@ export default function EmpresasPage() {
   const handleOpenEdit = (business: EnrichedBusiness) => {
     setFormMode("edit");
     setSelectedBusiness(business);
-    setFormData({ nombre: business.nombre, direccion: business.direccion });
+    setFormData({ nombre: business.nombre, direccion: business.direccion || "" });
     setIsFormOpen(true);
     setError(null);
   };
