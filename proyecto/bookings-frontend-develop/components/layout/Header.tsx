@@ -21,7 +21,7 @@
 
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -42,49 +42,109 @@ export default function Header({
   const { user, logout } = useAuth();
 
   // Obtenemos el idioma global y la función para cambiarlo desde el contexto.
-  // Esto permite que otros componentes también puedan usar el mismo idioma.
   const { language, changeLanguage } = useLanguage();
 
-// El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
-const headerTexts = {
-  es: {
-    title: title,
-    subtitle: subtitle,
-    logout: "Salir",
-    button: "ES",
-  },
-  en: {
-    title: "Bookings Admin",
-    subtitle: "Booking and payment management platform",
-    logout: "Logout",
-    button: "EN",
-  },
-};
+  // ── Estado para el tema claro/oscuro (movido desde el Sidebar) ──
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Sincronizar el estado del tema con localStorage al montar
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  // Función para alternar el tema claro/oscuro
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
+
+  // El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
+  const headerTexts = {
+    es: {
+      title: title,
+      subtitle: subtitle,
+      logout: "Salir",
+      button: "ES",
+      lightMode: "☀️",
+      darkMode: "🌙",
+      changeToLight: "Cambiar a modo claro",
+      changeToDark: "Cambiar a modo oscuro",
+    },
+    en: {
+      title: "Bookings Admin",
+      subtitle: "Booking and payment management platform",
+      logout: "Logout",
+      button: "EN",
+      lightMode: "☀️",
+      darkMode: "🌙",
+      changeToLight: "Switch to light mode",
+      changeToDark: "Switch to dark mode",
+    },
+  };
 
   return (
     <header
       className="admin-header"
       role="banner"
     >
-      {/* MEJORA APLICADA: Contenedor separado para título y subtítulo */}
-      {/* Muestra el título y subtítulo según el idioma seleccionado */}
+      {/* Contenedor del logo con soporte para modo claro/oscuro */}
       <div className="admin-header__content">
-        <h1 className="admin-header__title">{headerTexts[language].title}</h1>
-      <p className="admin-header__subtitle">{headerTexts[language].subtitle}</p>
+        <img
+          src="/logo-purple.png"
+          alt="Turnia Gendix Logo"
+          className="logo-light"
+          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
+        />
+        <img
+          src="/logo-white.png"
+          alt="Turnia Gendix Logo"
+          className="logo-dark"
+          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
+        />
       </div>
 
       {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
       <div className="admin-header__actions" role="toolbar">
         {actions}
-        
+
+        {/* Botón para cambiar el tema claro/oscuro */}
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={toggleTheme}
+          aria-label={
+            isDarkMode
+              ? headerTexts[language].changeToLight
+              : headerTexts[language].changeToDark
+          }
+        >
+          {isDarkMode ? headerTexts[language].lightMode : headerTexts[language].darkMode}
+        </button>
+
         {/* Botón para cambiar entre español e inglés */}
-      <button
-        type="button"
-        className="secondary-btn"
-        onClick={changeLanguage}
-      >
-        {headerTexts[language].button}
-      </button>
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={changeLanguage}
+        >
+          {headerTexts[language].button}
+        </button>
 
         {user && (
           (() => {

@@ -187,11 +187,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Manrope', Arial, Helvetica, sans-serif;
-}
-
-/* Pone el min-height del body al 100% de la ventana */
-body {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 a {
@@ -222,21 +219,26 @@ textarea {
 .admin-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
   background-color: var(--bg);
   position: relative;
+  overflow: hidden;
 }
 
 .admin-layout__wrapper {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-layout__body {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto; /* Permite que el contenido principal y el footer se desplacen juntos */
 }
 
 /* Padding más pequeño en móvil, más generoso en escritorio */
@@ -296,6 +298,19 @@ textarea {
   /* Evita que el texto desborde al achicarse */
   transform: translateX(-100%);
   /* Oculto por defecto en móvil */
+}
+
+.admin-sidebar__top {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 90px; /* Evita que el contenido quede tapado por el botón inferior fijo */
+  scrollbar-width: none; /* Firefox */
+}
+
+.admin-sidebar__top::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Cuando el estado es 'open', lo deslizamos hacia adentro */
@@ -409,6 +424,7 @@ textarea {
   /* Asegura empujar al fondo */
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-sidebar);
+  z-index: 10;
 }
 
 /* Botón de toggle de tema claro/oscuro */
@@ -479,6 +495,12 @@ textarea {
   display: none;
 }
 
+/* Centrar el botón de cambio de tema cuando el sidebar está colapsado */
+.admin-sidebar--collapsed .theme-toggle-btn {
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
 
 /* ==========================================================================
    5. CABECERA (HEADER)
@@ -486,17 +508,39 @@ textarea {
 
 /* En cabeceras con transparencia y blur, revisar contraste si aparece sobre fondos oscuros o imágenes. */
 .admin-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
   background: var(--surface-translucent-soft);
-  border: 1px solid var(--border-header);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   /* MEJORA APLICADA (18/05/2026): Layout mejorado con flexbox para soportar responsive y acciones dinámicas */
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* Borde inferior animado sutil que fluye de azul a morado */
+.admin-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #378add, #7f77dd, #378add);
+  background-size: 200% 100%;
+  animation: headerBorderFlow 4s linear infinite;
+}
+
+@keyframes headerBorderFlow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
 }
 
 /* MEJORA APLICADA (18/05/2026): Contenedor para título y subtítulo */
@@ -856,7 +900,7 @@ textarea {
 /* Formato para las insignias */
 .badge {
   display: inline-block;
-  padding: 6px 6px;
+  padding: 4px 4px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
@@ -904,6 +948,31 @@ textarea {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Ocultar sombra redundante de la tabla para evitar desbordes por box-shadow */
+.table-responsive .data-table {
+  box-shadow: none;
+}
+
+/* Personalización de la barra de desplazamiento horizontal para tablas */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 /* MEJORA: Barra horizontal solo en pantallas móviles, no en desktop */

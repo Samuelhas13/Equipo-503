@@ -31,8 +31,6 @@ export default function Sidebar({
   // Obtenemos el idioma global para traducir los textos del sidebar
   const { language } = useLanguage();
 
-  // Estado para controlar el tema claro/oscuro
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Estado para controlar si el sidebar está expandido o colapsado
   const [isOpen, setIsOpen] = useState(true);
@@ -52,10 +50,7 @@ export default function Sidebar({
       adminWorkspace: "Espacio de administración",
       collapseMenu: "Contraer menú",
       expandMenu: "Expandir menú",
-      lightMode: "Modo Claro",
-      darkMode: "Modo Oscuro",
-      changeToLight: "Cambiar a modo claro",
-      changeToDark: "Cambiar a modo oscuro",
+
     },
     en: {
       dashboard: "Dashboard",
@@ -70,10 +65,7 @@ export default function Sidebar({
       adminWorkspace: "Admin workspace",
       collapseMenu: "Collapse menu",
       expandMenu: "Expand menu",
-      lightMode: "Light Mode",
-      darkMode: "Dark Mode",
-      changeToLight: "Switch to light mode",
-      changeToDark: "Switch to dark mode",
+
     },
   };
 
@@ -102,32 +94,7 @@ export default function Sidebar({
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 
-  // Sincronizar el estado del tema con localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
-  // Función para alternar el tema claro/oscuro
-  const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
-    }
-  };
 
   // Determina qué menú se muestra según el rol del usuario
   let activeMenuItems = menuItems;
@@ -215,26 +182,6 @@ export default function Sidebar({
         </nav>
       </div>
 
-      <div className="admin-sidebar__bottom">
-        <button
-          onClick={toggleTheme}
-          className="theme-toggle-btn"
-          aria-label={
-            isDarkMode
-              ? sidebarTexts[language].changeToLight
-              : sidebarTexts[language].changeToDark
-          }
-        >
-          <span className="theme-toggle-btn__icon" aria-hidden="true">
-            {isDarkMode ? "☀️" : "🌙"}
-          </span>
-          <span className="theme-toggle-btn__label">
-            {isDarkMode
-              ? sidebarTexts[language].lightMode
-              : sidebarTexts[language].darkMode}
-          </span>
-        </button>
-      </div>
     </aside>
   );
 }
