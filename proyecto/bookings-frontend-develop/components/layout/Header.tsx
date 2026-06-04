@@ -111,12 +111,6 @@ export default function Header({
           className="logo-light"
           style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
         />
-        <img
-          src="/logo-white.png"
-          alt="Turnia Gendix Logo"
-          className="logo-dark"
-          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
-        />
       </div>
 
       {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
