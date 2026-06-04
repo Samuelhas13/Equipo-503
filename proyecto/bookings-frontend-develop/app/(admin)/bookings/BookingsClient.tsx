@@ -20,15 +20,6 @@ import {
   updateAppointment,
 } from "@/lib/api";
 
-<<<<<<< HEAD
-function StatusBadge({ status }: { status: BookingStatus }) {
-  const label =
-    status === "pending"
-      ? "Pendiente"
-      : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
-=======
 const BUSINESS_NAMES: Record<number, string> = {
   1: "Peluquería Nova",
   2: "Restaurante Marea",
@@ -36,7 +27,6 @@ const BUSINESS_NAMES: Record<number, string> = {
   4: "Gimnasio Fit",
   5: "Clínica Dental",
 };
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const map: Record<BookingStatus, string> = {
@@ -271,30 +261,6 @@ export default function BookingsClient({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-<<<<<<< HEAD
-
-  const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return bookings;
-    return bookings.filter((booking) => booking.status === statusFilter);
-  }, [bookings, statusFilter]);
-
-  const totalCount = bookings.length;
-  const pendingCount = bookings.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const paidCount = bookings.filter((b) => b.status === "paid").length;
-
-  function updateCreateForm<K extends keyof CreateBookingDto>(
-    key: K,
-    value: CreateBookingDto[K]
-  ) {
-    setCreateForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }
-
-  function updateEditForm<K extends keyof CreateBookingDto>(
-=======
   const [searchedCustomer, setSearchedCustomer] = useState<{
     id: number;
     name?: string;
@@ -436,45 +402,31 @@ export default function BookingsClient({
   const latestBooking = user?.role === "usuario" ? filteredBookings[0] : undefined;
 
   function updateCreateForm<K extends keyof CreateBookingDto>(
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
     key: K,
     value: CreateBookingDto[K]
   ) {
     setCreateForm((prev) => ({ ...prev, [key]: value }));
   }
 
-<<<<<<< HEAD
-  function resetCreateForm() {
-    setCreateForm(emptyForm);
-=======
   function updateEditForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
   ) {
     setEditForm((prev) => ({ ...prev, [key]: value }));
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
   }
 
   function resetCreateForm() { setCreateForm(emptyForm); }
   function resetEditForm() { setEditForm(emptyForm); }
 
-<<<<<<< HEAD
-  function openCreateForm() {
-    setErrorMessage("");
-    setSuccessMessage("");
-=======
   // 3. Modificamos la apertura para añadir el scroll
   function openCreateForm() {
     setSuccessMessage("");
     setErrorMessage("");
     setSuccessMessage("");
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
     setEditingBookingId(null);
     setDeleteTargetId(null);
     resetEditForm();
     setIsCreateOpen(true);
-<<<<<<< HEAD
-=======
 
     // Limpiar estados de búsqueda de cliente (sistema igual a customers)
     setCustomerSearchQuery("");
@@ -498,7 +450,6 @@ export default function BookingsClient({
     setTimeout(() => {
       createFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
   }
 
   function closeCreateForm() {
@@ -513,8 +464,6 @@ export default function BookingsClient({
     setIsCreateOpen(false);
     setDeleteTargetId(null);
     setEditingBookingId(booking.id);
-<<<<<<< HEAD
-=======
     let cleanServiceName = booking.serviceName ?? "";
     let parsedPersons = 1;
     const match = (booking.serviceName ?? "").match(/(.*) \((\d+) personas?\)/);
@@ -524,7 +473,6 @@ export default function BookingsClient({
     }
 
     setEditPersons(parsedPersons);
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
     setEditForm({
       date: booking.date,
       time: booking.time,
@@ -551,13 +499,7 @@ export default function BookingsClient({
     setDeleteTargetId(id);
   }
 
-<<<<<<< HEAD
-  function closeDeleteModal() {
-    setDeleteTargetId(null);
-  }
-=======
   function closeDeleteModal() { setDeleteTargetId(null); }
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -566,9 +508,6 @@ export default function BookingsClient({
     setErrorMessage("");
 
     try {
-<<<<<<< HEAD
-      const created = await createAppointment(createForm);
-=======
       const finalServiceName = `${createForm.serviceName} (${createPersons} ${createPersons === 1 ? 'persona' : 'personas'})`;
       const payload = {
         ...createForm,
@@ -576,7 +515,6 @@ export default function BookingsClient({
       };
 
       const created = await createAppointment(payload);
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
       setBookings((prev) => [created, ...prev]);
       resetCreateForm();
       setCreatePersons(1);
@@ -594,20 +532,12 @@ export default function BookingsClient({
     e.preventDefault();
     if (!editingBookingId) return;
 
-<<<<<<< HEAD
-    if (!editingBookingId) return;
-
-=======
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
     setLoadingEdit(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-<<<<<<< HEAD
-=======
       const finalServiceName = `${editForm.serviceName} (${editPersons} ${editPersons === 1 ? 'persona' : 'personas'})`;
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
       const payload: UpdateBookingDto = {
         date: editForm.date,
         time: editForm.time,
@@ -618,13 +548,7 @@ export default function BookingsClient({
       const updated = await updateAppointment(editingBookingId, payload);
 
       setBookings((prev) =>
-<<<<<<< HEAD
-        prev.map((booking) =>
-          booking.id === editingBookingId ? updated : booking
-        )
-=======
         prev.map((booking) => booking.id === editingBookingId ? updated : booking)
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
       );
 
       setEditingBookingId(null);
@@ -648,13 +572,7 @@ export default function BookingsClient({
       await deleteAppointment(deleteTargetId);
       setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
 
-<<<<<<< HEAD
-      if (editingBookingId === deleteTargetId) {
-        closeEditForm();
-      }
-=======
       if (editingBookingId === deleteTargetId) closeEditForm();
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
 
       setSuccessMessage("Reserva personalizada eliminada con éxito.");
       closeDeleteModal();
