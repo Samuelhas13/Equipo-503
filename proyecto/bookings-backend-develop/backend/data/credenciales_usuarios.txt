@@ -2,7 +2,7 @@
 
 1. ADMIN (Acceso Global)
 Email: admin@bookings.com
-Contraseña: Admin123!
+Contraseña: Password123!
 Rol: admin
 businessId: null
 
