@@ -2523,3 +2523,405 @@ html.dark .logo-light {
 html.dark .logo-dark {
   display: block;
 }
+
+/* ==========================================================================
+   24. MENSAJES DE CONTACTO (ADMIN)
+   ========================================================================== */
+
+/* Botón de mensajes del Header */
+.messages-btn-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+
+.messages-btn-header:hover {
+  background: var(--surface-2);
+  border-color: var(--purple-400);
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(127, 119, 221, 0.25);
+}
+
+.messages-btn-header:active {
+  transform: translateY(0);
+}
+
+/* Insignia de notificación con pulso */
+.messages-btn-header__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #e24b4a;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 6px rgba(226, 75, 74, 0.4);
+  animation: badgePulse 2s infinite ease-in-out;
+  border: 2px solid var(--bg);
+}
+
+@keyframes badgePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+    box-shadow: 0 2px 10px rgba(226, 75, 74, 0.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Contenedor de Bandeja de Entrada */
+.contact-inbox-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Barra de controles */
+.inbox-controls-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+}
+
+.inbox-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.filter-tab-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.filter-tab-btn--active {
+  background: var(--purple-800);
+  border-color: var(--border-strong);
+  color: white;
+}
+
+.inbox-search {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+}
+
+.search-input-field {
+  padding-right: 32px;
+  width: 100%;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Grid de contenido */
+.inbox-content-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .inbox-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Columna de lista */
+.inbox-list-column {
+  padding: 0;
+  overflow: hidden;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-list {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Item de la lista */
+.inbox-item {
+  position: relative;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inbox-item:last-child {
+  border-bottom: none;
+}
+
+.inbox-item:hover {
+  background: var(--surface-2);
+}
+
+.inbox-item--selected {
+  background: var(--surface-translucent-soft) !important;
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+}
+
+.inbox-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.inbox-item__name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inbox-item--unread .inbox-item__name {
+  font-weight: 700;
+}
+
+.inbox-item__date {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.inbox-item__subject {
+  display: flex;
+}
+
+.inbox-item__snippet {
+  font-size: 13px;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.inbox-item--unread .inbox-item__snippet {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.inbox-item__unread-indicator {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Badges de asunto */
+.badge-subject {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badge-subject-support {
+  background: rgba(55, 138, 221, 0.15);
+  color: #5bb3ff;
+}
+
+.badge-subject-billing {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.badge-subject-sales {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.badge-subject-other {
+  background: rgba(107, 114, 128, 0.15);
+  color: #9ca3af;
+}
+
+/* Columna de detalles */
+.inbox-details-column {
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-details {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.inbox-details__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.inbox-details__subject-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.inbox-details__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.inbox-details__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.meta-row {
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.meta-label {
+  color: var(--muted);
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.meta-value {
+  color: var(--text);
+  word-break: break-all;
+}
+
+.email-link {
+  color: var(--accent);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.email-link:hover {
+  color: var(--purple-200);
+}
+
+.inbox-details__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.body-title {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.body-content {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  background: var(--surface-2);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  min-height: 150px;
+}
+
+/* Detalle vacío */
+.inbox-details-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  gap: 12px;
+  padding: 60px 0;
+}
+
+.empty-icon {
+  font-size: 40px;
+  opacity: 0.5;
+}

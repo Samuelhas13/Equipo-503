@@ -157,3 +157,21 @@ export type CreateBusinessDto = {
 
 export type UpdateBusinessDto = Partial<CreateBusinessDto>;
 
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  subject: "support" | "billing" | "sales" | "other";
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface CreateContactDto {
+  name: string;
+  email: string;
+  subject: "support" | "billing" | "sales" | "other";
+  message: string;
+}
+
+

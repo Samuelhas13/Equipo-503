@@ -1,7 +1,7 @@
 "use client";
-
 import { useState, FormEvent } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { submitContactMessage } from "@/lib/api";
 
 export default function ContactoPage() {
 
@@ -78,6 +78,7 @@ export default function ContactoPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   const handleInputChange = (
     field: "name" | "email" | "subject" | "message",
@@ -89,12 +90,19 @@ export default function ContactoPage() {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitSuccess(false);
+    setSubmitError(false);
     
-    // Simular envío de formulario con un efecto premium
-    setTimeout(() => {
+    try {
+      await submitContactMessage({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject as any,
+        message: formData.message,
+      });
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setFormData({
@@ -108,7 +116,11 @@ export default function ContactoPage() {
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 5000);
-    }, 1200);
+    } catch (error) {
+      console.error("Error submitting contact message:", error);
+      setIsSubmitting(false);
+      setSubmitError(true);
+    }
   };
 
   return (
@@ -217,6 +229,14 @@ export default function ContactoPage() {
             {submitSuccess && (
               <div className="message-success" style={{ marginTop: "8px" }}>
                 {texts[language].success}
+              </div>
+            )}
+
+            {submitError && (
+              <div className="message-error" style={{ marginTop: "8px", padding: "12px", borderRadius: "10px", background: "rgba(226, 75, 74, 0.1)", border: "1px solid var(--error)", color: "var(--error)", fontSize: "14px", fontWeight: 500 }}>
+                {language === "es" 
+                  ? "✗ Hubo un error al enviar el mensaje. Inténtalo de nuevo." 
+                  : "✗ There was an error sending your message. Please try again."}
               </div>
             )}
 

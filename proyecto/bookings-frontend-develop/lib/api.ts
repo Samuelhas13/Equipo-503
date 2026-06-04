@@ -13,6 +13,8 @@ import type {
   Business,
   CreateBusinessDto,
   UpdateBusinessDto,
+  ContactMessage,
+  CreateContactDto,
 } from "./types";
 
 export type {
@@ -228,6 +230,36 @@ export async function updateBusiness(id: number, data: UpdateBusinessDto): Promi
 
 export async function deleteBusiness(id: number): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/business/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// ── CONTACT MESSAGES ─────────────────────────────────────────────
+
+export async function submitContactMessage(data: CreateContactDto): Promise<ContactMessage> {
+  return apiRequest<ContactMessage>("/contact", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getContactMessages(): Promise<ContactMessage[]> {
+  return apiRequest<ContactMessage[]>("/contact", { cache: "no-store" });
+}
+
+export async function getUnreadContactMessagesCount(): Promise<{ count: number }> {
+  return apiRequest<{ count: number }>("/contact/unread-count", { cache: "no-store" });
+}
+
+export async function updateContactMessageReadStatus(id: number, isRead: boolean): Promise<ContactMessage> {
+  return apiRequest<ContactMessage>(`/contact/${id}/read`, {
+    method: "PATCH",
+    body: JSON.stringify({ isRead }),
+  });
+}
+
+export async function deleteContactMessage(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/contact/${id}`, {
     method: "DELETE",
   });
 }

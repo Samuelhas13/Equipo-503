@@ -21,9 +21,10 @@
 
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { getUnreadContactMessagesCount } from "@/lib/api";
 
 // MEJORA APLICADA: Interfaz HeaderProps para mayor robustez y type-safety
 // Permite que el componente sea reutilizable en diferentes contextos con datos dinámicos
@@ -44,6 +45,27 @@ export default function Header({
   // Obtenemos el idioma global y la función para cambiarlo desde el contexto.
   // Esto permite que otros componentes también puedan usar el mismo idioma.
   const { language, changeLanguage } = useLanguage();
+
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user || user.role !== "admin") return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { count } = await getUnreadContactMessagesCount();
+        setUnreadCount(count);
+      } catch (err) {
+        console.error("Error fetching unread contact messages count:", err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Polling cada 30 segundos para mantener la notificación actualizada
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
   const headerTexts = {
@@ -85,6 +107,21 @@ export default function Header({
       {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
       <div className="admin-header__actions" role="toolbar">
         {actions}
+
+        {user && user.role === "admin" && (
+          <button
+            type="button"
+            className="messages-btn-header"
+            onClick={() => window.open("/contacto/mensajes", "_blank")}
+            title={language === "es" ? "Ver mensajes de contacto" : "View contact messages"}
+            aria-label={language === "es" ? `Mensajes: ${unreadCount} sin leer` : `Messages: ${unreadCount} unread`}
+          >
+            <span className="messages-btn-header__icon">✉</span>
+            {unreadCount > 0 && (
+              <span className="messages-btn-header__badge">{unreadCount}</span>
+            )}
+          </button>
+        )}
 
         {/* Botón para cambiar entre español e inglés */}
         <button

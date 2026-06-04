@@ -35,7 +35,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
       if (user.role === "usuario") {
         const allowedUserPaths = ["/bookings", "/empresas", "/contacto"];
         const isAllowed = allowedUserPaths.some(
-          (path) => pathname === path || pathname.startsWith(path + "/")
+          (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
         );
 
         if (!isAllowed) {
@@ -44,7 +44,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
       } else if (user.role === "empresa") {
         const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers"];
         const isAllowed = allowedEmpresaPaths.some(
-          (path) => pathname === path || pathname.startsWith(path + "/")
+          (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
         );
 
         if (!isAllowed) {
@@ -77,13 +77,13 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
   if (user && user.role === "usuario") {
     const allowedUserPaths = ["/bookings", "/empresas", "/contacto"];
     const isAllowed = allowedUserPaths.some(
-      (path) => pathname === path || pathname.startsWith(path + "/")
+      (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
     );
     if (!isAllowed) return null;
   } else if (user && user.role === "empresa") {
     const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers"];
     const isAllowed = allowedEmpresaPaths.some(
-      (path) => pathname === path || pathname.startsWith(path + "/")
+      (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
     );
     if (!isAllowed) return null;
   }
