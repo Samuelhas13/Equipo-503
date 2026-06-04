@@ -15,3 +15,4 @@ Ejemplo 1: cliente1@masivo.com
 Ejemplo 2: cliente2@masivo.com
 (...hasta cliente10000@masivo.com)
 Cualquiera de esos emails con la contraseña Password123! te dejará entrar en http://localhost:3001 y verás los datos correspondientes a ese rol.
+>>>>>>> 8dc73afd94f9629077c87212a392aa6bc44640a9
