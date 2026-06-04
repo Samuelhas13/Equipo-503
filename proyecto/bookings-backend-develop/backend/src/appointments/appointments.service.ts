@@ -18,8 +18,7 @@ export class AppointmentsService {
     private readonly customerRepository: Repository<Customer>,
   ) {}
 
-  findAll(page: number = 1, limit: number = 10, currentUser?: JwtPayload) {
-    const skip = (page - 1) * limit;
+  findAll(page?: number, limit?: number, currentUser?: JwtPayload) {
     let where: any = {};
 
     if (currentUser?.role === UserRole.BUSINESS) {
@@ -31,13 +30,18 @@ export class AppointmentsService {
       ];
     }
 
-    return this.appointmentsRepository.find({
+    const options: any = {
       where,
       order: { hora_reserva: 'ASC' },
-      skip,
-      take: limit,
       relations: ['customer', 'business', 'service', 'user'],
-    });
+    };
+
+    if (page !== undefined && limit !== undefined) {
+      options.skip = (page - 1) * limit;
+      options.take = limit;
+    }
+
+    return this.appointmentsRepository.find(options);
   }
 
   async findOne(id: number, currentUser?: JwtPayload) {

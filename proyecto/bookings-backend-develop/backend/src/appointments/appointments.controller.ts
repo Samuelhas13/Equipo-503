@@ -42,8 +42,8 @@ export class AppointmentsController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
-    const pageNum = page ? parseInt(page, 10) : 1;
-    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
     return this.appointmentsService.findAll(pageNum, limitNum, req.user);
   }
 
