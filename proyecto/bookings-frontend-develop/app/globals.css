@@ -2506,3 +2506,20 @@ html.dark .business-calendar,
     grid-template-columns: 1fr;
   }
 }
+
+/* Gestión de visibilidad de logo para el Header */
+.logo-light {
+  display: block;
+}
+
+.logo-dark {
+  display: none;
+}
+
+html.dark .logo-light {
+  display: none;
+}
+
+html.dark .logo-dark {
+  display: block;
+}

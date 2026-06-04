@@ -45,46 +45,55 @@ export default function Header({
   // Esto permite que otros componentes también puedan usar el mismo idioma.
   const { language, changeLanguage } = useLanguage();
 
-// El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
-const headerTexts = {
-  es: {
-    title: title,
-    subtitle: subtitle,
-    logout: "Salir",
-    button: "ES",
-  },
-  en: {
-    title: "Bookings Admin",
-    subtitle: "Booking and payment management platform",
-    logout: "Logout",
-    button: "EN",
-  },
-};
+  // El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
+  const headerTexts = {
+    es: {
+      title: title,
+      subtitle: subtitle,
+      logout: "Salir",
+      button: "ES",
+    },
+    en: {
+      title: "Bookings Admin",
+      subtitle: "Booking and payment management platform",
+      logout: "Logout",
+      button: "EN",
+    },
+  };
 
   return (
     <header
       className="admin-header"
       role="banner"
     >
-      {/* MEJORA APLICADA: Contenedor separado para título y subtítulo */}
-      {/* Muestra el título y subtítulo según el idioma seleccionado */}
+      {/* Contenedor del logo con soporte para modo claro/oscuro */}
       <div className="admin-header__content">
-        <h1 className="admin-header__title">{headerTexts[language].title}</h1>
-      <p className="admin-header__subtitle">{headerTexts[language].subtitle}</p>
+        <img
+          src="/logo-purple.png"
+          alt="Turnia Gendix Logo"
+          className="logo-light"
+          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
+        />
+        <img
+          src="/logo-white.png"
+          alt="Turnia Gendix Logo"
+          className="logo-dark"
+          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
+        />
       </div>
 
       {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
       <div className="admin-header__actions" role="toolbar">
         {actions}
-        
+
         {/* Botón para cambiar entre español e inglés */}
-      <button
-        type="button"
-        className="secondary-btn"
-        onClick={changeLanguage}
-      >
-        {headerTexts[language].button}
-      </button>
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={changeLanguage}
+        >
+          {headerTexts[language].button}
+        </button>
 
         {user && (
           (() => {
