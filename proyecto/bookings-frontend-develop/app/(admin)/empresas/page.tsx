@@ -107,6 +107,10 @@ export default function EmpresasPage() {
   const [bookingPersons, setBookingPersons] = useState(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
+
   // Textos para multilenguaje
   const texts = {
     es: {

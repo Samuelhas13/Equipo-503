@@ -1098,6 +1098,9 @@ export default function BookingsClient({
               >
                 {{ all: "Todas", pending: "Pendientes", confirmed: "Confirmadas", paid: "Pagadas" }[f]}
               </button>
+            ))}
+          </div>
+        </div>
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
         {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
