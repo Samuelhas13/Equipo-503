@@ -462,7 +462,9 @@ export default function DashboardPage() {
   );
 
   const nextBooking      = upcomingBookings[0];
-  const displayedBookings = showAll ? upcomingBookings : upcomingBookings.slice(0, 3);
+  // Limitamos la cantidad máxima de reservas mostradas a 30 cuando el usuario presiona "Ver todas",
+  // evitando así problemas de rendimiento al renderizar listas demasiado largas.
+  const displayedBookings = showAll ? upcomingBookings.slice(0, 30) : upcomingBookings.slice(0, 3);
 
   return (
     <div className="page-stack">

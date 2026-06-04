@@ -385,8 +385,13 @@ export default function BookingsClient({
   }, [bookings, user]);
 
   const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return roleFilteredBookings;
-    return roleFilteredBookings.filter((booking) => booking.status === statusFilter);
+    let result = roleFilteredBookings;
+    if (statusFilter !== "all") {
+      result = roleFilteredBookings.filter((booking) => booking.status === statusFilter);
+    }
+    // Limitamos la cantidad de reservas visibles a un máximo de 30 
+    // para evitar sobrecargar la interfaz y mantener un buen rendimiento.
+    return result.slice(0, 30);
   }, [roleFilteredBookings, statusFilter]);
 
   const totalCount = roleFilteredBookings.length;
