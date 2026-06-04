@@ -1,51 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsPositive,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsInt, IsPositive, IsString } from 'class-validator';
 import { PaymentMethod, PaymentStatus } from '../payment.entity';
 
 export class CreatePaymentDto {
-  @ApiProperty({ example: 28.0, description: 'Importe del pago en euros' })
-  @IsPositive()
-  amount: number;
-
-  @ApiProperty({ example: '2026-04-15', description: 'Fecha del pago' })
-  @IsDateString()
-  date: string;
-
-  @ApiProperty({
-    enum: PaymentStatus,
-    example: PaymentStatus.PAID,
-    description: 'Estado del cobro',
-  })
-  @IsEnum(PaymentStatus)
-  status: PaymentStatus;
-
-  @ApiProperty({
-    enum: PaymentMethod,
-    example: PaymentMethod.CARD,
-    description: 'Método de pago: card | cash | bizum | pending',
-  })
-  @IsEnum(PaymentMethod)
-  paymentMethod: PaymentMethod;
-
-  @ApiProperty({ example: 'María López', description: 'Nombre del cliente' })
-  @IsString()
-  customerName: string;
-
-  @ApiProperty({
-    example: 'Peluquería Nova',
-    description: 'Nombre del comercio',
-  })
-  @IsString()
-  businessName: string;
-
-  @ApiProperty({ example: 1, description: 'ID de la reserva asociada' })
+  @ApiProperty({ example: 1, description: 'id customer (para q te de el customer entero)' })
   @IsInt()
   @IsPositive()
-  appointmentId: number;
+  customerId!: number;
+
+  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.TARJETA, description: 'Metodo de pago (con targata, efectivo)' })
+  @IsEnum(PaymentMethod)
+  metodo_pago!: PaymentMethod;
+
+  @ApiProperty({ enum: PaymentStatus, example: PaymentStatus.PAGADO, description: 'Estado del pago (por cobrar, pagado, cancelado)' })
+  @IsEnum(PaymentStatus)
+  estado!: PaymentStatus;
+
+  @ApiProperty({ example: 1, description: 'Id servicio(importe)' })
+  @IsInt()
+  @IsPositive()
+  servicioId!: number;
+
+  @ApiProperty({ example: '10:30', description: 'Hora de pago' })
+  @IsString()
+  hora_pago!: string;
+
+  @ApiProperty({ example: 1, description: 'Id de la reserva asociada' })
+  @IsInt()
+  @IsPositive()
+  appointmentId!: number;
 }

@@ -1,23 +1,28 @@
-/**
- * CreateCustomerDto.
- * Define los datos esperados y obligatorios al crear un cliente nuevo.
- * Usa class-validator para asegurar que el email tenga el formato correcto, etc.
- */
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCustomerDto {
-  @ApiProperty({ example: 'Juan Pérez' })
+  @ApiProperty({ example: 'Juan', description: 'Nombre' })
   @IsString()
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
-  name: string;
+  nombre!: string;
 
-  @ApiProperty({ example: 'juan@example.com' })
+  @ApiProperty({ example: 'Pérez', description: 'Apellido' })
+  @IsString()
+  @IsNotEmpty({ message: 'El apellido no puede estar vacío' })
+  apellido!: string;
+
+  @ApiProperty({ example: 'juan@example.com', description: 'Email' })
   @IsEmail({}, { message: 'Debe proporcionar un email válido' })
-  email: string;
+  email!: string;
 
-  @ApiProperty({ example: '+34 600 123 456' })
+  @ApiProperty({ example: '600123456', description: 'Numero' })
   @IsString()
   @IsNotEmpty({ message: 'El teléfono no puede estar vacío' })
-  phone: string;
+  numero!: string;
+
+  @ApiPropertyOptional({ example: 1, description: 'Id business' })
+  @IsNumber()
+  @IsOptional()
+  businessId?: number;
 }

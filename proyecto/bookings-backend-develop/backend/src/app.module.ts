@@ -8,6 +8,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CustomersModule } from './customers/customers.module';
+import { PaymentsModule } from './payments/payments.module';
+import { AuthModule } from './auth/auth.module';
+import { BusinessModule } from './business/business.module';
+import { ServicesModule } from './services/services.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -15,7 +20,7 @@ import { CustomersModule } from './customers/customers.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+
     // TypeOrmModule.forRoot: Conecta la aplicación con la base de datos (SQLite en este caso)
     TypeOrmModule.forRoot({
       type: 'sqlite', // Motor de BD
@@ -24,10 +29,13 @@ import { CustomersModule } from './customers/customers.module';
       // synchronize: true crea o altera las tablas automáticamente en base a las entidades (Peligroso en producción real)
       synchronize: process.env.NODE_ENV !== 'production',
     }),
-
-    // Módulos de nuestra aplicación:
-    AppointmentsModule, // Contiene toda la lógica relacionada con Reservas
-    CustomersModule,    // Contiene toda la lógica relacionada con Clientes
+    AuthModule,
+    AppointmentsModule,
+    CustomersModule,
+    PaymentsModule,
+    BusinessModule,
+    ServicesModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

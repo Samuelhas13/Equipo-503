@@ -6,20 +6,167 @@
 // - Integrar un menú de usuario o acciones rápidas (ej. notificaciones, perfil).
 // - Hacerlo responsive con estilos adaptativos para móviles.
 // - Añadir accesibilidad con roles ARIA (ej. role="banner").
+//
+// MEJORAS APLICADAS (18/05/2026):
+// 1. Props dinámicas agregadas:
+//    - title: permite personalizar el título del header
+//    - subtitle: permite personalizar el subtítulo
+//    - actions?: ReactNode opcional para agregar botones, menús u otros elementos de acción
+// 2. Interfaz HeaderProps definida para type-safety con TypeScript
+// 3. Estilos inline reemplazados por clases CSS para mejor mantenimiento y reutilización
+// 4. role="banner" agregado al elemento <header> para mejorar accesibilidad con screen readers
+// 5. Estructura mejorada con contenedor separado para título/subtítulo vs acciones
+// 6. Flexibilidad para agregar acciones dinámicamente (notificaciones, perfil, etc.)
+// 7. Mejora responsive: layout flexbox que se adapta a diferentes tamaños de pantalla
 
-export default function Header() {
-    return (
-      <header
-        style={{
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "20px 24px",
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: "28px" }}>Bookings Admin</h1>
-        <p style={{ margin: "6px 0 0", color: "#6b7280", fontSize: "14px" }}>
-          Plataforma de gestión de reservas y cobros
-        </p>
-      </header>
-    );
-  }
+"use client";
+
+import { ReactNode, useState, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+
+// MEJORA APLICADA: Interfaz HeaderProps para mayor robustez y type-safety
+// Permite que el componente sea reutilizable en diferentes contextos con datos dinámicos
+interface HeaderProps {
+  title?: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}
+
+// MEJORA APLICADA: Props con valores por defecto para mantener compatibilidad
+export default function Header({
+  title = "Turnia gendix",
+  subtitle = "Plataforma de gestión de reservas y cobros",
+  actions,
+}: HeaderProps) {
+  const { user, logout } = useAuth();
+
+  // Obtenemos el idioma global y la función para cambiarlo desde el contexto.
+  const { language, changeLanguage } = useLanguage();
+
+  // ── Estado para el tema claro/oscuro (movido desde el Sidebar) ──
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Sincronizar el estado del tema con localStorage al montar
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  // Función para alternar el tema claro/oscuro
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
+
+  // El botón muestra el idioma actual: ES si está en español, EN si está en inglés.
+  const headerTexts = {
+    es: {
+      title: title,
+      subtitle: subtitle,
+      logout: "Salir",
+      button: "ES",
+      lightMode: "☀️",
+      darkMode: "🌙",
+      changeToLight: "Cambiar a modo claro",
+      changeToDark: "Cambiar a modo oscuro",
+    },
+    en: {
+      title: "Bookings Admin",
+      subtitle: "Booking and payment management platform",
+      logout: "Logout",
+      button: "EN",
+      lightMode: "☀️",
+      darkMode: "🌙",
+      changeToLight: "Switch to light mode",
+      changeToDark: "Switch to dark mode",
+    },
+  };
+
+  return (
+    <header
+      className="admin-header"
+      role="banner"
+    >
+      {/* Contenedor del logo con soporte para modo claro/oscuro */}
+      <div className="admin-header__content">
+        <img
+          src="/logo-purple.png"
+          alt="Turnia Gendix Logo"
+          className="logo-light"
+          style={{ height: "100px", objectFit: "contain", margin: "-15px 0" }}
+        />
+      </div>
+
+      {/* MEJORA APLICADA: Sección de acciones con perfil de usuario y botón de logout */}
+      <div className="admin-header__actions" role="toolbar">
+        {actions}
+
+        {/* Botón para cambiar el tema claro/oscuro */}
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={toggleTheme}
+          aria-label={
+            isDarkMode
+              ? headerTexts[language].changeToLight
+              : headerTexts[language].changeToDark
+          }
+        >
+          {isDarkMode ? headerTexts[language].lightMode : headerTexts[language].darkMode}
+        </button>
+
+        {/* Botón para cambiar entre español e inglés */}
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={changeLanguage}
+        >
+          {headerTexts[language].button}
+        </button>
+
+        {user && (
+          (() => {
+            const profileName =
+              typeof user.name === "string" && user.name.trim()
+                ? user.name
+                : user.email ?? "Usuario";
+            return (
+              <div className="user-profile-badge">
+                <div className="admin-avatar">
+                  {profileName.charAt(0).toUpperCase()}
+                </div>
+                <div className="user-profile-info">
+                  <span className="user-profile-name">{profileName}</span>
+                  <span className="user-profile-role">{user.role}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="logout-btn-header"
+                  type="button"
+                >
+                  {headerTexts[language].logout}
+                </button>
+              </div>
+            );
+          })()
+        )}
+      </div>
+    </header>
+  );
+}

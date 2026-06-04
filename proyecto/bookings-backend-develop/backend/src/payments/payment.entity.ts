@@ -3,57 +3,60 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 import { Appointment } from '../appointments/appointment.entity';
+import { Customer } from '../customers/customer.entity';
+import { Service } from '../services/service.entity';
 
 export enum PaymentStatus {
-  PAID = 'paid',
-  PENDING = 'pending',
-  FAILED = 'failed',
-  REFUNDED = 'refunded',
+  POR_COBRAR = 'por cobrar',
+  PAGADO = 'pagado',
+  CANCELADO = 'cancelado',
 }
 
 export enum PaymentMethod {
-  CARD = 'card',
-  CASH = 'cash',
-  BIZUM = 'bizum',
-  PENDING = 'pending',
+  TARJETA = 'tarjeta',
+  EFECTIVO = 'efectivo',
 }
 
-@Entity()
+@Entity('payments')
 export class Payment {
+  @ApiProperty({ description: 'ID del pago' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  amount: number;
+  @ApiProperty({ type: () => Customer, description: 'Cliente que realiza el pago' })
+  @ManyToOne(() => Customer, (customer) => customer.payments)
+  customer: Customer;
 
-  @Column({ type: 'date' })
-  date: string;
-
+  @ApiProperty({ enum: PaymentMethod, description: 'Método de pago' })
   @Column({
-    type: 'text',
-    default: PaymentStatus.PENDING,
+    type: 'varchar',
+    enum: PaymentMethod,
   })
-  status: PaymentStatus;
+  metodo_pago: PaymentMethod;
 
+  @ApiProperty({ enum: PaymentStatus, description: 'Estado del pago' })
   @Column({
-    type: 'text',
-    default: PaymentMethod.PENDING,
+    type: 'varchar',
+    enum: PaymentStatus,
+    default: PaymentStatus.POR_COBRAR,
   })
-  paymentMethod: PaymentMethod;
+  estado: PaymentStatus;
 
+  @ApiProperty({ type: () => Service, description: 'Servicio pagado (importe)' })
+  @ManyToOne(() => Service)
+  servicio: Service;
+
+  @ApiProperty({ description: 'Hora de pago' })
   @Column()
-  customerName: string;
+  hora_pago: string;
 
-  @Column()
-  businessName: string;
-
-  @Column()
-  appointmentId: number;
-
-  @OneToOne(() => Appointment)
-  @JoinColumn({ name: 'appointmentId' })
-  appointment!: Appointment;
+  @ApiProperty({ type: () => Appointment, description: 'Reserva asociada' })
+  @OneToOne(() => Appointment, (appointment) => appointment.payment, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  appointment: Appointment;
 }
