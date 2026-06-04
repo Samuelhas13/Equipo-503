@@ -18,12 +18,15 @@ export class PaymentsService {
   ) {}
 
   findAll(currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para acceder a los pagos');
+    }
+
     const where: any = {};
     if (currentUser?.role === UserRole.BUSINESS) {
       where.appointment = { business: { id: currentUser.businessId } };
-    } else if (currentUser?.role === UserRole.CUSTOMER) {
-      where.customer = { email: currentUser.email };
     }
+
     return this.paymentsRepository.find({
       where,
       order: { hora_pago: 'ASC' },
@@ -32,6 +35,10 @@ export class PaymentsService {
   }
 
   async findOne(id: number, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para acceder a los pagos');
+    }
+
     const payment = await this.paymentsRepository.findOne({
       where: { id },
       relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
@@ -45,14 +52,14 @@ export class PaymentsService {
       throw new ForbiddenException('Solo puedes acceder a los pagos de tu empresa');
     }
 
-    if (currentUser?.role === UserRole.CUSTOMER && payment.customer?.email !== currentUser.email) {
-      throw new ForbiddenException('Solo puedes acceder a tus propios pagos');
-    }
-
     return payment;
   }
 
   async create(createPaymentDto: CreatePaymentDto, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para registrar pagos');
+    }
+
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: createPaymentDto.appointmentId },
       relations: ['customer', 'business', 'user'],
@@ -66,10 +73,6 @@ export class PaymentsService {
 
     if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
       throw new ForbiddenException('No puedes registrar pagos para reservas de otras empresas');
-    }
-    
-    if (currentUser?.role === UserRole.CUSTOMER && appointment.user?.id !== currentUser.sub) {
-      throw new ForbiddenException('Solo puedes pagar tus propias reservas');
     }
 
     if (appointment.customer && createPaymentDto.customerId !== appointment.customer.id) {
@@ -101,13 +104,11 @@ export class PaymentsService {
   }
 
   async update(id: number, updatePaymentDto: UpdatePaymentDto, currentUser?: JwtPayload) {
-    const payment = await this.findOne(id, currentUser);
-    
     if (currentUser?.role === UserRole.CUSTOMER) {
-      // El cliente no puede cambiar asociaciones clave
-      delete updatePaymentDto.customerId;
-      delete updatePaymentDto.appointmentId;
+      throw new ForbiddenException('No tienes permiso para modificar pagos');
     }
+
+    const payment = await this.findOne(id, currentUser);
 
     if (updatePaymentDto.appointmentId && updatePaymentDto.appointmentId !== payment.appointment?.id) {
       const newAppointment = await this.appointmentsRepository.findOne({
@@ -135,6 +136,10 @@ export class PaymentsService {
   }
 
   async remove(id: number, currentUser?: JwtPayload) {
+    if (currentUser?.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Solo los administradores pueden eliminar pagos');
+    }
+
     const payment = await this.findOne(id, currentUser);
     await this.paymentsRepository.remove(payment);
     return { message: `Pago ${id} eliminado correctamente` };

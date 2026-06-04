@@ -92,6 +92,7 @@ export default function Sidebar({
     { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
     { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
+    { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 

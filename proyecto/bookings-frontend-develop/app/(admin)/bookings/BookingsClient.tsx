@@ -394,6 +394,8 @@ export default function BookingsClient({
   const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
   const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
 
+  const latestBooking = user?.role === "usuario" ? filteredBookings[0] : undefined;
+
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
@@ -584,7 +586,7 @@ export default function BookingsClient({
           <p>{texts[language].subtitle}</p>
         </div>
 
-        {user?.role !== "empresa" && (
+        {user && (
           <button className="primary-btn" type="button" onClick={openCreateForm}>
             {texts[language].newBooking}
           </button>
@@ -1083,7 +1085,7 @@ export default function BookingsClient({
       <section className="section-card booking-table-card">
         <div className="panel-title-row">
           <h3 className="panel-title">
-            {user?.role === "usuario" ? "Mis Citas Solicitadas" : "Reservas registradas"}
+            {user?.role === "usuario" ? "Detalle de mi reserva" : "Reservas registradas"}
           </h3>
           <div className="filter-row">
             {(["all", "pending", "confirmed", "paid"] as const).map((f) => (
@@ -1096,64 +1098,102 @@ export default function BookingsClient({
               >
                 {{ all: "Todas", pending: "Pendientes", confirmed: "Confirmadas", paid: "Pagadas" }[f]}
               </button>
-            ))}
-          </div>
-        </div>
-
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
         {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Servicio</th>
-                <th>Customer</th>
-                <th>Comercio</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBookings.map((booking) => (
-                <tr key={booking.id}>
-                  <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                  <td>{formatDate(booking.date ?? "")}</td>
-                  <td>{booking.time}</td>
-                  <td>{booking.serviceName || (booking as any).service?.nombre || "—"}</td>
-                  {/* Nombre del cliente: viene del campo customerName inyectado por normalizeBooking() */}
-                  <td>{(booking as any).customerName || booking.customerId || "—"}</td>
-                  {/* Nombre del negocio: viene del campo businessName inyectado por normalizeBooking() */}
-                  <td>{(booking as any).businessName || BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
-                  <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
-                  {user?.role !== "usuario" && (
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openEditForm(booking)}
-                        >
-                          {texts[language].edit}
-                        </button>
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openDeleteModal(booking.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  )}
+        {user?.role === "usuario" ? (
+          <div className="booking-detail-card">
+            {latestBooking ? (
+              <div className="booking-detail-content">
+                <div className="detail-row">
+                  <strong>ID de reserva:</strong>
+                  <span>{latestBooking.id}</span>
+                </div>
+                <div className="detail-row">
+                  <strong>Fecha:</strong>
+                  <span>{formatDate(latestBooking.date ?? "")}</span>
+                </div>
+                <div className="detail-row">
+                  <strong>Hora:</strong>
+                  <span>{latestBooking.time}</span>
+                </div>
+                <div className="detail-row">
+                  <strong>Servicio:</strong>
+                  <span>{latestBooking.serviceName || (latestBooking as any).service?.nombre || "—"}</span>
+                </div>
+                <div className="detail-row">
+                  <strong>Comercio:</strong>
+                  <span>{(latestBooking as any).businessName || BUSINESS_NAMES[latestBooking.businessId ?? 0] || `#${latestBooking.businessId ?? "?"}`}</span>
+                </div>
+                <div className="detail-row">
+                  <strong>Estado:</strong>
+                  <span>{latestBooking.status}</span>
+                </div>
+                {filteredBookings.length > 1 && (
+                  <p className="muted-text">
+                    Solo se muestra la reserva más reciente. Si necesitas más detalles,
+                    consulta con el comercio.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="booking-detail-empty">
+                <p>No tienes ninguna reserva registrada todavía.</p>
+                <p>Usa el botón "Nueva reserva" para crear tu primera cita.</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Servicio</th>
+                  <th>Customer</th>
+                  <th>Comercio</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredBookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td style={{ fontWeight: 600 }}>{booking.id}</td>
+                    <td>{formatDate(booking.date ?? "")}</td>
+                    <td>{booking.time}</td>
+                    <td>{booking.serviceName || (booking as any).service?.nombre || "—"}</td>
+                    <td>{(booking as any).customerName || booking.customerId || "—"}</td>
+                    <td>{(booking as any).businessName || BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
+                    <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
+                    {user?.role !== "usuario" && (
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => openEditForm(booking)}
+                          >
+                            {texts[language].edit}
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => openDeleteModal(booking.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

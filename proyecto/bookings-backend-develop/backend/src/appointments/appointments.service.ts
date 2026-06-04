@@ -124,6 +124,10 @@ export class AppointmentsService {
   }
 
   async remove(id: number, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para eliminar reservas');
+    }
+
     const appointment = await this.findOne(id, currentUser);
     await this.appointmentsRepository.remove(appointment);
     return { message: `Reserva ${id} eliminada correctamente` };

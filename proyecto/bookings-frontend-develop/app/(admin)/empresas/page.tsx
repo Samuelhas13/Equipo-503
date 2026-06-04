@@ -207,13 +207,23 @@ export default function EmpresasPage() {
   // Enriquecer la lista de empresas obtenida del backend
   const enrichedBusinesses = rawBusinesses.map(enrichBusiness);
 
-  // Filtrar según el buscador
+  // Filtrar según el buscador y el rol de empresa (si aplica)
   const normalizedSearch = search.toLowerCase();
-  const filteredBusinesses = enrichedBusinesses.filter(
-    (b) =>
+  const filteredBusinesses = enrichedBusinesses.filter((b) => {
+    // Si el usuario es rol 'empresa', solo puede ver la suya propia
+    if (user?.role === "empresa" && user.businessId !== b.id) {
+      return false;
+    }
+    return (
       b.nombre.toLowerCase().includes(normalizedSearch) ||
       (b.direccion || "").toLowerCase().includes(normalizedSearch)
-  );
+    );
+  });
+
+  // Lógica de paginación calculada dinámicamente
+  const totalPages = Math.ceil(filteredBusinesses.length / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedBusinesses = filteredBusinesses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   // Funciones de ayuda para obtener la fecha de hoy en formato string YYYY-MM-DD
   const getTodayString = () => {
