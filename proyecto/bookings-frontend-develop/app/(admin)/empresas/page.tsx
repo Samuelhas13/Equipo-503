@@ -109,7 +109,6 @@ export default function EmpresasPage() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Paginación
-  const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
 
   // Textos para multilenguaje
@@ -230,15 +229,6 @@ export default function EmpresasPage() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedBusinesses = filteredBusinesses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const ITEMS_PER_PAGE = 9;
-
-  const totalPages = Math.ceil(filteredBusinesses.length / ITEMS_PER_PAGE);
-
-  const paginatedBusinesses = filteredBusinesses.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   // Funciones de ayuda para obtener la fecha de hoy en formato string YYYY-MM-DD
   const getTodayString = () => {
     const today = new Date();
@@ -332,9 +322,8 @@ export default function EmpresasPage() {
     setActionLoading(true);
     setError(null);
 
-    const finalServiceName = `${bookingService} (${bookingPersons} ${
-      bookingPersons === 1 ? (language === "en" ? "person" : "persona") : (language === "en" ? "people" : "personas")
-    })`;
+    const finalServiceName = `${bookingService} (${bookingPersons} ${bookingPersons === 1 ? (language === "en" ? "person" : "persona") : (language === "en" ? "people" : "personas")
+      })`;
 
     try {
       await createAppointment({
@@ -404,9 +393,9 @@ export default function EmpresasPage() {
               placeholder={t.searchPlaceholder}
               value={search}
               onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
             />
             <button className="secondary-btn" type="button">
               {t.filter}
@@ -433,96 +422,96 @@ export default function EmpresasPage() {
         </div>
       ) : (
         <>
-         <section className="business-grid"> 
-    {paginatedBusinesses.map((business) => (
-      <div key={business.id} className="business-card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div className="business-icon-wrapper">{business.icon}</div>
-          <span className="business-category">{business.category}</span>
-        </div>
+          <section className="business-grid">
+            {paginatedBusinesses.map((business) => (
+              <div key={business.id} className="business-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div className="business-icon-wrapper">{business.icon}</div>
+                  <span className="business-category">{business.category}</span>
+                </div>
 
-        <div className="business-info">
-          <h3 className="business-title">{business.nombre}</h3>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
-            <span>📍</span> {business.direccion}
-          </p>
-          <p className="business-desc">{business.desc}</p>
-        </div>
+                <div className="business-info">
+                  <h3 className="business-title">{business.nombre}</h3>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span>📍</span> {business.direccion}
+                  </p>
+                  <p className="business-desc">{business.desc}</p>
+                </div>
 
-        {/* Acciones según el rol */}
-        <div className="business-actions" style={{ marginTop: "auto", display: "flex", gap: "10px" }}>
-          {user?.role === "usuario" && (
-            <button
-              type="button"
-              className="primary-btn"
-              style={{ width: "100%" }}
-              onClick={() => handleOpenBooking(business)}
+                {/* Acciones según el rol */}
+                <div className="business-actions" style={{ marginTop: "auto", display: "flex", gap: "10px" }}>
+                  {user?.role === "usuario" && (
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      style={{ width: "100%" }}
+                      onClick={() => handleOpenBooking(business)}
+                    >
+                      {t.reserve}
+                    </button>
+                  )}
+
+                  {(user?.role === "admin" || (user?.role === "empresa" && user.businessId === business.id)) && (
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ flex: 1 }}
+                      onClick={() => handleOpenEdit(business)}
+                    >
+                      {t.edit}
+                    </button>
+                  )}
+
+                  {user?.role === "admin" && (
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ flex: 1, color: "var(--error-color, #ef4444)", borderColor: "var(--error-color, #ef4444)" }}
+                      onClick={() => handleDelete(business.id)}
+                    >
+                      {t.delete}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {totalPages > 1 && (
+            <div
+              className="section-card"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+              }}
             >
-              {t.reserve}
-            </button>
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </button>
+
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Siguiente
+              </button>
+            </div>
           )}
-
-          {(user?.role === "admin" || (user?.role === "empresa" && user.businessId === business.id)) && (
-            <button
-              type="button"
-              className="secondary-btn"
-              style={{ flex: 1 }}
-              onClick={() => handleOpenEdit(business)}
-            >
-              {t.edit}
-            </button>
-          )}
-
-          {user?.role === "admin" && (
-            <button
-              type="button"
-              className="secondary-btn"
-              style={{ flex: 1, color: "var(--error-color, #ef4444)", borderColor: "var(--error-color, #ef4444)" }}
-              onClick={() => handleDelete(business.id)}
-            >
-              {t.delete}
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-  </section>
-
-  {totalPages > 1 && (
-    <div
-      className="section-card"
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: "12px",
-      }}
-    >
-      <button
-        type="button"
-        className="secondary-btn"
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      >
-        Anterior
-      </button>
-
-      <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
-        Página {currentPage} de {totalPages}
-      </span>
-
-      <button
-        type="button"
-        className="secondary-btn"
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      >
-        Siguiente
-      </button>
-    </div>
-  )}
-</>
-)}
+        </>
+      )}
 
       {/* MODAL: Añadir/Editar Empresa (Admin / Empresa) */}
       {isFormOpen && (
