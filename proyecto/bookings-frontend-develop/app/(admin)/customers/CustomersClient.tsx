@@ -95,6 +95,7 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
 
   const [search, setSearch] = useState("");  // Estado para controlar el texto introducido en el buscador.
   const [isCreateOpen, setIsCreateOpen] = useState(false);  // Estado para abrir o cerrar el formulario de nuevo cliente.
+  const [currentPage, setCurrentPage] = useState(1);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);  // Estado que guarda la lista de clientes mostrada en pantalla.
 
   // Estado que guarda los datos escritos en el formulario de creación.
@@ -114,6 +115,15 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
     (customer.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
     String(customer.business ?? "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const ITEMS_PER_PAGE = 9;
+
+const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+
+const paginatedCustomers = filteredCustomers.slice(
+  (currentPage - 1) * ITEMS_PER_PAGE,
+  currentPage * ITEMS_PER_PAGE
+);
 
   function handleInputChange(field: keyof typeof formData, value: string) {  // Actualiza un campo concreto del formulario sin modificar el resto.
     setFormData((current) => ({
@@ -238,7 +248,10 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
             className="input"
             placeholder={texts[language].searchPlaceholder}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           />
 
           <button className="secondary-btn" type="button">
@@ -248,14 +261,48 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
       </section>
 
       <section className="customer-grid">
-        {filteredCustomers.map((customer) => (
-          <CustomerCard
-            key={customer.id}
-            customer={customer}
-            texts={texts[language]}
-          />
-        ))}
-      </section>
-    </div>
+  {paginatedCustomers.map((customer) => (
+    <CustomerCard
+      key={customer.id}
+      customer={customer}
+      texts={texts[language]}
+    />
+  ))}
+</section>
+
+{totalPages > 1 && (
+  <div
+    className="section-card"
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "12px",
+    }}
+  >
+    <button
+      type="button"
+      className="secondary-btn"
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+    >
+      Anterior
+    </button>
+
+    <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+      Página {currentPage} de {totalPages}
+    </span>
+
+    <button
+      type="button"
+      className="secondary-btn"
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      disabled={currentPage === totalPages}
+    >
+      Siguiente
+    </button>
+  </div>
+)}
+  </div>
   );
 }
