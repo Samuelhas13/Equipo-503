@@ -29,7 +29,7 @@ const initialPaymentForm: PaymentForm = {
   date: "",
   status: "paid",
 };
-// ─── KpiCard — Variante D — Componente KPI con diseño visual avanzado.
+
 interface KpiCardColor {
   bar: string;
   trendBg: string;
@@ -59,7 +59,7 @@ function KpiCard({
     if (loading || !barsRef.current || activity.length === 0) return;
 
     const container = barsRef.current;
-    const max = Math.max(...activity) || 1; // Evitamos división por cero
+    const max = Math.max(...activity) || 1;
     const bars = container.querySelectorAll(".kpi-d__dot");
 
     setTimeout(() => {
@@ -115,7 +115,6 @@ function KpiCard({
   );
 }
 
-// Colores de las tarjetas KPI
 const KPI_COLORS: Record<string, KpiCardColor> = {
   green: {
     bar: "#1D9E75",
@@ -132,20 +131,18 @@ const KPI_COLORS: Record<string, KpiCardColor> = {
     trendBg: "#EEEDFE",
     trendText: "#26215C",
   },
-  // NUEVO: Color asignado para el KPI del método de pago preferido
   blue: {
-    bar:       "#2563EB",
-    trendBg:   "#DBEAFE",
+    bar: "#2563EB",
+    trendBg: "#DBEAFE",
     trendText: "#1E40AF",
   },
 };
 
 const ACTIVITY_DATA = {
-  paid:     [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
-  pending:  [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total:    [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
-  // Datos simulados para la animación de barras del nuevo KPI
-  method:   [20, 35, 40, 30, 45, 55, 40, 60, 50, 65, 70, 60, 75, 85],
+  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  method: [20, 35, 40, 30, 45, 55, 40, 60, 50, 65, 70, 60, 75, 85],
 };
 
 const METHOD_LABELS: Record<string, string> = {
@@ -157,7 +154,6 @@ const METHOD_LABELS: Record<string, string> = {
   pending: "Pendiente",
 };
 
-// Badge traducido según el idioma global
 function Badge({
   status,
   texts,
@@ -180,10 +176,8 @@ function Badge({
 }
 
 export default function PaymentsPage() {
-  // Obtenemos el idioma global para traducir los textos de payments
   const { language } = useLanguage();
 
-  // Textos de la página payments en español e inglés
   const texts = {
     es: {
       title: "Pagos",
@@ -312,7 +306,6 @@ export default function PaymentsPage() {
   const totalPaid = paid.reduce((sum, p) => sum + (p.amount ?? 0), 0);
   const totalPending = pending.reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
-  // NUEVO: Cálculo dinámico de la forma de pago más utilizada y su cantidad
   const getMostUsedMethod = () => {
     if (payments.length === 0) return { label: "Ninguno", count: 0 };
 
@@ -341,6 +334,14 @@ export default function PaymentsPage() {
   };
 
   const mostUsed = getMostUsedMethod();
+
+  // Los 30 pagos más recientes ordenados por hora_pago descendente
+  const recentPayments = [...payments]
+    .sort(
+      (a, b) =>
+        new Date(b.hora_pago).getTime() - new Date(a.hora_pago).getTime()
+    )
+    .slice(0, 30);
 
   const validatePaymentForm = () => {
     if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
@@ -483,7 +484,10 @@ export default function PaymentsPage() {
                 className="input"
                 value={paymentForm.method}
                 onChange={(event) =>
-                  handleInputChange("method", event.target.value as PaymentMethod)
+                  handleInputChange(
+                    "method",
+                    event.target.value as PaymentMethod
+                  )
                 }
               >
                 <option value="card">{texts[language].card}</option>
@@ -559,7 +563,6 @@ export default function PaymentsPage() {
         </section>
       )}
 
-      {/* Grid de KPIs - Ahora cuenta con 4 tarjetas distribuidas de forma fluida */}
       <section className="kpi-grid">
         <KpiCard
           title={texts[language].totalCharged}
@@ -579,7 +582,6 @@ export default function PaymentsPage() {
           loading={loading}
         />
 
-        {/* NUEVO: Método preferido — azul */}
         <KpiCard
           title="Método preferido"
           value={loading ? "—" : mostUsed.label}
@@ -589,7 +591,6 @@ export default function PaymentsPage() {
           loading={loading}
         />
 
-        {/* Total pagos — purple */}
         <KpiCard
           title={texts[language].totalPayments}
           value={String(payments.length)}
@@ -604,15 +605,15 @@ export default function PaymentsPage() {
         <div className="panel-title-row">
           <h3 className="panel-title">{texts[language].paymentList}</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {loading ? "—" : `${payments.length} ${texts[language].results}`}
+            {loading
+              ? "—"
+              : `${recentPayments.length} ${texts[language].results}`}
           </span>
         </div>
 
         <div className="table-responsive">
           {loading && (
-            <p className="table-feedback">
-              {texts[language].loadingPayments}
-            </p>
+            <p className="table-feedback">{texts[language].loadingPayments}</p>
           )}
 
           {!loading && error && (
@@ -637,7 +638,7 @@ export default function PaymentsPage() {
               </thead>
 
               <tbody>
-                {payments.map((payment) => (
+                {recentPayments.map((payment) => (
                   <tr key={payment.id}>
                     <td style={{ fontWeight: 600 }}>#{payment.id}</td>
                     <td>
@@ -646,8 +647,10 @@ export default function PaymentsPage() {
                     <td>{payment.amount} €</td>
                     <td>{payment.paymentMethod}</td>
                     <td>
-                      {payment.createdAt
-                        ? new Date(payment.createdAt).toLocaleDateString("es-ES")
+                      {payment.hora_pago
+                        ? new Date(payment.hora_pago).toLocaleDateString(
+                            "es-ES"
+                          )
                         : "—"}
                     </td>
                     <td>
