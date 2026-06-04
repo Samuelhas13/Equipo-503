@@ -182,17 +182,17 @@ function KpiCard({ title, value, trend, color, activity, loading = false }: KpiC
 }
 
 const KPI_COLORS: Record<string, KpiCardColor> = {
-  teal:   { bar: "#1D9E75", trendBg: "#E1F5EE", trendText: "#085041" },
-  blue:   { bar: "#378ADD", trendBg: "#E6F1FB", trendText: "#042C53" },
-  amber:  { bar: "#EF9F27", trendBg: "#FAEEDA", trendText: "#412402" },
+  teal: { bar: "#1D9E75", trendBg: "#E1F5EE", trendText: "#085041" },
+  blue: { bar: "#378ADD", trendBg: "#E6F1FB", trendText: "#042C53" },
+  amber: { bar: "#EF9F27", trendBg: "#FAEEDA", trendText: "#412402" },
   purple: { bar: "#7F77DD", trendBg: "#EEEDFE", trendText: "#26215C" },
 };
 
 const ACTIVITY_DATA = {
   bookings: [40, 55, 35, 70, 60, 80, 75, 90, 65, 85, 70, 95, 80, 100],
-  paid:     [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
-  pending:  [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
-  total:    [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
+  paid: [30, 45, 20, 55, 40, 65, 50, 70, 45, 60, 55, 80, 65, 90],
+  pending: [60, 40, 70, 30, 50, 20, 40, 35, 55, 25, 45, 30, 50, 20],
+  total: [50, 65, 55, 75, 60, 85, 70, 90, 75, 95, 80, 100, 90, 110],
 };
 
 // ─── BUSINESS CALENDAR ───────────────────────────────────────────────────────
@@ -205,18 +205,18 @@ function BusinessCalendar({ bookings, onBookingClick }: BusinessCalendarProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDateISO, setSelectedDateISO] = useState<string>(getTodayISO());
 
-  const year  = currentDate.getFullYear();
+  const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const monthNames = [
-    "enero","febrero","marzo","abril","mayo","junio",
-    "julio","agosto","septiembre","octubre","noviembre","diciembre",
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
   ];
 
   const daysInMonth = useMemo(() => {
-    const firstDayIndex   = new Date(year, month, 1).getDay();
-    const adjustedFirst   = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
-    const totalDays       = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const adjustedFirst = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+    const totalDays = new Date(year, month + 1, 0).getDate();
     const cells: (number | null)[] = [];
     for (let i = 0; i < adjustedFirst; i++) cells.push(null);
     for (let d = 1; d <= totalDays; d++) cells.push(d);
@@ -255,17 +255,17 @@ function BusinessCalendar({ bookings, onBookingClick }: BusinessCalendarProps) {
       </div>
 
       <div className="calendar-grid">
-        {["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map((d) => (
+        {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
           <div key={d} className="calendar-day-name">{d}</div>
         ))}
         {daysInMonth.map((day, index) => {
           if (day === null) {
             return <div key={`empty-${index}`} className="calendar-cell calendar-cell--empty" />;
           }
-          const isoKey   = `${year}-${String(month + 1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const isoKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           const dayBooks = bookingsByDateMap[isoKey] || [];
-          const isToday  = isoKey === getTodayISO();
-          const isSel    = isoKey === selectedDateISO;
+          const isToday = isoKey === getTodayISO();
+          const isSel = isoKey === selectedDateISO;
 
           return (
             <div
@@ -273,8 +273,8 @@ function BusinessCalendar({ bookings, onBookingClick }: BusinessCalendarProps) {
               onClick={() => setSelectedDateISO(isoKey)}
               className={[
                 "calendar-cell",
-                isToday ? "calendar-cell--today"    : "",
-                isSel   ? "calendar-cell--selected" : "",
+                isToday ? "calendar-cell--today" : "",
+                isSel ? "calendar-cell--selected" : "",
               ].join(" ").trim()}
             >
               <span className="calendar-date-number">{day}</span>
@@ -393,18 +393,18 @@ const TEXTS = {
 
 // ─── DASHBOARD PAGE ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { user }     = useAuth();
+  const { user } = useAuth();
   const { language } = useLanguage();
-  const t            = TEXTS[language as keyof typeof TEXTS] ?? TEXTS.es;
+  const t = TEXTS[language as keyof typeof TEXTS] ?? TEXTS.es;
 
-  const [showAll,  setShowAll]  = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
 
-  const rangeFrom = useMemo(() => getTodayISO(),          []);
-  const rangeTo   = useMemo(() => getThirtyDaysFromNow(), []);
+  const rangeFrom = useMemo(() => getTodayISO(), []);
+  const rangeTo = useMemo(() => getThirtyDaysFromNow(), []);
 
   useEffect(() => {
     async function load() {
@@ -444,10 +444,10 @@ export default function DashboardPage() {
     return bookings.filter((b) => bookingBusinessId(b) === userBizId);
   }, [bookings, user]);
 
-  const today         = getTodayISO();
+  const today = getTodayISO();
   const todayBookings = filteredBookings.filter((b) => bookingDate(b) === today);
-  const pendingBooks  = filteredBookings.filter((b) => bookingStatus(b) === "pending");
-  const paidToday     = filteredBookings.filter(
+  const pendingBooks = filteredBookings.filter((b) => bookingStatus(b) === "pending");
+  const paidToday = filteredBookings.filter(
     (b) => bookingStatus(b) === "paid" && bookingDate(b) === today
   );
 
@@ -461,7 +461,7 @@ export default function DashboardPage() {
     [filteredBookings, today, rangeTo]
   );
 
-  const nextBooking      = upcomingBookings[0];
+  const nextBooking = upcomingBookings[0];
   // Limitamos la cantidad máxima de reservas mostradas a 30 cuando el usuario presiona "Ver todas",
   // evitando así problemas de rendimiento al renderizar listas demasiado largas.
   const displayedBookings = showAll ? upcomingBookings.slice(0, 30) : upcomingBookings.slice(0, 3);
@@ -541,7 +541,7 @@ export default function DashboardPage() {
           ) : error ? (
             <p className="table-feedback table-feedback--error">{error}</p>
           ) : (
-            <BusinessCalendar bookings={filteredBookings} onBookingClick={() => {}} />
+            <BusinessCalendar bookings={filteredBookings} onBookingClick={() => { }} />
           )}
         </section>
       ) : (
@@ -559,14 +559,14 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="table-responsive-mobile">
+            <div className="dashboard-table-container">
               {loading && <p className="table-feedback">{t.loadingBookings}</p>}
               {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
               {!loading && !error && upcomingBookings.length === 0 && (
                 <p className="table-feedback">{t.noUpcomingBookings}</p>
               )}
               {!loading && !error && upcomingBookings.length > 0 && (
-                <table className="data-table">
+                <table className="dashboard-table">
                   <thead>
                     <tr>
                       <th>{t.time}</th>

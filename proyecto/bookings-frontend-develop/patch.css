@@ -1,0 +1,54 @@
+/* ==========================================================================
+   TABLA DASHBOARD (Diseño específico sin scroll)
+   Ocupa el ancho total de la sección, mostrando todos los detalles en múltiples líneas si es necesario.
+   ========================================================================== */
+.dashboard-table-container {
+  width: 100%;
+  overflow: hidden; /* Evita cualquier scroll horizontal */
+  border-radius: 12px; /* Mantiene bordes suaves */
+}
+
+.dashboard-table {
+  width: 100%;
+  table-layout: fixed; /* Fuerza a la tabla a no superar el 100% de la sección */
+  border-collapse: collapse;
+}
+
+/* Cabeceras de la tabla del dashboard */
+.dashboard-table th {
+  padding: 16px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple-600);
+  text-align: left;
+  /* Permite que el texto haga salto de línea para mostrar todo el detalle */
+  white-space: normal;
+  word-break: break-word;
+  background: transparent; /* Diseño más limpio */
+  border-bottom: 1px solid var(--border-strong);
+}
+
+/* Celdas de la tabla del dashboard */
+.dashboard-table td {
+  padding: 14px 12px;
+  font-size: 14px;
+  color: var(--text);
+  text-align: left;
+  vertical-align: middle;
+  /* Permite que el texto largo (nombres/servicios) baje a la siguiente línea */
+  white-space: normal;
+  word-break: break-word;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Quitamos el borde inferior a la última fila para que encaje limpio en la card */
+.dashboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Distribución optimizada de los anchos de columna para 5 columnas */
+.dashboard-table th:nth-child(1), .dashboard-table td:nth-child(1) { width: 12%; } /* Hora */
+.dashboard-table th:nth-child(2), .dashboard-table td:nth-child(2) { width: 25%; } /* Cliente */
+.dashboard-table th:nth-child(3), .dashboard-table td:nth-child(3) { width: 25%; } /* Comercio */
+.dashboard-table th:nth-child(4), .dashboard-table td:nth-child(4) { width: 23%; } /* Servicio */
+.dashboard-table th:nth-child(5), .dashboard-table td:nth-child(5) { width: 15%; } /* Estado */

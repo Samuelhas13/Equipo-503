@@ -1109,65 +1109,32 @@ export default function BookingsClient({
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
         {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
-        {user?.role === "usuario" ? (
-          <div className="booking-detail-card">
-            {latestBooking ? (
-              <div className="booking-detail-content">
-                <div className="detail-row">
-                  <strong>ID de reserva:</strong>
-                  <span>{latestBooking.id}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Fecha:</strong>
-                  <span>{formatDate(latestBooking.date ?? "")}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Hora:</strong>
-                  <span>{latestBooking.time}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Servicio:</strong>
-                  <span>{latestBooking.serviceName || (latestBooking as any).service?.nombre || "—"}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Comercio:</strong>
-                  <span>{(latestBooking as any).businessName || BUSINESS_NAMES[latestBooking.businessId ?? 0] || `#${latestBooking.businessId ?? "?"}`}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Estado:</strong>
-                  <span>{latestBooking.status}</span>
-                </div>
-                {filteredBookings.length > 1 && (
-                  <p className="muted-text">
-                    Solo se muestra la reserva más reciente. Si necesitas más detalles,
-                    consulta con el comercio.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="booking-detail-empty">
-                <p>No tienes ninguna reserva registrada todavía.</p>
-                <p>Usa el botón "Nueva reserva" para crear tu primera cita.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="data-table">
-              <thead>
+        {/* Tabla de reservas unificada para todos los roles.
+            El rol usuario ve las mismas columnas que admin/empresa pero sin la columna de Acciones. */}
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Servicio</th>
+                <th>Cliente</th>
+                <th>Comercio</th>
+                <th>Estado</th>
+                {/* Columna de acciones solo visible para admin y empresa */}
+                {user?.role !== "usuario" && <th>Acciones</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBookings.length === 0 ? (
                 <tr>
-                  <th>ID</th>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Servicio</th>
-                  <th>Customer</th>
-                  <th>Comercio</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                  <td colSpan={user?.role !== "usuario" ? 8 : 7} style={{ textAlign: "center", padding: "24px", color: "var(--muted)" }}>
+                    No tienes ninguna reserva registrada todavía.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map((booking) => (
+              ) : (
+                filteredBookings.map((booking) => (
                   <tr key={booking.id}>
                     <td style={{ fontWeight: 600 }}>{booking.id}</td>
                     <td>{formatDate(booking.date ?? "")}</td>
@@ -1176,6 +1143,7 @@ export default function BookingsClient({
                     <td>{(booking as any).customerName || booking.customerId || "—"}</td>
                     <td>{(booking as any).businessName || BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
                     <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
+                    {/* Botones de editar/eliminar solo para admin y empresa */}
                     {user?.role !== "usuario" && (
                       <td>
                         <div className="table-actions">
@@ -1197,11 +1165,12 @@ export default function BookingsClient({
                       </td>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </section>
     </div>
   );

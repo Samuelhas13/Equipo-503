@@ -16,7 +16,7 @@
 
 :root {
   /* ── Paleta púrpura ──────────────────────────────── */
-  --purple-50:  #EEEDFE;
+  --purple-50: #EEEDFE;
   --purple-100: #CECBF6;
   --purple-200: #AFA9EC;
   --purple-400: #7F77DD;
@@ -25,47 +25,73 @@
   --purple-900: #26215C;
 
   /* ── Fondo y superficies ────────────────────────── */
-  --bg:                      #F5F4FB;              /* Gris lavanda claro - fondos de secciones */
-  --surface:                 #FFFFFF;              /* Blanco puro - paneles y tarjetas */
-  --surface-2:               var(--purple-50);     /* Superficie alternativa suave */
-  --surface-translucent:     rgba(255, 255, 255, 0.92); /* Superficie translúcida para componentes flotantes */
-  --surface-translucent-soft:rgba(255, 255, 255, 0.82); /* Superficie translúcida suave para cabeceras */
+  --bg: #F5F4FB;
+  /* Gris lavanda claro - fondos de secciones */
+  --surface: #FFFFFF;
+  /* Blanco puro - paneles y tarjetas */
+  --surface-2: var(--purple-50);
+  /* Superficie alternativa suave */
+  --surface-translucent: rgba(255, 255, 255, 0.92);
+  /* Superficie translúcida para componentes flotantes */
+  --surface-translucent-soft: rgba(255, 255, 255, 0.82);
+  /* Superficie translúcida suave para cabeceras */
 
   /* ── Bordes ─────────────────────────────────────── */
-  --border:                  var(--purple-100);    /* Borde estándar */
-  --border-strong:           var(--purple-200);    /* Borde reforzado para inputs */
+  --border: var(--purple-100);
+  /* Borde estándar */
+  --border-strong: var(--purple-200);
+  /* Borde reforzado para inputs */
 
   /* ── Tipografía ─────────────────────────────────── */
-  --text:                    var(--purple-900);    /* Texto principal */
-  --muted:                   var(--purple-400);    /* Texto secundario/muted */
-  --muted-2:                 var(--purple-200);    /* Texto muy tenue */
+  --text: var(--purple-900);
+  /* Texto principal */
+  --muted: var(--purple-400);
+  /* Texto secundario/muted */
+  --muted-2: var(--purple-200);
+  /* Texto muy tenue */
 
   /* ── Tokens de marca ────────────────────────────── */
-  --primary:                 var(--purple-900);    /* Color primario oscuro */
-  --primary-soft:            var(--purple-50);     /* Fondo suave para estados activos */
-  --accent:                  var(--purple-600);    /* Acento principal - botones, enlaces */
+  --primary: var(--purple-900);
+  /* Color primario oscuro */
+  --primary-soft: var(--purple-50);
+  /* Fondo suave para estados activos */
+  --accent: var(--purple-600);
+  /* Acento principal - botones, enlaces */
 
   /* ── Sidebar ────────────────────────────────────── */
-  --sidebar-bg:              var(--purple-900);    /* Fondo sidebar */
-  --sidebar-active-bg:       var(--purple-800);    /* Fondo ítem activo */
-  --sidebar-text:            var(--purple-200);    /* Texto enlaces sidebar */
-  --sidebar-text-active:     var(--purple-50);     /* Texto ítem activo */
-  --sidebar-brand:           var(--purple-100);    /* Texto marca/brand */
-  --sidebar-section-label:   var(--purple-400);    /* Etiquetas de sección */
-  --sidebar-width:           248px;
+  --sidebar-bg: var(--purple-900);
+  /* Fondo sidebar */
+  --sidebar-active-bg: var(--purple-800);
+  /* Fondo ítem activo */
+  --sidebar-text: var(--purple-200);
+  /* Texto enlaces sidebar */
+  --sidebar-text-active: var(--purple-50);
+  /* Texto ítem activo */
+  --sidebar-brand: var(--purple-100);
+  /* Texto marca/brand */
+  --sidebar-section-label: var(--purple-400);
+  /* Etiquetas de sección */
+  --sidebar-width: 248px;
 
   /* ── Estados semánticos ─────────────────────────── */
-  --error:                   #E24B4A;              /* Rojo suave - alertas, pendientes */
-  --success-bg:              #E1F5EE;              /* Fondo éxito (teal-50) */
-  --success-text:            #0F6E56;              /* Texto éxito (teal-600) */
-  --warning-bg:              #FAEEDA;              /* Fondo advertencia (amber-50) */
-  --warning-text:            #854F0B;              /* Texto advertencia (amber-600) */
-  --paid-bg:                 var(--purple-50);     /* Fondo pagado */
-  --paid-text:               var(--purple-800);    /* Texto pagado */
+  --error: #E24B4A;
+  /* Rojo suave - alertas, pendientes */
+  --success-bg: #E1F5EE;
+  /* Fondo éxito (teal-50) */
+  --success-text: #0F6E56;
+  /* Texto éxito (teal-600) */
+  --warning-bg: #FAEEDA;
+  /* Fondo advertencia (amber-50) */
+  --warning-text: #854F0B;
+  /* Texto advertencia (amber-600) */
+  --paid-bg: var(--purple-50);
+  /* Fondo pagado */
+  --paid-text: var(--purple-800);
+  /* Texto pagado */
 
   /* ── Sombras ────────────────────────────────────── */
-  --shadow-sm:               0 1px 2px rgba(38, 33, 92, 0.06);
-  --shadow-md:               0 8px 24px rgba(38, 33, 92, 0.10);
+  --shadow-sm: 0 1px 2px rgba(38, 33, 92, 0.06);
+  --shadow-md: 0 8px 24px rgba(38, 33, 92, 0.10);
 
   /* ── Radios ─────────────────────────────────────── */
   --radius-sm: 12px;
@@ -73,62 +99,67 @@
   --radius-lg: 24px;
 
   /* ── Sombras extendidas ─────────────────────────── */
-  --shadow-table:            0 16px 35px rgba(38, 33, 92, 0.07);
-  --shadow-booking:          0 20px 40px rgba(38, 33, 92, 0.07);
-  --shadow-booking-hero:     0 18px 48px rgba(38, 33, 92, 0.10);
-  --shadow-modal:            0 20px 60px rgba(38, 33, 92, 0.22);
+  --shadow-table: 0 16px 35px rgba(38, 33, 92, 0.07);
+  --shadow-booking: 0 20px 40px rgba(38, 33, 92, 0.07);
+  --shadow-booking-hero: 0 18px 48px rgba(38, 33, 92, 0.10);
+  --shadow-modal: 0 20px 60px rgba(38, 33, 92, 0.22);
 
   /* ── Bordes extendidos ──────────────────────────── */
-  --border-booking:          rgba(83, 74, 183, 0.15);
-  --border-booking-hero:     rgba(83, 74, 183, 0.20);
-  --border-sidebar:          rgba(83, 74, 183, 0.25);
-  --border-header:           rgba(206, 203, 246, 0.6);
+  --border-booking: rgba(83, 74, 183, 0.15);
+  --border-booking-hero: rgba(83, 74, 183, 0.20);
+  --border-sidebar: rgba(83, 74, 183, 0.25);
+  --border-header: rgba(206, 203, 246, 0.6);
 
   /* ── Colores de fondo extendidos ────────────────── */
-  --modal-backdrop-bg:       rgba(38, 33, 92, 0.5);
-  --sidebar-hover-bg:        rgba(255, 255, 255, 0.07);
-  --sidebar-active-inset:    rgba(175, 169, 236, 0.15);
-  --accent-focus-ring:       rgba(83, 74, 183, 0.12);
-  --active-pill-inset:       rgba(83, 74, 183, 0.15);
-  --message-success-bg:      rgba(225, 245, 238, 0.5);
-  --message-success-border:  rgba(15, 110, 86, 0.16);
-  --message-error-bg:        rgba(226, 75, 74, 0.08);
-  --message-error-border:    rgba(226, 75, 74, 0.20);
+  --modal-backdrop-bg: rgba(38, 33, 92, 0.5);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.07);
+  --sidebar-active-inset: rgba(175, 169, 236, 0.15);
+  --accent-focus-ring: rgba(83, 74, 183, 0.12);
+  --active-pill-inset: rgba(83, 74, 183, 0.15);
+  --message-success-bg: rgba(225, 245, 238, 0.5);
+  --message-success-border: rgba(15, 110, 86, 0.16);
+  --message-error-bg: rgba(226, 75, 74, 0.08);
+  --message-error-border: rgba(226, 75, 74, 0.20);
 }
 
 /* ── NUEVA SECCIÓN: Variables sobreescritas para Modo Oscuro ── */
 /* Día 26/05 cambio de color tema claro oscuro */
 html.dark {
   /* Fondo y superficies (Invertidos para oscuridad) */
-  --bg:                       var(--purple-900);     /* Ahora el fondo es oscuro */
-  --surface:                  #1e1a4a;               /* Superficie oscura */
-  --surface-2:                var(--purple-800);
-  --surface-translucent:      rgba(30, 26, 74, 0.92);
+  --bg: var(--purple-900);
+  /* Ahora el fondo es oscuro */
+  --surface: #1e1a4a;
+  /* Superficie oscura */
+  --surface-2: var(--purple-800);
+  --surface-translucent: rgba(30, 26, 74, 0.92);
   --surface-translucent-soft: rgba(30, 26, 74, 0.82);
 
   /* Bordes */
-  --border:                   var(--purple-800);
-  --border-strong:            var(--purple-600);
+  --border: var(--purple-800);
+  --border-strong: var(--purple-600);
 
   /* Tipografía */
-  --text:                     var(--purple-50);      /* Texto claro */
-  --muted:                    var(--purple-200);
-  --muted-2:                  var(--purple-400);
+  --text: var(--purple-50);
+  /* Texto claro */
+  --muted: var(--purple-200);
+  --muted-2: var(--purple-400);
 
   /* Tokens de marca */
-  --primary:                  var(--purple-50);
-  --primary-soft:             var(--purple-800);
-  --accent:                   var(--purple-400);     /* Acento más brillante para contraste */
+  --primary: var(--purple-50);
+  --primary-soft: var(--purple-800);
+  --accent: var(--purple-400);
+  /* Acento más brillante para contraste */
 
   /* Sidebar (Si quieres que cambie en modo oscuro, si prefieres que se quede siempre oscuro déjalo igual) */
-  --sidebar-bg:               #131033;               /* Sidebar aún más profundo */
-  --sidebar-active-bg:        var(--purple-900);
-  --sidebar-text:             var(--purple-400);
-  --sidebar-text-active:      var(--purple-50);
+  --sidebar-bg: #131033;
+  /* Sidebar aún más profundo */
+  --sidebar-active-bg: var(--purple-900);
+  --sidebar-text: var(--purple-400);
+  --sidebar-text-active: var(--purple-50);
 
   /* Sombras (Más sutiles en modo oscuro) */
-  --shadow-sm:                0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:                0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -138,11 +169,13 @@ html.dark {
 
 * {
   box-sizing: border-box;
-  user-select: none; /* Evita la selección de texto */
+  user-select: none;
+  /* Evita la selección de texto */
 }
 
 /*Reactiva el cursor para inputs y textareas*/
-input,textarea {
+input,
+textarea {
   user-select: text;
 }
 
@@ -255,11 +288,14 @@ textarea {
   /* ── Estilos estructurales para el botón en la parte baja ── */
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Empuja el contenido hacia los extremos */
+  justify-content: space-between;
+  /* Empuja el contenido hacia los extremos */
   /* Transición suave para el ancho del sidebar y el deslizamiento */
   transition: width 0.3s ease, transform 0.3s ease;
-  overflow: hidden; /* Evita que el texto desborde al achicarse */
-  transform: translateX(-100%); /* Oculto por defecto en móvil */
+  overflow: hidden;
+  /* Evita que el texto desborde al achicarse */
+  transform: translateX(-100%);
+  /* Oculto por defecto en móvil */
 }
 
 /* Cuando el estado es 'open', lo deslizamos hacia adentro */
@@ -369,7 +405,8 @@ textarea {
 
 /* Zona inferior del sidebar: tema y ajustes */
 .admin-sidebar__bottom {
-  margin-top: auto; /* Asegura empujar al fondo */
+  margin-top: auto;
+  /* Asegura empujar al fondo */
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-sidebar);
 }
@@ -422,14 +459,16 @@ textarea {
 
 /* Ajuste de alineación del botón cuando el sidebar está colapsado */
 .admin-sidebar-boton--collapsed {
-  justify-content: center; /* Centra el botón cuando el sidebar está colapsado */
+  justify-content: center;
+  /* Centra el botón cuando el sidebar está colapsado */
   align-items: center;
   margin-left: 10px;
 }
 
 /* Sidebar colapsado en escritorio: solo muestra iconos */
 .admin-sidebar--collapsed {
-  width: 85px; /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
+  width: 85px;
+  /* Ancho suficiente para que SOLO se vea el botón (o los iconos) */
 }
 
 /* Ocultar el texto del título, subtítulo, etiquetas de menú y tema cuando esté colapsado */
@@ -806,7 +845,7 @@ textarea {
   min-height: 4px;
   border-radius: 2px 2px 0 0;
   transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.8s ease;
+    opacity 0.8s ease;
 }
 
 
@@ -817,10 +856,12 @@ textarea {
 /* Formato para las insignias */
 .badge {
   display: inline-block;
-  padding: 6px 10px;
+  padding: 6px 6px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
+  /* Evitamos que el texto del badge se parta en dos líneas (ej. "Pendient" + "e") */
+  white-space: nowrap;
 }
 
 /* Colores para la insignia pendiente */
@@ -873,16 +914,23 @@ textarea {
 }
 
 @media (min-width: 1024px) {
-  /* En pantallas grandes: barra horizontal automática para que nunca se corte el contenido */
-  .table-responsive-mobile {
-    overflow-x: auto;
+  /* En pantallas grandes: ocultamos el overflow para que la tabla no sea scrolleable (solicitud del usuario).
+     Las clases personalizadas del dashboard y del calendario de día también se incluyen aquí
+     para que comporten igual que las clases genéricas de tabla responsive. */
+  .table-responsive,
+  .table-responsive-mobile,
+  .dashboard-table-container,
+  .calendar-day-detail {
+    overflow-x: hidden;
   }
 }
 
 /* La tabla usa `border-collapse`, buen enfoque. */
 .data-table {
   width: 100%;
-  min-width: 600px; /* fuerza scroll si no cabe en móvil */
+  /* Eliminamos el min-width estricto para permitir que la tabla encaje en la pantalla sin scrollear horizontalmente */
+  min-width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   border-radius: 12px;
   overflow: hidden;
@@ -904,23 +952,24 @@ textarea {
 
 /* Formato para las celdas del encabezado de la tabla */
 .data-table th {
-  padding: 18px 24px;
+  padding: 16px 16px;
   font-size: 13px;
   font-weight: 600;
-  /* Color más fuerte para coincidir con la imagen */
   color: var(--purple-600);
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Formato para las celdas de la tabla */
 .data-table td {
-  padding: 18px 24px;
+  padding: 16px 16px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
   color: var(--text);
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .data-table tbody tr:hover {
@@ -983,7 +1032,7 @@ textarea {
 }
 
 /* Variables cuando el Sidebar activa el MODO OSCURO (.dark) en el HTML */
-html.dark .business-calendar, 
+html.dark .business-calendar,
 .dark .business-calendar {
   --cal-bg: var(--card-background, #1e1b4b);
   --cal-text-title: #ffffff;
@@ -1014,7 +1063,7 @@ html.dark .business-calendar,
   padding: 24px;
   box-shadow: var(--cal-shadow);
   /* Transición suave para que el cambio de color no sea brusco */
-  transition: background 0.3s ease, box-shadow 0.3s ease; 
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .calendar-header {
@@ -1128,7 +1177,8 @@ html.dark .business-calendar,
 /* ─── RESPONSIVE: OPTIMIZACIÓN PARA MÓVILES ─── */
 @media (max-width: 767px) {
   .business-calendar {
-    padding: 16px; /* Menos espacio interno */
+    padding: 16px;
+    /* Menos espacio interno */
   }
 
   .calendar-header h3 {
@@ -1136,7 +1186,8 @@ html.dark .business-calendar,
   }
 
   .calendar-grid {
-    gap: 4px; /* Reducimos la separación en móviles */
+    gap: 4px;
+    /* Reducimos la separación en móviles */
   }
 
   .calendar-day-name {
@@ -1145,7 +1196,8 @@ html.dark .business-calendar,
   }
 
   .calendar-cell {
-    min-height: 55px; /* Altura más baja para que quepa todo el mes en pantalla */
+    min-height: 55px;
+    /* Altura más baja para que quepa todo el mes en pantalla */
     padding: 4px;
     justify-content: space-between;
     position: relative;
@@ -1178,7 +1230,8 @@ html.dark .business-calendar,
     height: 6px;
     padding: 0;
     border-radius: 50%;
-    text-indent: -9999px; /* Esconde el texto */
+    text-indent: -9999px;
+    /* Esconde el texto */
     overflow: hidden;
     display: inline-block;
   }
@@ -1773,7 +1826,9 @@ html.dark .business-calendar,
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .login-container {
@@ -1974,7 +2029,8 @@ html.dark .business-calendar,
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 100%; /* Ocupa todo el ancho */
+  max-width: 100%;
+  /* Ocupa todo el ancho */
   margin: 0 auto;
 }
 
@@ -2044,7 +2100,8 @@ html.dark .business-calendar,
 }
 
 .admin-footer__link:hover {
-  color: #4f46e5; /* Color índigo moderno */
+  color: #4f46e5;
+  /* Color índigo moderno */
 }
 
 /* --- BLOQUE DERECHO (SISTEMA Y BOTÓN) --- */
@@ -2052,7 +2109,8 @@ html.dark .business-calendar,
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #f0fdf4; /* Fondo verde muy suave */
+  background-color: #f0fdf4;
+  /* Fondo verde muy suave */
   padding: 0.4rem 0.8rem;
   border-radius: 8px;
   border: 1px solid #dcfce7;
@@ -2086,8 +2144,15 @@ html.dark .business-calendar,
 }
 
 @keyframes pulse-animation {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Botón de acción interactivo */
@@ -2124,6 +2189,7 @@ html.dark .business-calendar,
 
 /* ── Móvil grande (≥480px): primera expansión de grids ── */
 @media (min-width: 480px) {
+
   /* KPI: 2 columnas ya desde aquí (ya es el default, se refuerza) */
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2146,12 +2212,14 @@ html.dark .business-calendar,
 
 /* ── Tablet (≥768px): sidebar sticky, layout horizontal ── */
 @media (min-width: 768px) {
+
   /* El sidebar deja de ser flotante y pasa a sticky */
   .admin-sidebar {
     position: sticky;
     top: 0;
     height: 100vh;
-    transform: translateX(0); /* Siempre visible */
+    transform: translateX(0);
+    /* Siempre visible */
     z-index: 10;
   }
 
@@ -2259,6 +2327,7 @@ html.dark .business-calendar,
 
 /* ── Escritorio (≥1024px): grids completos, layout definitivo ── */
 @media (min-width: 1024px) {
+
   /* KPI: 4 columnas en escritorio */
   .kpi-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2283,7 +2352,7 @@ html.dark .business-calendar,
   }
 
   /* La tabla de reservas ocupa el espacio sobrante */
-  .dashboard-prueba-lg > .section-card:first-child {
+  .dashboard-prueba-lg>.section-card:first-child {
     flex: 1;
     min-width: 0;
   }
@@ -2320,6 +2389,7 @@ html.dark .business-calendar,
 
 /* ── Escritorio ancho (≥1200px): ajuste fino ── */
 @media (min-width: 1200px) {
+
   /* Payments KPI: solo tiene 3 tarjetas, se alinean en 3 col */
   .kpi-grid--3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2328,6 +2398,7 @@ html.dark .business-calendar,
 
 /* ── Ajustes específicos para móvil pequeño (<480px) ── */
 @media (max-width: 479px) {
+
   /* KPI en columna única en móviles muy pequeños */
   .kpi-grid {
     grid-template-columns: 1fr;
@@ -2407,3 +2478,88 @@ html.dark .business-calendar,
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   TABLA DASHBOARD (Diseño específico sin scroll)
+   Ocupa el ancho total de la sección, mostrando todos los detalles en múltiples líneas si es necesario.
+   ========================================================================== */
+.dashboard-table-container {
+  width: 100%;
+  /* En móvil: permite scroll horizontal para ver todas las columnas de la tabla */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+.dashboard-table {
+  width: 100%;
+  table-layout: fixed;
+  /* Fuerza a la tabla a no superar el 100% de la sección */
+  border-collapse: collapse;
+}
+
+/* Cabeceras de la tabla del dashboard */
+.dashboard-table th {
+  padding: 16px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple-600);
+  text-align: left;
+  /* Permite que el texto haga salto de línea para mostrar todo el detalle */
+  white-space: normal;
+  word-break: break-word;
+  background: transparent;
+  /* Diseño más limpio */
+  border-bottom: 1px solid var(--border-strong);
+}
+
+/* Celdas de la tabla del dashboard */
+.dashboard-table td {
+  padding: 14px 12px;
+  font-size: 14px;
+  color: var(--text);
+  text-align: left;
+  vertical-align: middle;
+  /* Permite que el texto largo (nombres/servicios) baje a la siguiente línea */
+  white-space: normal;
+  word-break: break-word;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Quitamos el borde inferior a la última fila para que encaje limpio en la card */
+.dashboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Distribución optimizada de los anchos de columna para 5 columnas.
+   Se da más espacio a "Estado" para que el badge (Pendiente, Confirmada, etc.) quepa sin cortarse. */
+.dashboard-table th:nth-child(1),
+.dashboard-table td:nth-child(1) {
+  width: 10%;
+}
+
+/* Hora */
+.dashboard-table th:nth-child(2),
+.dashboard-table td:nth-child(2) {
+  width: 23%;
+}
+
+/* Cliente */
+.dashboard-table th:nth-child(3),
+.dashboard-table td:nth-child(3) {
+  width: 22%;
+}
+
+/* Comercio */
+.dashboard-table th:nth-child(4),
+.dashboard-table td:nth-child(4) {
+  width: 25%;
+}
+
+/* Servicio */
+.dashboard-table th:nth-child(5),
+.dashboard-table td:nth-child(5) {
+  width: 20%;
+}
+
+/* Estado */
