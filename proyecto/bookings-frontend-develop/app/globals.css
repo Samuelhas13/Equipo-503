@@ -873,20 +873,20 @@ textarea {
 }
 
 @media (min-width: 1024px) {
-  /* En pantallas grandes: sin barra horizontal, contenido respeta los bordes */
+  /* En pantallas grandes: barra horizontal automática para que nunca se corte el contenido */
   .table-responsive-mobile {
-    overflow: hidden;
+    overflow-x: auto;
   }
 }
 
 /* La tabla usa `border-collapse`, buen enfoque. */
 .data-table {
   width: 100%;
-  min-width: 600px; /* fuerza scroll si no cabe */
+  min-width: 600px; /* fuerza scroll si no cabe en móvil */
   border-collapse: collapse;
-  border-radius: 20px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-table);
+  /* Eliminamos la sombra externa fuerte para igualar el diseño plano de la imagen */
 }
 
 /* Formato para el encabezado de la tabla */
@@ -904,18 +904,19 @@ textarea {
 
 /* Formato para las celdas del encabezado de la tabla */
 .data-table th {
-  padding: 14px 12px;
+  padding: 18px 24px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
+  /* Color más fuerte para coincidir con la imagen */
+  color: var(--purple-600);
   text-align: left;
   white-space: nowrap;
 }
 
 /* Formato para las celdas de la tabla */
 .data-table td {
-  padding: 14px 12px;
-  border-top: 1px solid var(--border);
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
   font-size: 14px;
   color: var(--text);
   text-align: left;
@@ -929,7 +930,7 @@ textarea {
 /* Formato para las celdas de la tabla en la primera columna */
 .data-table td:first-child,
 .data-table th:first-child {
-  padding-left: 16px;
+  padding-left: 24px;
 }
 
 /* Acciones dentro de una celda de tabla */
