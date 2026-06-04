@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
@@ -16,6 +17,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -29,6 +31,15 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Credenciales inválidas' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('register')
+  @ApiCreatedResponse({
+    description: 'Registro exitoso. Devuelve el usuario creado.',
+  })
+  @ApiConflictResponse({ description: 'El email ya está en uso' })
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 
   @Get('me')

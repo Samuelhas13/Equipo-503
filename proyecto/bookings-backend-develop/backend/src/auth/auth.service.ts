@@ -4,6 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './jwt-payload.interface';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -54,5 +56,9 @@ export class AuthService {
       role: payload.role,
       businessId: payload.businessId,
     };
+  }
+
+  async register(createUserDto: CreateUserDto) {
+    return this.usersService.register(createUserDto);
   }
 }

@@ -2,8 +2,9 @@
 Tiene acceso global a todo el sistema.
 
 Email: admin@bookings.com
-2. Rol Empresa (Business)
-Tienes 500 dueños de empresa creados. Cada uno gestiona su propia empresa y sus 40 servicios.
+Contraseña: Password123!
+Rol: admin
+businessId: null
 
 Ejemplo 1: business1@empresa.com
 Ejemplo 2: business2@empresa.com
@@ -15,4 +16,3 @@ Ejemplo 1: cliente1@masivo.com
 Ejemplo 2: cliente2@masivo.com
 (...hasta cliente10000@masivo.com)
 Cualquiera de esos emails con la contraseña Password123! te dejará entrar en http://localhost:3001 y verás los datos correspondientes a ese rol.
->>>>>>> 8dc73afd94f9629077c87212a392aa6bc44640a9
