@@ -46,6 +46,7 @@ export interface Booking {
   serviceName?: string;
   customerId?: number;
   businessId?: number;
+  userId?: number;
   status?: BookingStatus | string;
 }
 

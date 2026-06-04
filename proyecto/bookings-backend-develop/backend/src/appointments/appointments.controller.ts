@@ -93,7 +93,7 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Reserva eliminada' })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
