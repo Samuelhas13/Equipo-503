@@ -111,6 +111,10 @@ export class CustomersService {
    * @returns Objeto con un mensaje de éxito
    */
   async remove(id: number, currentUser: JwtPayload) {
+    if (currentUser.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Solo los administradores pueden eliminar clientes');
+    }
+
     const customer = await this.findOne(id, currentUser); // Validamos primero que exista
     await this.customersRepository.remove(customer);
     return { message: `Cliente ${id} eliminado correctamente` };

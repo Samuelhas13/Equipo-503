@@ -13,6 +13,8 @@ type RawUser = {
   role: string;
   businessId?: number;
   customerId?: number;
+  business?: { id: number };
+  customer?: { id: number };
 };
 
 export interface User {
@@ -22,6 +24,8 @@ export interface User {
   role: UserRole;
   businessId?: number;
   customerId?: number;
+  nombre?: string;
+  apellido?: string;
 }
 
 function normalizeRole(role: string): UserRole {
@@ -42,8 +46,8 @@ function mapUser(user: RawUser): User {
     name: fullName || user.email || "Usuario",
     email: user.email,
     role: normalizeRole(user.role),
-    businessId: user.businessId,
-    customerId: user.customerId,
+    businessId: user.businessId || user.business?.id,
+    customerId: user.customerId || user.customer?.id,
   };
 }
 
@@ -68,23 +72,6 @@ export const MOCK_USERS = [
   { email: "maria@bookflow.com", password: "maria123", name: "María López", role: "usuario" as UserRole, customerId: 2 },
 ];
 
-
-function normalizeUser(user: User): User {
-  const fullName = [user.nombre, user.apellido].filter(Boolean).join(" ").trim();
-
-  let role = user.role;
-  if ((user.role as string) === "business") {
-    role = "empresa";
-  } else if ((user.role as string) === "customer") {
-    role = "usuario";
-  }
-
-  return {
-    ...user,
-    role,
-    name: user.name || fullName || user.email,
-  };
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

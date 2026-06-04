@@ -68,6 +68,29 @@ function bookingCustomerId(b: Booking): number | undefined {
   return toNum(typeof nested === "object" ? nested.id : nested);
 }
 
+// Lee el nombre real del cliente normalizado por normalizeBooking() en api.ts.
+// Si no existe, cae al ID como texto de respaldo.
+function bookingCustomerName(b: Booking): string {
+  // Campo inyectado por normalizeBooking()
+  if ((b as any).customerName) return String((b as any).customerName);
+  // Fallback: nombre desde el objeto anidado
+  const c = (b as any).customer;
+  if (c && typeof c === "object") {
+    return `${c.nombre || ""} ${c.apellido || ""}`.trim() || c.email || `#${c.id}`;
+  }
+  const id = bookingCustomerId(b);
+  return id !== undefined ? `#${id}` : "?";
+}
+
+// Lee el nombre del negocio normalizado por normalizeBooking() en api.ts.
+function bookingBusinessName(b: Booking): string {
+  if ((b as any).businessName) return String((b as any).businessName);
+  const biz = (b as any).business;
+  if (biz && typeof biz === "object") return biz.nombre || `#${biz.id}`;
+  const id = bookingBusinessId(b);
+  return id !== undefined ? `#${id}` : "?";
+}
+
 function getTodayISO(): string {
   return new Date().toISOString().split("T")[0];
 }
@@ -439,7 +462,9 @@ export default function DashboardPage() {
   );
 
   const nextBooking      = upcomingBookings[0];
-  const displayedBookings = showAll ? upcomingBookings : upcomingBookings.slice(0, 3);
+  // Limitamos la cantidad máxima de reservas mostradas a 30 cuando el usuario presiona "Ver todas",
+  // evitando así problemas de rendimiento al renderizar listas demasiado largas.
+  const displayedBookings = showAll ? upcomingBookings.slice(0, 30) : upcomingBookings.slice(0, 3);
 
   return (
     <div className="page-stack">
@@ -555,8 +580,10 @@ export default function DashboardPage() {
                     {displayedBookings.map((booking) => (
                       <tr key={booking.id}>
                         <td style={{ fontWeight: 500 }}>{bookingTime(booking)}</td>
-                        <td>#{bookingCustomerId(booking) ?? "?"}</td>
-                        <td>#{bookingBusinessId(booking) ?? "?"}</td>
+                        {/* Mostramos nombre real del cliente en lugar del ID */}
+                        <td>{bookingCustomerName(booking)}</td>
+                        {/* Mostramos nombre real del negocio en lugar del ID */}
+                        <td>{bookingBusinessName(booking)}</td>
                         <td>{bookingServiceName(booking)}</td>
                         <td>
                           <Badge status={bookingStatus(booking) as DashboardBookingStatus} />
@@ -576,7 +603,8 @@ export default function DashboardPage() {
               {nextBooking ? (
                 <>
                   <p className="info-box__title">
-                    {t.customer} #{bookingCustomerId(nextBooking) ?? "?"}
+                    {/* Nombre real del cliente de la próxima reserva */}
+                    {t.customer}: {bookingCustomerName(nextBooking)}
                   </p>
                   <p className="info-box__text">
                     {bookingTime(nextBooking)} · {bookingServiceName(nextBooking)}

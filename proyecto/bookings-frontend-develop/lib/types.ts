@@ -47,6 +47,7 @@ export interface Booking {
   serviceName?: string;
   customerId?: number;
   businessId?: number;
+  // userId ya está declarado arriba (línea 37)
   status?: BookingStatus | string;
 }
 
@@ -144,7 +145,6 @@ export type CreatePaymentDto = {
 };
 
 export type UpdatePaymentDto = Partial<CreatePaymentDto>;
-
 
 
 export type CreateBusinessDto = {
