@@ -43,7 +43,7 @@ export class AppointmentsController {
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
     const pageNum = page ? parseInt(page, 10) : 1;
-    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const limitNum = limit ? parseInt(limit, 31) : 30;
     return this.appointmentsService.findAll(pageNum, limitNum, req.user);
   }
 

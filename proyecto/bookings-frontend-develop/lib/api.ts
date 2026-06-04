@@ -97,6 +97,30 @@ export async function getAppointments(): Promise<Booking[]> {
   return apps.map(normalizeBooking);
 }
 
+// NUEVO: Obtiene citas filtradas por rango de fechas enviando los parámetros
+// `from` y `to` (formato YYYY-MM-DD) como query params al backend.
+// Si el backend aún no soporta esos parámetros, el bloque catch hace fallback:
+// trae todas las citas y filtra en cliente para no romper la app.
+export async function getAppointmentsByRange(
+  from: string,
+  to: string
+): Promise<Booking[]> {
+  try {
+    const apps = await apiRequest<any[]>(
+      `/appointments?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      { cache: "no-store" }
+    );
+    return apps.map(normalizeBooking);
+  } catch {
+    // Fallback cliente: si el backend no filtra por rango, descargamos todo y acotamos aquí.
+    const all = await getAppointments();
+    return all.filter((b) => {
+      const d = b.date ?? "";
+      return d >= from && d <= to;
+    });
+  }
+}
+
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
 
   // Normalize possible frontend shapes to backend CreateAppointmentDto

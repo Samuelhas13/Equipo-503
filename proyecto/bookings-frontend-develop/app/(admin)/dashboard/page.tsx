@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { getAppointments, getExportReportUrl } from "@/lib/api";
+// CAMBIO: importamos getAppointmentsByRange en lugar de getAppointments para
+// pedirle al backend solo las citas del rango relevante (hoy + 30 días).
+import { getAppointmentsByRange, getExportReportUrl } from "@/lib/api";
 import type { Booking } from "@/lib/types";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
@@ -119,6 +121,14 @@ const ACTIVITY_DATA = {
 
 function getTodayISO() {
   return new Date().toISOString().split("T")[0];
+}
+
+// NUEVO: Devuelve la fecha de hoy + 30 días en formato YYYY-MM-DD.
+// Se usa para definir el límite superior del rango de "próximas reservas".
+function getThirtyDaysFromNow(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().split("T")[0];
 }
 
 // ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
@@ -302,7 +312,7 @@ export default function DashboardPage() {
       totalToday: "reservas totales hoy",
       confirmedTotal: "confirmadas en total",
       scheduledToday: "programadas hoy",
-      upcomingBookings: "Próximas reservas",
+      upcomingBookings: "Próximas reservas (30 días)",
       seeAll: "Ver todas",
       seeLess: "Ver menos",
       loadingBookings: "Cargando reservas...",
@@ -337,7 +347,7 @@ export default function DashboardPage() {
       totalToday: "total bookings today",
       confirmedTotal: "confirmed in total",
       scheduledToday: "scheduled today",
-      upcomingBookings: "Upcoming bookings",
+      upcomingBookings: "Upcoming bookings (30 days)",
       seeAll: "See all",
       seeLess: "See less",
       loadingBookings: "Loading bookings...",
@@ -362,7 +372,6 @@ export default function DashboardPage() {
     },
   };
 
-  // 1. Estado para controlar si mostramos todas o solo una vista previa
   const [showAll, setShowAll] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -370,13 +379,21 @@ export default function DashboardPage() {
 
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
 
-  // No redirigimos a /bookings en Dashboard: el panel debe mostrar datos para cualquier rol.
+  // CAMBIO: Calculamos el rango una sola vez fuera del efecto para no recalcular
+  // en cada render. `rangeFrom` es hoy y `rangeTo` es hoy + 30 días.
+  const rangeFrom = useMemo(() => getTodayISO(), []);
+  const rangeTo = useMemo(() => getThirtyDaysFromNow(), []);
+
+  // CAMBIO: Usamos getAppointmentsByRange(rangeFrom, rangeTo) en lugar de
+  // getAppointments() para que la petición al backend ya venga acotada al
+  // periodo de interés. Si el backend no soporta los params, el fallback
+  // interno de api.ts filtra en cliente automáticamente.
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAppointments();
+        const data = await getAppointmentsByRange(rangeFrom, rangeTo);
         setBookings(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
@@ -385,7 +402,7 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, []);
+  }, [rangeFrom, rangeTo]);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -401,21 +418,27 @@ export default function DashboardPage() {
   const pendingBookings = filteredBookings.filter((b) => bookingStatus(b) === "pending");
   const paidBookings = filteredBookings.filter((b) => bookingStatus(b) === "paid");
 
-  // Mostramos las próximas reservas basadas en la misma fuente de datos que BookingsClient.
-  // Esto incluye reservas futuras y de hoy, ordenadas por fecha y hora.
+  // CAMBIO: El filtro de upcomingBookings ahora acota también el extremo superior
+  // con `rangeTo` (hoy + 30 días). Esto actúa como doble salvaguarda por si el
+  // backend devuelve más datos de los solicitados (ej. fallback de api.ts).
   const upcomingBookings = useMemo(() => {
     return [...filteredBookings]
-      .filter((b) => bookingDate(b) >= today)
+      .filter((b) => {
+        const d = bookingDate(b);
+        return d >= today && d <= rangeTo;
+      })
       .sort((a, b) => {
         const dateCompare = bookingDate(a).localeCompare(bookingDate(b));
         return dateCompare !== 0
           ? dateCompare
           : bookingTime(a).localeCompare(bookingTime(b));
       });
-  }, [filteredBookings, today]);
+  }, [filteredBookings, today, rangeTo]);
 
   const nextBooking = upcomingBookings[0];
-  const displayedBookings = showAll ? upcomingBookings : upcomingBookings.slice(0, 4);
+  // CAMBIO: colapsado muestra solo las 3 primeras reservas; al pulsar "Ver todas"
+  // se muestran todas las del rango (hasta 30 días), sin límite adicional de cantidad.
+  const displayedBookings = showAll ? upcomingBookings : upcomingBookings.slice(0, 3);
 
   const handleExportReport = () => {
     window.location.href = getExportReportUrl();
@@ -479,6 +502,7 @@ export default function DashboardPage() {
           loading={loading}
         />
       </section>
+
       {/* Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
           Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards). */}
       {user?.role === "empresa" && viewMode === "calendar" ? (
