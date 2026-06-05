@@ -1,99 +1,147 @@
-/**
- * PaymentsService.
- * Contiene la lógica de negocio para la gestión de cobros/pagos.
- * Interactúa con la base de datos a través del repositorio TypeORM de Payment.
- */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { JwtPayload } from '../auth/jwt-payload.interface';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class PaymentsService {
   constructor(
-    // Inyecta el repositorio para interactuar con la tabla de 'payment'
     @InjectRepository(Payment)
     private readonly paymentsRepository: Repository<Payment>,
+    @InjectRepository(Appointment)
+    private readonly appointmentsRepository: Repository<Appointment>,
   ) {}
 
-  /**
-   * Obtiene todos los pagos registrados.
-   * @returns Lista de pagos ordenados por fecha ascendente, incluyendo la reserva asociada.
-   */
-  findAll() {
+  findAll(currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para acceder a los pagos');
+    }
+
+    const where: any = {};
+    if (currentUser?.role === UserRole.BUSINESS) {
+      where.appointment = { business: { id: currentUser.businessId } };
+    }
+
     return this.paymentsRepository.find({
-      order: { date: 'ASC' },
-      relations: ['appointment', 'customer'], // Incluye las relaciones en la respuesta
+      where,
+      order: { hora_pago: 'ASC' },
+      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
     });
   }
 
-  /**
-   * Obtiene la información detallada de un pago específico.
-   * @param id ID único del pago
-   * @returns El pago y su reserva/cliente asociados
-   * @throws NotFoundException si no existe el ID
-   */
-  async findOne(id: number) {
+  async findOne(id: number, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para acceder a los pagos');
+    }
+
     const payment = await this.paymentsRepository.findOne({
       where: { id },
-      relations: ['appointment', 'customer'],
+      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
     });
 
     if (!payment) {
       throw new NotFoundException(`No existe el pago con id ${id}`);
+    }
+
+    if (currentUser?.role === UserRole.BUSINESS && payment.appointment?.business?.id !== currentUser.businessId) {
+      throw new ForbiddenException('Solo puedes acceder a los pagos de tu empresa');
     }
 
     return payment;
   }
 
-  /**
-   * Registra un nuevo pago en el sistema.
-   * @param createPaymentDto Objeto con los datos del pago
-   * @returns El pago guardado en base de datos
-   */
-  create(createPaymentDto: CreatePaymentDto) {
-    // Aquí se podría añadir validación para ver si el appointmentId existe
-    const payment = this.paymentsRepository.create(createPaymentDto);
+  async create(createPaymentDto: CreatePaymentDto, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para registrar pagos');
+    }
+
+    const appointment = await this.appointmentsRepository.findOne({
+      where: { id: createPaymentDto.appointmentId },
+      relations: ['customer', 'business', 'user'],
+    });
+
+    if (!appointment) {
+      throw new BadRequestException(
+        `No existe la reserva con id ${createPaymentDto.appointmentId}`,
+      );
+    }
+
+    if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
+      throw new ForbiddenException('No puedes registrar pagos para reservas de otras empresas');
+    }
+
+    if (appointment.customer && createPaymentDto.customerId !== appointment.customer.id) {
+      throw new BadRequestException(
+        'El cliente del pago debe coincidir con el cliente de la reserva asociada.',
+      );
+    }
+
+    const existingPayment = await this.paymentsRepository.findOne({
+      where: { appointment: { id: createPaymentDto.appointmentId } },
+    });
+
+    if (existingPayment) {
+      throw new BadRequestException(
+        `Ya existe un cobro registrado para la reserva ${createPaymentDto.appointmentId}`,
+      );
+    }
+
+    const { customerId, appointmentId, servicioId, ...rest } = createPaymentDto;
+
+    const payment = this.paymentsRepository.create({
+      ...rest,
+      customer: { id: customerId },
+      appointment: { id: appointmentId },
+      servicio: { id: servicioId },
+    });
+    
     return this.paymentsRepository.save(payment);
   }
 
-  /**
-   * Actualiza parcialmente la información de un pago (por ejemplo, cambiar status a PAID).
-   * @param id ID del pago a modificar
-   * @param updatePaymentDto Datos parciales a modificar
-   * @returns El pago actualizado
-   */
-  async update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    const payment = await this.paymentsRepository.findOneBy({ id });
-
-    if (!payment) {
-      throw new NotFoundException(`No existe el pago con id ${id}`);
+  async update(id: number, updatePaymentDto: UpdatePaymentDto, currentUser?: JwtPayload) {
+    if (currentUser?.role === UserRole.CUSTOMER) {
+      throw new ForbiddenException('No tienes permiso para modificar pagos');
     }
+
+    const payment = await this.findOne(id, currentUser);
+
+    if (updatePaymentDto.appointmentId && updatePaymentDto.appointmentId !== payment.appointment?.id) {
+      const newAppointment = await this.appointmentsRepository.findOne({
+        where: { id: updatePaymentDto.appointmentId },
+        relations: ['business']
+      });
+      if (currentUser?.role === UserRole.BUSINESS && newAppointment?.business?.id !== currentUser.businessId) {
+        throw new ForbiddenException('No puedes asociar un pago a la reserva de otra empresa');
+      }
+    }
+
+    const { customerId, appointmentId, servicioId, ...rest } = updatePaymentDto;
 
     const updatedPayment = this.paymentsRepository.merge(
       payment,
-      updatePaymentDto,
+      {
+        ...rest,
+        customer: customerId ? { id: customerId } : undefined,
+        appointment: appointmentId ? { id: appointmentId } : undefined,
+        servicio: servicioId ? { id: servicioId } : undefined,
+      }
     );
 
     return this.paymentsRepository.save(updatedPayment);
   }
 
-  /**
-   * Elimina un registro de pago de la base de datos de manera permanente.
-   * @param id ID del pago a borrar
-   * @returns Mensaje de confirmación
-   */
-  async remove(id: number) {
-    const payment = await this.paymentsRepository.findOneBy({ id });
-
-    if (!payment) {
-      throw new NotFoundException(`No existe el pago con id ${id}`);
+  async remove(id: number, currentUser?: JwtPayload) {
+    if (currentUser?.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Solo los administradores pueden eliminar pagos');
     }
 
+    const payment = await this.findOne(id, currentUser);
     await this.paymentsRepository.remove(payment);
-
     return { message: `Pago ${id} eliminado correctamente` };
   }
 }

@@ -1,0 +1,18 @@
+1. Rol Administrador (Admin)
+Tiene acceso global a todo el sistema.
+
+Email: admin@bookings.com
+Contraseña: Password123!
+Rol: admin
+businessId: null
+
+Ejemplo 1: business1@empresa.com
+Ejemplo 2: business2@empresa.com
+(...hasta business500@empresa.com)
+3. Rol Cliente (Usuario)
+Tienes 10.000 clientes creados, cada uno con reservas y pagos enlazados a alguna de las empresas.
+
+Ejemplo 1: cliente1@masivo.com
+Ejemplo 2: cliente2@masivo.com
+(...hasta cliente10000@masivo.com)
+Cualquiera de esos emails con la contraseña Password123! te dejará entrar en http://localhost:3001 y verás los datos correspondientes a ese rol.
