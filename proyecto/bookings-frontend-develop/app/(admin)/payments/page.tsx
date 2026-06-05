@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-type PaymentStatus = "pending" | "paid";
-
-type Payment = {
-  id: string;
-=======
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +11,6 @@ import {
 import type { Payment } from "@/lib/types";
 
 type PaymentForm = {
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
   client: string;
   business: string;
   appointmentId: string;
@@ -183,8 +176,6 @@ function Badge({
 }
 
 export default function PaymentsPage() {
-<<<<<<< HEAD
-=======
   const { language } = useLanguage();
 
   const texts = {
@@ -411,7 +402,6 @@ export default function PaymentsPage() {
     }
   };
 
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -420,13 +410,6 @@ export default function PaymentsPage() {
           <p>{texts[language].subtitle}</p>
         </div>
 
-<<<<<<< HEAD
-        <button className="primary-btn" type="button">
-          Registrar cobro
-        </button>
-      </section>
-
-=======
         <button
           className="primary-btn"
           type="button"
@@ -580,7 +563,6 @@ export default function PaymentsPage() {
         </section>
       )}
 
->>>>>>> 5d8c56ed3c10526d8d039dbcbdeed2198b1a7c1a
       <section className="kpi-grid">
         <KpiCard
           title={texts[language].totalCharged}
