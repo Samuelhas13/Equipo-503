@@ -5,10 +5,12 @@ import { useLanguage } from "@/context/LanguageContext";
 import {
   getPayments,
   createPayment,
+  getCustomers,
+  getAppointments,
   PaymentMethod,
   PaymentStatus,
 } from "@/lib/api";
-import type { Payment } from "@/lib/types";
+import type { Payment, Customer, Booking } from "@/lib/types";
 
 type PaymentForm = {
   client: string;
@@ -278,6 +280,8 @@ export default function PaymentsPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [appointments, setAppointments] = useState<Booking[]>([]);
   const [paymentForm, setPaymentForm] =
     useState<PaymentForm>(initialPaymentForm);
   const [formError, setFormError] = useState("");
@@ -291,8 +295,14 @@ export default function PaymentsPage() {
     async function load() {
       try {
         setLoading(true);
-        const data = await getPayments();
+        const [data, custs, appts] = await Promise.all([
+          getPayments(),
+          getCustomers(),
+          getAppointments(),
+        ]);
         setPayments(data);
+        setCustomers(custs);
+        setAppointments(appts);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
@@ -345,12 +355,12 @@ export default function PaymentsPage() {
     .slice(0, 30);
 
   const validatePaymentForm = () => {
-    if (!paymentForm.client.trim() || !paymentForm.business.trim()) {
-      setFormError(texts[language].requiredClientBusiness);
+    if (!paymentForm.client || Number(paymentForm.client) <= 0) {
+      setFormError("El cliente es obligatorio.");
       return false;
     }
-    if (!nameRegex.test(paymentForm.client.trim())) {
-      setFormError(texts[language].invalidClientName);
+    if (!paymentForm.business.trim()) {
+      setFormError(texts[language].requiredClientBusiness);
       return false;
     }
     if (!nameRegex.test(paymentForm.business.trim())) {
@@ -366,7 +376,7 @@ export default function PaymentsPage() {
       return false;
     }
     if (!paymentForm.appointmentId || Number(paymentForm.appointmentId) <= 0) {
-      setFormError("El ID de la reserva es obligatorio.");
+      setFormError("La reserva es obligatoria.");
       return false;
     }
     if (!["pending", "paid"].includes(paymentForm.status)) {
@@ -393,8 +403,8 @@ export default function PaymentsPage() {
           date: paymentForm.date,
           status: paymentForm.status,
           paymentMethod: paymentForm.method,
-          customerId: 1,
-          servicioId: Number(paymentForm.servicioId) || 1,  // ← línea nueva
+          customerId: Number(paymentForm.client),
+          servicioId: Number(paymentForm.servicioId) || 1,
           appointmentId: Number(paymentForm.appointmentId),
         });
 
@@ -439,19 +449,22 @@ export default function PaymentsPage() {
             }}
           >
             <label className="form-field">
-              ID Cliente
-              <input
+              Cliente
+              <select
                 className="input"
-                placeholder="ID del cliente"
                 value={paymentForm.client}
                 onChange={(event) =>
                   handleInputChange("client", event.target.value)
                 }
-                inputMode="numeric"
-                pattern="[0-9]+"
-                title={texts[language].onlyNumbers}
                 required
-              />
+              >
+                <option value="">Selecciona un cliente</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    #{c.id} — {c.nombre} {c.apellido}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="form-field">
@@ -470,19 +483,23 @@ export default function PaymentsPage() {
             </label>
 
             <label className="form-field">
-              ID Reserva
-              <input
+              Reserva
+              <select
                 className="input"
-                placeholder="ID de la reserva"
                 value={paymentForm.appointmentId}
                 onChange={(event) =>
                   handleInputChange("appointmentId", event.target.value)
                 }
-                inputMode="numeric"
-                pattern="[0-9]+"
-                title={texts[language].onlyNumbers}
                 required
-              />
+              >
+                <option value="">Selecciona una reserva</option>
+                {appointments.map((a) => (
+                  <option key={a.id} value={String(a.id)}>
+                    #{a.id} — {a.date || ""} {a.time || ""}
+                    {a.customerName ? ` (${a.customerName})` : ""}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="form-field">

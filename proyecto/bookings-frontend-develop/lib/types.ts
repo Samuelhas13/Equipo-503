@@ -45,6 +45,8 @@ export interface Booking {
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM or time portion
   serviceName?: string;
+  customerName?: string;
+  businessName?: string;
   customerId?: number;
   businessId?: number;
   // userId ya está declarado arriba (línea 37)
