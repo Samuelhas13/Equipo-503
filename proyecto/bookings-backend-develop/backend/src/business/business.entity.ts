@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Service } from 'src/services/service.entity'; 
+import { Service } from 'src/services/service.entity';
 import { Customer } from '../customers/customer.entity';
 import { Appointment } from '../appointments/appointment.entity';
 import { User } from 'src/users/user.entity';

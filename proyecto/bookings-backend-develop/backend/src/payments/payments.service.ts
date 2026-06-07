@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -18,7 +23,7 @@ export class PaymentsService {
   ) {}
 
   findAll(currentUser?: JwtPayload) {
-    const where: any = {};
+    const where: FindOptionsWhere<Payment> = {};
     if (currentUser?.role === UserRole.BUSINESS) {
       where.appointment = { business: { id: currentUser.businessId } };
     } else if (currentUser?.role === UserRole.CUSTOMER) {
@@ -27,25 +32,43 @@ export class PaymentsService {
     return this.paymentsRepository.find({
       where,
       order: { hora_pago: 'ASC' },
-      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
+      relations: [
+        'appointment',
+        'customer',
+        'servicio',
+        'appointment.business',
+      ],
     });
   }
 
   async findOne(id: number, currentUser?: JwtPayload) {
     const payment = await this.paymentsRepository.findOne({
       where: { id },
-      relations: ['appointment', 'customer', 'servicio', 'appointment.business'],
+      relations: [
+        'appointment',
+        'customer',
+        'servicio',
+        'appointment.business',
+      ],
     });
 
     if (!payment) {
       throw new NotFoundException(`No existe el pago con id ${id}`);
     }
 
-    if (currentUser?.role === UserRole.BUSINESS && payment.appointment?.business?.id !== currentUser.businessId) {
-      throw new ForbiddenException('Solo puedes acceder a los pagos de tu empresa');
+    if (
+      currentUser?.role === UserRole.BUSINESS &&
+      payment.appointment?.business?.id !== currentUser.businessId
+    ) {
+      throw new ForbiddenException(
+        'Solo puedes acceder a los pagos de tu empresa',
+      );
     }
 
-    if (currentUser?.role === UserRole.CUSTOMER && payment.customer?.email !== currentUser.email) {
+    if (
+      currentUser?.role === UserRole.CUSTOMER &&
+      payment.customer?.email !== currentUser.email
+    ) {
       throw new ForbiddenException('Solo puedes acceder a tus propios pagos');
     }
 
@@ -64,15 +87,26 @@ export class PaymentsService {
       );
     }
 
-    if (currentUser?.role === UserRole.BUSINESS && appointment.business?.id !== currentUser.businessId) {
-      throw new ForbiddenException('No puedes registrar pagos para reservas de otras empresas');
+    if (
+      currentUser?.role === UserRole.BUSINESS &&
+      appointment.business?.id !== currentUser.businessId
+    ) {
+      throw new ForbiddenException(
+        'No puedes registrar pagos para reservas de otras empresas',
+      );
     }
-    
-    if (currentUser?.role === UserRole.CUSTOMER && appointment.user?.id !== currentUser.sub) {
+
+    if (
+      currentUser?.role === UserRole.CUSTOMER &&
+      appointment.user?.id !== currentUser.sub
+    ) {
       throw new ForbiddenException('Solo puedes pagar tus propias reservas');
     }
 
-    if (appointment.customer && createPaymentDto.customerId !== appointment.customer.id) {
+    if (
+      appointment.customer &&
+      createPaymentDto.customerId !== appointment.customer.id
+    ) {
       throw new BadRequestException(
         'El cliente del pago debe coincidir con el cliente de la reserva asociada.',
       );
@@ -96,40 +130,49 @@ export class PaymentsService {
       appointment: { id: appointmentId },
       servicio: { id: servicioId },
     });
-    
+
     return this.paymentsRepository.save(payment);
   }
 
-  async update(id: number, updatePaymentDto: UpdatePaymentDto, currentUser?: JwtPayload) {
+  async update(
+    id: number,
+    updatePaymentDto: UpdatePaymentDto,
+    currentUser?: JwtPayload,
+  ) {
     const payment = await this.findOne(id, currentUser);
-    
+
     if (currentUser?.role === UserRole.CUSTOMER) {
       // El cliente no puede cambiar asociaciones clave
       delete updatePaymentDto.customerId;
       delete updatePaymentDto.appointmentId;
     }
 
-    if (updatePaymentDto.appointmentId && updatePaymentDto.appointmentId !== payment.appointment?.id) {
+    if (
+      updatePaymentDto.appointmentId &&
+      updatePaymentDto.appointmentId !== payment.appointment?.id
+    ) {
       const newAppointment = await this.appointmentsRepository.findOne({
         where: { id: updatePaymentDto.appointmentId },
-        relations: ['business']
+        relations: ['business'],
       });
-      if (currentUser?.role === UserRole.BUSINESS && newAppointment?.business?.id !== currentUser.businessId) {
-        throw new ForbiddenException('No puedes asociar un pago a la reserva de otra empresa');
+      if (
+        currentUser?.role === UserRole.BUSINESS &&
+        newAppointment?.business?.id !== currentUser.businessId
+      ) {
+        throw new ForbiddenException(
+          'No puedes asociar un pago a la reserva de otra empresa',
+        );
       }
     }
 
     const { customerId, appointmentId, servicioId, ...rest } = updatePaymentDto;
 
-    const updatedPayment = this.paymentsRepository.merge(
-      payment,
-      {
-        ...rest,
-        customer: customerId ? { id: customerId } : undefined,
-        appointment: appointmentId ? { id: appointmentId } : undefined,
-        servicio: servicioId ? { id: servicioId } : undefined,
-      }
-    );
+    const updatedPayment = this.paymentsRepository.merge(payment, {
+      ...rest,
+      customer: customerId ? { id: customerId } : undefined,
+      appointment: appointmentId ? { id: appointmentId } : undefined,
+      servicio: servicioId ? { id: servicioId } : undefined,
+    });
 
     return this.paymentsRepository.save(updatedPayment);
   }

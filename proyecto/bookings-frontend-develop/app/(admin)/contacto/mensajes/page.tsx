@@ -112,7 +112,7 @@ export default function MensajesContactoPage() {
           setSelectedMessage(null);
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setError(texts[language].errorLoading);
     } finally {
@@ -121,7 +121,9 @@ export default function MensajesContactoPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const handleToggleRead = async (msg: ContactMessage) => {

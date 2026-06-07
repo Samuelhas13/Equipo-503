@@ -308,6 +308,7 @@ export default function PaymentsPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const handleSort = (field: string) => {
+    setCurrentPage(1);
     if (sortField === field) {
       setSortDirection(prev => prev === "asc" ? "desc" : "asc");
     } else {
@@ -315,10 +316,6 @@ export default function PaymentsPage() {
       setSortDirection("asc");
     }
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, sortField, sortDirection]);
 
   const filteredPayments = useMemo(() => {
     if (!search.trim()) return payments;
@@ -357,8 +354,8 @@ export default function PaymentsPage() {
     const sorted = [...filteredPayments];
     if (!sortField) return sorted;
     sorted.sort((a, b) => {
-      let valA: any = "";
-      let valB: any = "";
+      let valA: string | number = "";
+      let valB: string | number = "";
       switch (sortField) {
         case "id":
           valA = a.id;
@@ -751,7 +748,10 @@ export default function PaymentsPage() {
               className="input"
               placeholder={texts[language].searchPlaceholder}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
         </section>

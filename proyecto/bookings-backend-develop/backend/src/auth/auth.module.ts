@@ -16,7 +16,9 @@ import { UsersModule } from '../users/users.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET') || 'bookflow_secret_fallback',
+
         signOptions: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '8h') as any,
         },
       }),

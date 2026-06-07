@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState, useMemo, useEffect } from "react";
-import type { Customer } from "@/lib/types";
+import { FormEvent, useState, useMemo } from "react";
+import type { Customer, Business } from "@/lib/types";
 import { createCustomer } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -31,7 +31,7 @@ function CustomerCard({
       <p className="customer-meta">{customer.email}</p>
 
       <div className="customer-tag">
-        {typeof customer.business === 'object' ? (customer.business as any).nombre : String(customer.business ?? texts.noBusiness)}
+        {typeof customer.business === 'object' ? (customer.business as Business).nombre : String(customer.business ?? texts.noBusiness)}
       </div>
 
       <div className="customer-next">
@@ -110,9 +110,6 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);  // Estado que guarda la lista de clientes mostrada en pantalla.
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
 
   // Estado que guarda los datos escritos en el formulario de creación.
   const [formData, setFormData] = useState({
@@ -288,7 +285,10 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
             className="input"
             placeholder={texts[language].searchPlaceholder}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
 
           <button className="secondary-btn" type="button">

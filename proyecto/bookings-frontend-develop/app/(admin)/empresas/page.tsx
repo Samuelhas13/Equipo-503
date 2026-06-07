@@ -204,23 +204,21 @@ export default function EmpresasPage() {
     try {
       const data = await getBusinesses();
       setRawBusinesses(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching businesses:", err);
-      setError(err?.message || t.errorLoad);
+      setError((err as Error).message || t.errorLoad);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadBusinesses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
 
   // Enriquecer la lista de empresas obtenida del backend
   const enrichedBusinesses = useMemo(() => {
@@ -316,9 +314,9 @@ export default function EmpresasPage() {
         );
       }
       handleCloseForm();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error saving business:", err);
-      setError(err?.message || t.errorAction);
+      setError((err as Error).message || t.errorAction);
     } finally {
       setActionLoading(false);
     }
@@ -332,9 +330,9 @@ export default function EmpresasPage() {
     try {
       await deleteBusiness(id);
       setRawBusinesses((prev) => prev.filter((b) => b.id !== id));
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting business:", err);
-      setError(err?.message || t.errorAction);
+      setError((err as Error).message || t.errorAction);
     }
   };
 
@@ -380,9 +378,9 @@ export default function EmpresasPage() {
         handleCloseBooking();
         router.push("/bookings");
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error creating booking:", err);
-      setError(err?.message || (language === "en" ? "Failed to create reservation." : "No se pudo crear la reserva."));
+      setError((err as Error).message || (language === "en" ? "Failed to create reservation." : "No se pudo crear la reserva."));
     } finally {
       setActionLoading(false);
     }
@@ -432,7 +430,10 @@ export default function EmpresasPage() {
               className="input"
               placeholder={t.searchPlaceholder}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
             />
             <button className="secondary-btn" type="button">
               {t.filter}

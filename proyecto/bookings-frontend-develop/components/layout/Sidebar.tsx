@@ -107,10 +107,10 @@ export default function Sidebar({
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
+      setTimeout(() => setIsDarkMode(true), 0);
       document.documentElement.classList.add("dark");
     } else {
-      setIsDarkMode(false);
+      setTimeout(() => setIsDarkMode(false), 0);
       document.documentElement.classList.remove("dark");
     }
   }, []);

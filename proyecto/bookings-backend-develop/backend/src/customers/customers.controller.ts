@@ -28,6 +28,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer } from './customer.entity';
 import { UserRole } from '../users/user.entity';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('customers')
 @ApiBearerAuth()
@@ -43,7 +44,7 @@ export class CustomersController {
     description: 'Listado completo de clientes',
     type: [Customer],
   })
-  findAll(@Request() req: any) {
+  findAll(@Request() req: { user: JwtPayload }) {
     return this.customersService.findAll(req.user);
   }
 
@@ -52,7 +53,10 @@ export class CustomersController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de un cliente', type: Customer })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.customersService.findOne(id, req.user);
   }
 
@@ -65,7 +69,10 @@ export class CustomersController {
   })
   @ApiConflictResponse({ description: 'El email del cliente ya existe' })
   @ApiBadRequestResponse({ description: 'Datos de cliente inválidos' })
-  create(@Body() createCustomerDto: CreateCustomerDto, @Request() req: any) {
+  create(
+    @Body() createCustomerDto: CreateCustomerDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.customersService.create(createCustomerDto, req.user);
   }
 
@@ -81,7 +88,7 @@ export class CustomersController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCustomerDto: UpdateCustomerDto,
-    @Request() req: any,
+    @Request() req: { user: JwtPayload },
   ) {
     return this.customersService.update(id, updateCustomerDto, req.user);
   }
@@ -91,7 +98,10 @@ export class CustomersController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Cliente eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cliente no encontrado' })
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.customersService.remove(id, req.user);
   }
 }

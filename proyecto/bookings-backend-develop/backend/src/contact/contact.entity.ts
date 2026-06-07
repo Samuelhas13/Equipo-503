@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum ContactSubject {
@@ -34,7 +39,9 @@ export class ContactMessage {
   @Column({ type: 'text' })
   message: string;
 
-  @ApiProperty({ description: 'Indica si el mensaje ha sido leído por el administrador' })
+  @ApiProperty({
+    description: 'Indica si el mensaje ha sido leído por el administrador',
+  })
   @Column({ default: false })
   isRead: boolean;
 

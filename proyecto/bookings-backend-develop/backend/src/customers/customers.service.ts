@@ -3,7 +3,12 @@
  * Contiene toda la lógica de negocio y base de datos relacionada con clientes.
  * Interactúa con la base de datos a través del repositorio TypeORM de Customer.
  */
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from './customer.entity';
@@ -18,7 +23,7 @@ export class CustomersService {
     // Inyectamos el repositorio que actúa como ORM directo para la entidad Customer
     @InjectRepository(Customer)
     private readonly customersRepository: Repository<Customer>,
-  ) { }
+  ) {}
 
   /**
    * Obtiene todos los clientes registrados.
@@ -43,16 +48,29 @@ export class CustomersService {
    * @throws NotFoundException si no existe el ID proporcionado
    */
   async findOne(id: number, currentUser: JwtPayload) {
-    const customer = await this.customersRepository.findOne({ where: { id }, relations: ['business'] });
+    const customer = await this.customersRepository.findOne({
+      where: { id },
+      relations: ['business'],
+    });
     if (!customer) {
       throw new NotFoundException(`Cliente con id ${id} no encontrado`);
     }
 
-    if (currentUser.role === UserRole.BUSINESS && customer.business?.id !== currentUser.businessId) {
-      throw new ForbiddenException('Solo puedes acceder a los clientes de tu empresa');
+    if (
+      currentUser.role === UserRole.BUSINESS &&
+      customer.business?.id !== currentUser.businessId
+    ) {
+      throw new ForbiddenException(
+        'Solo puedes acceder a los clientes de tu empresa',
+      );
     }
-    if (currentUser.role === UserRole.CUSTOMER && customer.email !== currentUser.email) {
-      throw new ForbiddenException('Solo puedes acceder a tus propios datos de cliente');
+    if (
+      currentUser.role === UserRole.CUSTOMER &&
+      customer.email !== currentUser.email
+    ) {
+      throw new ForbiddenException(
+        'Solo puedes acceder a tus propios datos de cliente',
+      );
     }
 
     return customer;
@@ -71,9 +89,13 @@ export class CustomersService {
     }
 
     // Comprobamos si el email ya existe para evitar errores en base de datos (por el unique: true)
-    const existing = await this.customersRepository.findOneBy({ email: createCustomerDto.email });
+    const existing = await this.customersRepository.findOneBy({
+      email: createCustomerDto.email,
+    });
     if (existing) {
-      throw new ConflictException('Ya existe un cliente registrado con este email');
+      throw new ConflictException(
+        'Ya existe un cliente registrado con este email',
+      );
     }
     // Instancia el cliente y lo graba en base de datos
     const { businessId, ...rest } = createCustomerDto;
@@ -90,9 +112,13 @@ export class CustomersService {
    * @param updateCustomerDto Objeto con los nuevos datos (parcial)
    * @returns El objeto del cliente tras la modificación
    */
-  async update(id: number, updateCustomerDto: UpdateCustomerDto, currentUser: JwtPayload) {
+  async update(
+    id: number,
+    updateCustomerDto: UpdateCustomerDto,
+    currentUser: JwtPayload,
+  ) {
     const customer = await this.findOne(id, currentUser);
-    
+
     if (currentUser.role === UserRole.BUSINESS) {
       updateCustomerDto.businessId = currentUser.businessId;
     }

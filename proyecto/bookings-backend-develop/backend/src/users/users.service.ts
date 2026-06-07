@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -19,7 +25,9 @@ export class UsersService {
   async create(createUserDto: CreateUserDto, currentUser: JwtPayload) {
     if (currentUser.role === UserRole.BUSINESS) {
       if (createUserDto.role && createUserDto.role !== UserRole.CUSTOMER) {
-        throw new ForbiddenException('Business users can only create customers');
+        throw new ForbiddenException(
+          'Business users can only create customers',
+        );
       }
       createUserDto.role = UserRole.CUSTOMER;
       createUserDto.businessId = currentUser.businessId;
@@ -27,7 +35,9 @@ export class UsersService {
 
     if (createUserDto.role === UserRole.BUSINESS) {
       if (!createUserDto.businessId) {
-        throw new BadRequestException('El usuario de tipo BUSINESS requiere asociarse a una empresa (businessId)');
+        throw new BadRequestException(
+          'El usuario de tipo BUSINESS requiere asociarse a una empresa (businessId)',
+        );
       }
     }
 
@@ -36,17 +46,21 @@ export class UsersService {
         .getRepository(Business)
         .findOneBy({ id: createUserDto.businessId });
       if (!businessExists) {
-        throw new NotFoundException(`La empresa con id ${createUserDto.businessId} no existe`);
+        throw new NotFoundException(
+          `La empresa con id ${createUserDto.businessId} no existe`,
+        );
       }
     }
 
-    const existing = await this.userRepository.findOneBy({ email: createUserDto.email });
+    const existing = await this.userRepository.findOneBy({
+      email: createUserDto.email,
+    });
     if (existing) {
       throw new ConflictException('Email already in use');
     }
 
     const { password, businessId, ...rest } = createUserDto;
-    
+
     // Hash password
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltOrRounds);
@@ -56,13 +70,16 @@ export class UsersService {
       password: hashedPassword,
       business: businessId ? { id: businessId } : undefined,
     });
-    
+
     return this.userRepository.save(user);
   }
 
   findAll(currentUser: JwtPayload) {
     if (currentUser.role === UserRole.BUSINESS) {
-      return this.userRepository.find({ where: { business: { id: currentUser.businessId } }, relations: ['business'] });
+      return this.userRepository.find({
+        where: { business: { id: currentUser.businessId } },
+        relations: ['business'],
+      });
     }
     return this.userRepository.find({ relations: ['business'] });
   }
@@ -70,16 +87,21 @@ export class UsersService {
   async findOne(id: number, currentUser: JwtPayload) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['business']
+      relations: ['business'],
     });
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
     }
 
-    if (currentUser.role === UserRole.BUSINESS && user.business?.id !== currentUser.businessId) {
-      throw new ForbiddenException('You can only access users from your business');
+    if (
+      currentUser.role === UserRole.BUSINESS &&
+      user.business?.id !== currentUser.businessId
+    ) {
+      throw new ForbiddenException(
+        'You can only access users from your business',
+      );
     }
-    
+
     if (currentUser.role === UserRole.CUSTOMER && user.id !== currentUser.sub) {
       throw new ForbiddenException('You can only access your own profile');
     }
@@ -90,44 +112,64 @@ export class UsersService {
   async findOneByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['business']
+      relations: ['business'],
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto, currentUser: JwtPayload) {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    currentUser: JwtPayload,
+  ) {
     const user = await this.findOne(id, currentUser);
-    
+
     if (currentUser.role === UserRole.CUSTOMER) {
       if (updateUserDto.role && updateUserDto.role !== UserRole.CUSTOMER) {
         throw new ForbiddenException('No puedes cambiar tu rol');
       }
-      if (updateUserDto.businessId !== undefined && updateUserDto.businessId !== user.business?.id) {
-        throw new ForbiddenException('No puedes cambiar tu asociación de empresa');
+      if (
+        updateUserDto.businessId !== undefined &&
+        updateUserDto.businessId !== user.business?.id
+      ) {
+        throw new ForbiddenException(
+          'No puedes cambiar tu asociación de empresa',
+        );
       }
     }
 
     if (currentUser.role === UserRole.BUSINESS) {
       updateUserDto.businessId = currentUser.businessId;
       if (updateUserDto.role && updateUserDto.role !== UserRole.CUSTOMER) {
-        throw new ForbiddenException('Business users can only modify customer roles');
+        throw new ForbiddenException(
+          'Business users can only modify customer roles',
+        );
       }
       if (user.id !== currentUser.sub && user.role !== UserRole.CUSTOMER) {
-        throw new ForbiddenException('Business users can only modify their own profile or customer accounts');
+        throw new ForbiddenException(
+          'Business users can only modify their own profile or customer accounts',
+        );
       }
     }
 
     const finalRole = updateUserDto.role || user.role;
-    const finalBusinessId = updateUserDto.businessId !== undefined ? updateUserDto.businessId : user.business?.id;
+    const finalBusinessId =
+      updateUserDto.businessId !== undefined
+        ? updateUserDto.businessId
+        : user.business?.id;
 
     if (finalRole === UserRole.BUSINESS) {
       if (!finalBusinessId) {
-        throw new BadRequestException('El usuario de tipo BUSINESS requiere asociarse a una empresa (businessId)');
+        throw new BadRequestException(
+          'El usuario de tipo BUSINESS requiere asociarse a una empresa (businessId)',
+        );
       }
       const businessExists = await this.dataSource
         .getRepository(Business)
         .findOneBy({ id: finalBusinessId });
       if (!businessExists) {
-        throw new NotFoundException(`La empresa con id ${finalBusinessId} no existe`);
+        throw new NotFoundException(
+          `La empresa con id ${finalBusinessId} no existe`,
+        );
       }
     }
 
@@ -150,11 +192,18 @@ export class UsersService {
 
   async remove(id: number, currentUser: JwtPayload) {
     if (id === currentUser.sub) {
-      throw new ForbiddenException('No puedes eliminar tu propia cuenta de administrador');
+      throw new ForbiddenException(
+        'No puedes eliminar tu propia cuenta de administrador',
+      );
     }
     const user = await this.findOne(id, currentUser);
-    if (currentUser.role === UserRole.BUSINESS && user.role !== UserRole.CUSTOMER) {
-      throw new ForbiddenException('Business users can only delete customer accounts');
+    if (
+      currentUser.role === UserRole.BUSINESS &&
+      user.role !== UserRole.CUSTOMER
+    ) {
+      throw new ForbiddenException(
+        'Business users can only delete customer accounts',
+      );
     }
     await this.userRepository.remove(user);
     return { message: `User #${id} deleted successfully` };

@@ -6,10 +6,7 @@ import { ContactService } from './contact.service';
 import { ContactController } from './contact.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ContactMessage]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ContactMessage]), AuthModule],
   controllers: [ContactController],
   providers: [ContactService],
   exports: [ContactService],

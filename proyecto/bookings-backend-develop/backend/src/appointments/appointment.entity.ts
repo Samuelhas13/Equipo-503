@@ -18,12 +18,22 @@ export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ type: () => User, description: 'Usuario que realiza la reserva', required: false })
+  @ApiProperty({
+    type: () => User,
+    description: 'Usuario que realiza la reserva',
+    required: false,
+  })
   @ManyToOne(() => User, { nullable: true })
   user: User;
 
-  @ApiProperty({ type: () => Customer, description: 'Cliente asociado a la reserva', required: false })
-  @ManyToOne(() => Customer, (customer) => customer.appointments, { nullable: true })
+  @ApiProperty({
+    type: () => Customer,
+    description: 'Cliente asociado a la reserva',
+    required: false,
+  })
+  @ManyToOne(() => Customer, (customer) => customer.appointments, {
+    nullable: true,
+  })
   customer: Customer;
 
   @ApiProperty({ type: () => Business, description: 'Empresa asociada' })
@@ -46,7 +56,11 @@ export class Appointment {
   @Column({ nullable: true })
   serviceName: string;
 
-  @ApiProperty({ type: () => Payment, description: 'Pago asociado', required: false })
+  @ApiProperty({
+    type: () => Payment,
+    description: 'Pago asociado',
+    required: false,
+  })
   @OneToOne(() => Payment, (payment) => payment.appointment)
   payment: Payment;
 }

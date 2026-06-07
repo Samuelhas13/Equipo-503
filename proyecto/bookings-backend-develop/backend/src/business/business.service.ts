@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UserRole } from '../users/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,7 +25,9 @@ export class BusinessService {
 
   findAll(currentUser?: JwtPayload) {
     if (currentUser?.role === UserRole.BUSINESS) {
-      return this.businessRepository.find({ where: { id: currentUser.businessId } });
+      return this.businessRepository.find({
+        where: { id: currentUser.businessId },
+      });
     }
     return this.businessRepository.find();
   }
@@ -31,13 +37,20 @@ export class BusinessService {
     if (!business) {
       throw new NotFoundException(`Business #${id} not found`);
     }
-    if (currentUser?.role === UserRole.BUSINESS && business.id !== currentUser.businessId) {
+    if (
+      currentUser?.role === UserRole.BUSINESS &&
+      business.id !== currentUser.businessId
+    ) {
       throw new ForbiddenException('You can only access your own business');
     }
     return business;
   }
 
-  async update(id: number, updateBusinessDto: UpdateBusinessDto, currentUser?: JwtPayload) {
+  async update(
+    id: number,
+    updateBusinessDto: UpdateBusinessDto,
+    currentUser?: JwtPayload,
+  ) {
     const business = await this.findOne(id, currentUser);
     const updated = this.businessRepository.merge(business, updateBusinessDto);
     return this.businessRepository.save(updated);

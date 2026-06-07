@@ -30,6 +30,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment } from './appointment.entity';
 import { UserRole } from '../users/user.entity';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('appointments')
 @ApiBearerAuth()
@@ -41,10 +42,14 @@ export class AppointmentsController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado de reservas', type: [Appointment] })
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string, @Request() req?: any) {
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Request() req?: { user: JwtPayload },
+  ) {
     const pageNum = page ? parseInt(page, 10) : undefined;
     const limitNum = limit ? parseInt(limit, 10) : undefined;
-    return this.appointmentsService.findAll(pageNum, limitNum, req.user);
+    return this.appointmentsService.findAll(pageNum, limitNum, req?.user);
   }
 
   @Get('export')
@@ -67,16 +72,22 @@ export class AppointmentsController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de una reserva', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
-    return this.appointmentsService.findOne(id, req.user);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req?: { user: JwtPayload },
+  ) {
+    return this.appointmentsService.findOne(id, req?.user);
   }
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiCreatedResponse({ description: 'Reserva creada', type: Appointment })
   @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
-  create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req?: any) {
-    return this.appointmentsService.create(createAppointmentDto, req.user);
+  create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+    @Request() req?: { user: JwtPayload },
+  ) {
+    return this.appointmentsService.create(createAppointmentDto, req?.user);
   }
 
   @Patch(':id')
@@ -87,16 +98,19 @@ export class AppointmentsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
-    @Request() req?: any,
+    @Request() req?: { user: JwtPayload },
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto, req.user);
+    return this.appointmentsService.update(id, updateAppointmentDto, req?.user);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Reserva eliminada' })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
-    return this.appointmentsService.remove(id, req.user);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req?: { user: JwtPayload },
+  ) {
+    return this.appointmentsService.remove(id, req?.user);
   }
 }

@@ -10,11 +10,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get<string>('JWT_SECRET') || 'bookflow_secret_fallback',
+      secretOrKey:
+        config.get<string>('JWT_SECRET') || 'bookflow_secret_fallback',
     });
   }
 
-  async validate(payload: JwtPayload): Promise<JwtPayload> {
+  validate(payload: JwtPayload): JwtPayload {
     if (!payload.sub || !payload.role) {
       throw new UnauthorizedException('Token inválido: payload incompleto');
     }

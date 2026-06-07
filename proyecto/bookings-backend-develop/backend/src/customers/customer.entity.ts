@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  ManyToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from '../payments/payment.entity';
@@ -30,7 +36,10 @@ export class Customer {
   @ManyToOne(() => Business, (business) => business.customers)
   business: Business;
 
-  @ApiProperty({ type: () => [Appointment], description: 'Reservas del cliente' })
+  @ApiProperty({
+    type: () => [Appointment],
+    description: 'Reservas del cliente',
+  })
   @OneToMany(() => Appointment, (appointment) => appointment.customer)
   appointments: Appointment[];
 

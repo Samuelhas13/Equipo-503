@@ -14,10 +14,7 @@ import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Appointment, Customer]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Appointment, Customer]), AuthModule],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],
   exports: [AppointmentsService],

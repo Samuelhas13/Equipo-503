@@ -42,7 +42,10 @@ export class User {
   })
   role: UserRole;
 
-  @ApiProperty({ type: () => Business, description: 'Empresa asociada (si aplica)' })
+  @ApiProperty({
+    type: () => Business,
+    description: 'Empresa asociada (si aplica)',
+  })
   @ManyToOne(() => Business, (business) => business.users, { nullable: true })
   business: Business;
 }

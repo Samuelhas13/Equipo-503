@@ -291,7 +291,7 @@ export default function BookingsClient({
     try {
       const customer = await getCustomerById(id);
       setSearchedCustomer(customer);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error buscando cliente:", err);
       setErrorMessage("No se encontró ningún cliente con ese ID en el sistema.");
     } finally {
@@ -309,6 +309,7 @@ export default function BookingsClient({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const handleSort = (field: string) => {
+    setCurrentPage(1);
     if (sortField === field) {
       setSortDirection(prev => prev === "asc" ? "desc" : "asc");
     } else {
@@ -316,10 +317,6 @@ export default function BookingsClient({
       setSortDirection("asc");
     }
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, sortField, sortDirection]);
 
   const roleFilteredBookings = useMemo(() => {
     if (user?.role === "empresa") {
@@ -372,8 +369,8 @@ export default function BookingsClient({
     const sorted = [...filteredBookings];
     if (!sortField) return sorted;
     sorted.sort((a, b) => {
-      let valA: any = "";
-      let valB: any = "";
+      let valA: string | number = "";
+      let valB: string | number = "";
       switch (sortField) {
         case "id":
           valA = a.id;
@@ -528,7 +525,7 @@ export default function BookingsClient({
       status: booking.status,
       customerId: booking.customerId,
       businessId: booking.businessId,
-      serviceName: booking.serviceName,
+      serviceName: cleanServiceName,
     });
 
     setTimeout(() => {
@@ -591,7 +588,7 @@ export default function BookingsClient({
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        serviceName: editForm.serviceName,
+        serviceName: finalServiceName,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -1055,7 +1052,10 @@ export default function BookingsClient({
             className="input"
             placeholder={texts[language].searchPlaceholder}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
       </section>
@@ -1072,7 +1072,10 @@ export default function BookingsClient({
                 type="button"
                 className={`filter-pill ${statusFilter === f ? "filter-pill--active" : ""}`}
                 aria-pressed={statusFilter === f}
-                onClick={() => setStatusFilter(f)}
+                onClick={() => {
+                  setStatusFilter(f);
+                  setCurrentPage(1);
+                }}
               >
                 {{ all: "Todas", pending: "Pendientes", confirmed: "Confirmadas", paid: "Pagadas" }[f]}
               </button>

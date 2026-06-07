@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -7,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './user.entity';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -17,7 +29,10 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
-  create(@Body() createUserDto: CreateUserDto, @Request() req: any) {
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.usersService.create(createUserDto, req.user);
   }
 
@@ -25,21 +40,27 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
-  findAll(@Request() req: any) {
+  findAll(@Request() req: { user: JwtPayload }) {
     return this.usersService.findAll(req.user);
   }
 
   @Get(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.usersService.findOne(id, req.user);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.usersService.update(id, updateUserDto, req.user);
   }
 
@@ -47,7 +68,10 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.usersService.remove(id, req.user);
   }
 }

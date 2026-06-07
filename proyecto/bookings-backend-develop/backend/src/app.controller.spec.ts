@@ -25,7 +25,7 @@ describe('AppController', () => {
     it('should return health status', () => {
       const mockHealth = { status: 'up', timestamp: new Date().toISOString() };
       jest.spyOn(appService, 'getHealth').mockImplementation(() => mockHealth);
-      
+
       expect(appController.getHealth()).toBe(mockHealth);
     });
   });

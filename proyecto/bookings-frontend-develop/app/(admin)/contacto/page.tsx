@@ -70,7 +70,12 @@ export default function ContactoPage() {
     },
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    subject: "support" | "billing" | "sales" | "other";
+    message: string;
+  }>({
     name: "",
     email: "",
     subject: "support",
@@ -87,7 +92,7 @@ export default function ContactoPage() {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
+    } as typeof prev));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -100,7 +105,7 @@ export default function ContactoPage() {
       await submitContactMessage({
         name: formData.name,
         email: formData.email,
-        subject: formData.subject as any,
+        subject: formData.subject,
         message: formData.message,
       });
       setIsSubmitting(false);

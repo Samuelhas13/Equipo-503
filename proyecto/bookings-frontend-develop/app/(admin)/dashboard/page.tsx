@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -122,6 +123,11 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
+const monthNames = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+];
+
 // ─── SUB-COMPONENTE: BUSINESS CALENDAR (Sincronizado con el tema global) ───
 interface BusinessCalendarProps {
   bookings: Booking[];
@@ -138,11 +144,6 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
-  const monthNames = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-  ];
 
   const daysInMonth = useMemo(() => {
     const firstDayIndex = new Date(year, month, 1).getDay();
@@ -188,7 +189,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
     if (parts.length !== 3) return "";
     const [,, dStr] = parts;
     return `${parseInt(dStr, 10)} de ${monthNames[month]}`;
-  }, [selectedDateISO, month, monthNames]);
+  }, [selectedDateISO, month]);
 
   return (
     <div className="business-calendar">

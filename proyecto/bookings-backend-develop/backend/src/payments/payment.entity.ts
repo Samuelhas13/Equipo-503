@@ -28,7 +28,10 @@ export class Payment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ type: () => Customer, description: 'Cliente que realiza el pago' })
+  @ApiProperty({
+    type: () => Customer,
+    description: 'Cliente que realiza el pago',
+  })
   @ManyToOne(() => Customer, (customer) => customer.payments)
   customer: Customer;
 
@@ -47,7 +50,10 @@ export class Payment {
   })
   estado: PaymentStatus;
 
-  @ApiProperty({ type: () => Service, description: 'Servicio pagado (importe)' })
+  @ApiProperty({
+    type: () => Service,
+    description: 'Servicio pagado (importe)',
+  })
   @ManyToOne(() => Service)
   servicio: Service;
 
@@ -56,7 +62,9 @@ export class Payment {
   hora_pago: string;
 
   @ApiProperty({ type: () => Appointment, description: 'Reserva asociada' })
-  @OneToOne(() => Appointment, (appointment) => appointment.payment, { onDelete: 'CASCADE' })
+  @OneToOne(() => Appointment, (appointment) => appointment.payment, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   appointment: Appointment;
 }

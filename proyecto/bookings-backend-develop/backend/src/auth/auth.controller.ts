@@ -16,6 +16,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtPayload } from './jwt-payload.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -36,7 +37,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Perfil del usuario autenticado' })
   @ApiUnauthorizedResponse({ description: 'Token inválido o expirado' })
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: { user: JwtPayload }) {
     return this.authService.getProfile(req.user);
   }
 }

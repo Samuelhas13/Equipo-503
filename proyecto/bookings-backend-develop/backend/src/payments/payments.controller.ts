@@ -26,6 +26,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './payment.entity';
 import { UserRole } from '../users/user.entity';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -38,7 +39,7 @@ export class PaymentsController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado completo de cobros', type: [Payment] })
-  findAll(@Request() req: any) {
+  findAll(@Request() req: { user: JwtPayload }) {
     return this.paymentsService.findAll(req.user);
   }
 
@@ -47,7 +48,10 @@ export class PaymentsController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Detalle de un cobro', type: Payment })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.paymentsService.findOne(id, req.user);
   }
 
@@ -58,7 +62,10 @@ export class PaymentsController {
     description: 'Cobro creado correctamente',
     type: Payment,
   })
-  create(@Body() createPaymentDto: CreatePaymentDto, @Request() req: any) {
+  create(
+    @Body() createPaymentDto: CreatePaymentDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.paymentsService.create(createPaymentDto, req.user);
   }
 
@@ -73,7 +80,7 @@ export class PaymentsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePaymentDto: UpdatePaymentDto,
-    @Request() req: any,
+    @Request() req: { user: JwtPayload },
   ) {
     return this.paymentsService.update(id, updatePaymentDto, req.user);
   }
@@ -83,7 +90,10 @@ export class PaymentsController {
   @Roles(UserRole.ADMIN, UserRole.BUSINESS)
   @ApiOkResponse({ description: 'Cobro eliminado correctamente' })
   @ApiNotFoundResponse({ description: 'Cobro no encontrado' })
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.paymentsService.remove(id, req.user);
   }
 }

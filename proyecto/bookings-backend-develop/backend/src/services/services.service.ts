@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Service } from './service.entity';
@@ -21,14 +25,17 @@ export class ServicesService {
     const { businessId, ...rest } = createServiceDto;
     const service = this.serviceRepository.create({
       ...rest,
-      business: businessId ? { id: businessId } : undefined
+      business: businessId ? { id: businessId } : undefined,
     });
     return this.serviceRepository.save(service);
   }
 
   findAll(currentUser: JwtPayload) {
     if (currentUser.role === UserRole.BUSINESS) {
-      return this.serviceRepository.find({ where: { business: { id: currentUser.businessId } }, relations: ['business'] });
+      return this.serviceRepository.find({
+        where: { business: { id: currentUser.businessId } },
+        relations: ['business'],
+      });
     }
     return this.serviceRepository.find({ relations: ['business'] });
   }
@@ -36,18 +43,27 @@ export class ServicesService {
   async findOne(id: number, currentUser: JwtPayload) {
     const service = await this.serviceRepository.findOne({
       where: { id },
-      relations: ['business']
+      relations: ['business'],
     });
     if (!service) {
       throw new NotFoundException(`Service #${id} not found`);
     }
-    if (currentUser.role === UserRole.BUSINESS && service.business?.id !== currentUser.businessId) {
-      throw new ForbiddenException('You can only access services from your business');
+    if (
+      currentUser.role === UserRole.BUSINESS &&
+      service.business?.id !== currentUser.businessId
+    ) {
+      throw new ForbiddenException(
+        'You can only access services from your business',
+      );
     }
     return service;
   }
 
-  async update(id: number, updateServiceDto: UpdateServiceDto, currentUser: JwtPayload) {
+  async update(
+    id: number,
+    updateServiceDto: UpdateServiceDto,
+    currentUser: JwtPayload,
+  ) {
     const service = await this.findOne(id, currentUser);
     if (currentUser.role === UserRole.BUSINESS) {
       updateServiceDto.businessId = currentUser.businessId!;
@@ -55,7 +71,7 @@ export class ServicesService {
     const { businessId, ...rest } = updateServiceDto;
     const updated = this.serviceRepository.merge(service, {
       ...rest,
-      business: businessId ? { id: businessId } : undefined
+      business: businessId ? { id: businessId } : undefined,
     });
     return this.serviceRepository.save(updated);
   }

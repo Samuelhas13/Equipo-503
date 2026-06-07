@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+} from 'class-validator';
 import { UserRole } from '../user.entity';
 
 export class CreateUserDto {
@@ -21,7 +28,10 @@ export class CreateUserDto {
   @IsString()
   numero!: string;
 
-  @ApiProperty({ example: 'admin123', description: 'Contraseña en texto plano' })
+  @ApiProperty({
+    example: 'admin123',
+    description: 'Contraseña en texto plano',
+  })
   @IsString()
   @IsNotEmpty()
   password!: string;
@@ -31,7 +41,11 @@ export class CreateUserDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiProperty({ example: 1, description: 'ID de la empresa (si aplica)', required: false })
+  @ApiProperty({
+    example: 1,
+    description: 'ID de la empresa (si aplica)',
+    required: false,
+  })
   @IsNumber()
   @IsOptional()
   businessId?: number;
