@@ -81,6 +81,7 @@ function normalizeBooking(app: any): Booking {
 
   return {
     id: app.id,
+    hora_reserva: app.hora_reserva || "",
     date,
     time,
     status: app.status || "pending",

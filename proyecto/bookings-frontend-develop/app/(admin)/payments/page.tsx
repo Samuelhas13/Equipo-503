@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   getPayments,
@@ -216,6 +216,13 @@ export default function PaymentsPage() {
       databaseRecords: "registros en BD",
       paymentList: "Listado de cobros",
       results: "resultados",
+      showing: "Mostrando",
+      to: "a",
+      of: "de",
+      records: "registros",
+      previous: "Anterior",
+      next: "Siguiente",
+      searchPlaceholder: "Buscar pago...",
       loadingPayments: "Cargando pagos...",
       noPayments: "No hay pagos registrados.",
       id: "ID",
@@ -263,6 +270,13 @@ export default function PaymentsPage() {
       databaseRecords: "database records",
       paymentList: "Payment list",
       results: "results",
+      showing: "Showing",
+      to: "to",
+      of: "of",
+      records: "records",
+      previous: "Previous",
+      next: "Next",
+      searchPlaceholder: "Search payment...",
       loadingPayments: "Loading payments...",
       noPayments: "No payments registered.",
       id: "ID",
@@ -287,6 +301,77 @@ export default function PaymentsPage() {
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const filteredPayments = useMemo(() => {
+    if (!search.trim()) return payments;
+    const q = search.toLowerCase();
+    return payments.filter((payment) => {
+      const idStr = `#${payment.id}`.toLowerCase();
+      const bookingStr = `reserva #${payment.appointmentId} booking #${payment.appointmentId}`.toLowerCase();
+      const amountStr = `${payment.amount} €`.toLowerCase();
+      const methodLabel = (METHOD_LABELS[String(payment.paymentMethod)] || String(payment.paymentMethod || "")).toLowerCase();
+      const methodRaw = String(payment.paymentMethod || "").toLowerCase();
+      
+      const dateStr = payment.createdAt
+        ? new Date(payment.createdAt).toLocaleDateString("es-ES").toLowerCase()
+        : "—";
+      
+      const statusStr = (payment.status === "pending"
+        ? "por cobrar pending"
+        : payment.status === "paid"
+        ? "pagado paid"
+        : ""
+      ).toLowerCase();
+      
+      return (
+        idStr.includes(q) ||
+        bookingStr.includes(q) ||
+        amountStr.includes(q) ||
+        methodLabel.includes(q) ||
+        methodRaw.includes(q) ||
+        dateStr.includes(q) ||
+        statusStr.includes(q)
+      );
+    });
+  }, [payments, search]);
+
+  const totalPages = Math.ceil(filteredPayments.length / 30) || 1;
+
+  const paginatedPayments = useMemo(() => {
+    const start = (currentPage - 1) * 30;
+    return filteredPayments.slice(start, start + 30);
+  }, [filteredPayments, currentPage]);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+    if (currentPage > 2) {
+      pages.push(currentPage - 1);
+    }
+    if (currentPage !== 1 && currentPage !== totalPages) {
+      pages.push(currentPage);
+    }
+    if (currentPage < totalPages - 1) {
+      pages.push(currentPage + 1);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   const amountRegex = /^[0-9]+$/;
   const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
@@ -600,11 +685,24 @@ export default function PaymentsPage() {
         />
       </section>
 
+      {!loading && !error && (
+        <section className="section-card">
+          <div className="search-row">
+            <input
+              className="input"
+              placeholder={texts[language].searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </section>
+      )}
+
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">{texts[language].paymentList}</h3>
           <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {loading ? "—" : `${payments.length} ${texts[language].results}`}
+            {loading ? "—" : `${filteredPayments.length} ${texts[language].results}`}
           </span>
         </div>
 
@@ -619,11 +717,11 @@ export default function PaymentsPage() {
             <p className="table-feedback table-feedback--error">{error}</p>
           )}
 
-          {!loading && !error && payments.length === 0 && (
+          {!loading && !error && filteredPayments.length === 0 && (
             <p className="table-feedback">{texts[language].noPayments}</p>
           )}
 
-          {!loading && !error && payments.length > 0 && (
+          {!loading && !error && filteredPayments.length > 0 && (
             <table className="data-table">
               <thead>
                 <tr>
@@ -637,7 +735,7 @@ export default function PaymentsPage() {
               </thead>
 
               <tbody>
-                {payments.map((payment) => (
+                {paginatedPayments.map((payment) => (
                   <tr key={payment.id}>
                     <td style={{ fontWeight: 600 }}>#{payment.id}</td>
                     <td>
@@ -659,6 +757,55 @@ export default function PaymentsPage() {
             </table>
           )}
         </div>
+
+        {!loading && !error && filteredPayments.length > 0 && (
+          <div className="pagination-container">
+            <span className="pagination-info">
+              {texts[language].showing} {(currentPage - 1) * 30 + 1}-{Math.min(filteredPayments.length, currentPage * 30)} {texts[language].of} {filteredPayments.length} {texts[language].records}
+            </span>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous"
+                >
+                  ←
+                </button>
+                {getPageNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <span key={`dots-${idx}`} style={{ padding: "0 8px", color: "var(--muted)", fontWeight: 600 }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`pagination-btn ${currentPage === page ? "pagination-btn--active" : ""}`}
+                      onClick={() => setCurrentPage(page as number)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

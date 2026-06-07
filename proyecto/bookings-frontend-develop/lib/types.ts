@@ -26,7 +26,7 @@ export interface Service {
 export interface Business {
   id: number;
   nombre: string;
-  direccion?: string;
+  direccion: string;
 }
 
 export interface Booking {
@@ -46,6 +46,7 @@ export interface Booking {
   serviceName?: string;
   customerId?: number;
   businessId?: number;
+  userId?: number;
   status?: BookingStatus | string;
 }
 
@@ -144,11 +145,6 @@ export type CreatePaymentDto = {
 
 export type UpdatePaymentDto = Partial<CreatePaymentDto>;
 
-export interface Business {
-  id: number;
-  nombre: string;
-  direccion: string;
-}
 
 export type CreateBusinessDto = {
   nombre: string;

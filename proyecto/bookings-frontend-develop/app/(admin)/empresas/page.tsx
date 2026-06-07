@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRouter } from "next/navigation";
@@ -144,6 +144,12 @@ export default function EmpresasPage() {
       bookingConfirm: "Confirmar Reserva",
       bookingCreating: "Creando...",
       bookingSuccessMsg: "🎉 ¡Reserva creada con éxito! Redirigiendo a tus reservas...",
+      showing: "Mostrando",
+      to: "a",
+      of: "de",
+      records: "registros",
+      previous: "Anterior",
+      next: "Siguiente",
     },
     en: {
       title: "Available Businesses",
@@ -180,6 +186,12 @@ export default function EmpresasPage() {
       bookingConfirm: "Confirm Booking",
       bookingCreating: "Creating...",
       bookingSuccessMsg: "🎉 Booking created successfully! Redirecting to your bookings...",
+      showing: "Showing",
+      to: "to",
+      of: "of",
+      records: "records",
+      previous: "Previous",
+      next: "Next",
     },
   };
 
@@ -204,16 +216,57 @@ export default function EmpresasPage() {
     loadBusinesses();
   }, []);
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   // Enriquecer la lista de empresas obtenida del backend
-  const enrichedBusinesses = rawBusinesses.map(enrichBusiness);
+  const enrichedBusinesses = useMemo(() => {
+    return rawBusinesses.map(enrichBusiness);
+  }, [rawBusinesses]);
 
   // Filtrar según el buscador
-  const normalizedSearch = search.toLowerCase();
-  const filteredBusinesses = enrichedBusinesses.filter(
-    (b) =>
-      b.nombre.toLowerCase().includes(normalizedSearch) ||
-      b.direccion.toLowerCase().includes(normalizedSearch)
-  );
+  const filteredBusinesses = useMemo(() => {
+    const normalizedSearch = search.toLowerCase();
+    return enrichedBusinesses.filter(
+      (b) =>
+        b.nombre.toLowerCase().includes(normalizedSearch) ||
+        b.direccion.toLowerCase().includes(normalizedSearch)
+    );
+  }, [enrichedBusinesses, search]);
+
+  const totalPages = Math.ceil(filteredBusinesses.length / 30) || 1;
+
+  const paginatedBusinesses = useMemo(() => {
+    const start = (currentPage - 1) * 30;
+    return filteredBusinesses.slice(start, start + 30);
+  }, [filteredBusinesses, currentPage]);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+    if (currentPage > 2) {
+      pages.push(currentPage - 1);
+    }
+    if (currentPage !== 1 && currentPage !== totalPages) {
+      pages.push(currentPage);
+    }
+    if (currentPage < totalPages - 1) {
+      pages.push(currentPage + 1);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   // Funciones de ayuda para obtener la fecha de hoy en formato string YYYY-MM-DD
   const getTodayString = () => {
@@ -405,58 +458,109 @@ export default function EmpresasPage() {
           </p>
         </div>
       ) : (
-        <section className="business-grid">
-          {filteredBusinesses.map((business) => (
-            <div key={business.id} className="business-card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div className="business-icon-wrapper">{business.icon}</div>
-                <span className="business-category">{business.category}</span>
-              </div>
-              <div className="business-info">
-                <h3 className="business-title">{business.nombre}</h3>
-                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span>📍</span> {business.direccion}
-                </p>
-                <p className="business-desc">{business.desc}</p>
-              </div>
+        <section className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px", padding: 0, background: "transparent", border: "none", boxShadow: "none" }}>
+          <div className="business-grid">
+            {paginatedBusinesses.map((business) => (
+              <div key={business.id} className="business-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div className="business-icon-wrapper">{business.icon}</div>
+                  <span className="business-category">{business.category}</span>
+                </div>
+                <div className="business-info">
+                  <h3 className="business-title">{business.nombre}</h3>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span>📍</span> {business.direccion}
+                  </p>
+                  <p className="business-desc">{business.desc}</p>
+                </div>
 
-              {/* Acciones según el rol */}
-              <div className="business-actions" style={{ marginTop: "auto", display: "flex", gap: "10px" }}>
-                {user?.role === "usuario" && (
+                {/* Acciones según el rol */}
+                <div className="business-actions" style={{ marginTop: "auto", display: "flex", gap: "10px" }}>
+                  {user?.role === "usuario" && (
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      style={{ width: "100%" }}
+                      onClick={() => handleOpenBooking(business)}
+                    >
+                      {t.reserve}
+                    </button>
+                  )}
+
+                  {(user?.role === "admin" || (user?.role === "empresa" && user.businessId === business.id)) && (
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ flex: 1 }}
+                      onClick={() => handleOpenEdit(business)}
+                    >
+                      {t.edit}
+                    </button>
+                  )}
+
+                  {user?.role === "admin" && (
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ flex: 1, color: "var(--error-color, #ef4444)", borderColor: "var(--error-color, #ef4444)" }}
+                      onClick={() => handleDelete(business.id)}
+                    >
+                      {t.delete}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredBusinesses.length > 0 && (
+            <div className="pagination-container" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
+              <span className="pagination-info">
+                {texts[language].showing} {(currentPage - 1) * 30 + 1}-{Math.min(filteredBusinesses.length, currentPage * 30)} {texts[language].of} {filteredBusinesses.length} {texts[language].records}
+              </span>
+              {totalPages > 1 && (
+                <div className="pagination-controls">
                   <button
                     type="button"
-                    className="primary-btn"
-                    style={{ width: "100%" }}
-                    onClick={() => handleOpenBooking(business)}
+                    className="pagination-btn"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    aria-label="Previous"
                   >
-                    {t.reserve}
+                    ←
                   </button>
-                )}
-
-                {(user?.role === "admin" || (user?.role === "empresa" && user.businessId === business.id)) && (
+                  {getPageNumbers().map((page, idx) => {
+                    if (page === "...") {
+                      return (
+                        <span key={`dots-${idx}`} style={{ padding: "0 8px", color: "var(--muted)", fontWeight: 600 }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        key={page}
+                        type="button"
+                        className={`pagination-btn ${currentPage === page ? "pagination-btn--active" : ""}`}
+                        onClick={() => setCurrentPage(page as number)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
-                    className="secondary-btn"
-                    style={{ flex: 1 }}
-                    onClick={() => handleOpenEdit(business)}
+                    className="pagination-btn"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next"
                   >
-                    {t.edit}
+                    →
                   </button>
-                )}
-
-                {user?.role === "admin" && (
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    style={{ flex: 1, color: "var(--error-color, #ef4444)", borderColor: "var(--error-color, #ef4444)" }}
-                    onClick={() => handleDelete(business.id)}
-                  >
-                    {t.delete}
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          ))}
+          )}
         </section>
       )}
 

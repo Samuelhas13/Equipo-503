@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useMemo, useEffect } from "react";
 import type { Customer } from "@/lib/types";
 import { createCustomer } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
@@ -69,6 +69,12 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
       filter: "Filtrar",
       noBusiness: "Sin comercio",
       noNextBooking: "Sin próxima reserva",
+      showing: "Mostrando",
+      to: "a",
+      of: "de",
+      records: "registros",
+      previous: "Anterior",
+      next: "Siguiente",
     },
     en: {
       title: "Customer directory",
@@ -90,12 +96,23 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
       filter: "Filter",
       noBusiness: "No business",
       noNextBooking: "No upcoming booking",
+      showing: "Showing",
+      to: "to",
+      of: "of",
+      records: "records",
+      previous: "Previous",
+      next: "Next",
     },
   };
 
   const [search, setSearch] = useState("");  // Estado para controlar el texto introducido en el buscador.
   const [isCreateOpen, setIsCreateOpen] = useState(false);  // Estado para abrir o cerrar el formulario de nuevo cliente.
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);  // Estado que guarda la lista de clientes mostrada en pantalla.
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   // Estado que guarda los datos escritos en el formulario de creación.
   const [formData, setFormData] = useState({
@@ -108,12 +125,45 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
 
   const [isSaving, setIsSaving] = useState(false);  // Estado para indicar si se está guardando un cliente.
 
-  const filteredCustomers = customers.filter((customer) =>
-    (customer.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (customer.phone ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (customer.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    String(customer.business ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) =>
+      (customer.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (customer.phone ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (customer.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      String(customer.business ?? "").toLowerCase().includes(search.toLowerCase())
+    );
+  }, [customers, search]);
+
+  const totalPages = Math.ceil(filteredCustomers.length / 30) || 1;
+
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * 30;
+    return filteredCustomers.slice(start, start + 30);
+  }, [filteredCustomers, currentPage]);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+    if (currentPage > 2) {
+      pages.push(currentPage - 1);
+    }
+    if (currentPage !== 1 && currentPage !== totalPages) {
+      pages.push(currentPage);
+    }
+    if (currentPage < totalPages - 1) {
+      pages.push(currentPage + 1);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   function handleInputChange(field: keyof typeof formData, value: string) {  // Actualiza un campo concreto del formulario sin modificar el resto.
     setFormData((current) => ({
@@ -247,14 +297,65 @@ export default function CustomersClient({ initialCustomers }: CustomersClientPro
         </div>
       </section>
 
-      <section className="customer-grid">
-        {filteredCustomers.map((customer) => (
-          <CustomerCard
-            key={customer.id}
-            customer={customer}
-            texts={texts[language]}
-          />
-        ))}
+      <section className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px", padding: 0, background: "transparent", border: "none", boxShadow: "none" }}>
+        <div className="customer-grid">
+          {paginatedCustomers.map((customer) => (
+            <CustomerCard
+              key={customer.id}
+              customer={customer}
+              texts={texts[language]}
+            />
+          ))}
+        </div>
+
+        {filteredCustomers.length > 0 && (
+          <div className="pagination-container" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
+            <span className="pagination-info">
+              {texts[language].showing} {(currentPage - 1) * 30 + 1}-{Math.min(filteredCustomers.length, currentPage * 30)} {texts[language].of} {filteredCustomers.length} {texts[language].records}
+            </span>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous"
+                >
+                  ←
+                </button>
+                {getPageNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <span key={`dots-${idx}`} style={{ padding: "0 8px", color: "var(--muted)", fontWeight: 600 }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`pagination-btn ${currentPage === page ? "pagination-btn--active" : ""}`}
+                      onClick={() => setCurrentPage(page as number)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -203,6 +203,13 @@ export default function BookingsClient({
       confirmedOption: "Confirmada",
       paidOption: "Pagada",
       edit: "Editar",
+      searchPlaceholder: "Buscar reserva...",
+      showing: "Mostrando",
+      to: "a",
+      of: "de",
+      records: "registros",
+      previous: "Anterior",
+      next: "Siguiente",
     },
     en: {
       title: "Bookings Dashboard",
@@ -233,6 +240,13 @@ export default function BookingsClient({
       confirmedOption: "Confirmed",
       paidOption: "Paid",
       edit: "Edit",
+      searchPlaceholder: "Search booking...",
+      showing: "Showing",
+      to: "to",
+      of: "of",
+      records: "records",
+      previous: "Previous",
+      next: "Next",
     },
   };
 
@@ -289,6 +303,13 @@ export default function BookingsClient({
   const createFormRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
   const roleFilteredBookings = useMemo(() => {
     if (user?.role === "empresa") {
       return bookings.filter((b) => b.businessId === user.businessId);
@@ -299,9 +320,72 @@ export default function BookingsClient({
   }, [bookings, user]);
 
   const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return roleFilteredBookings;
-    return roleFilteredBookings.filter((booking) => booking.status === statusFilter);
-  }, [roleFilteredBookings, statusFilter]);
+    let result = roleFilteredBookings;
+    if (statusFilter !== "all") {
+      result = result.filter((booking) => booking.status === statusFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((booking) => {
+        const idStr = String(booking.id).toLowerCase();
+        const dateStr = formatDate(booking.date ?? "").toLowerCase();
+        const timeStr = String(booking.time ?? "").toLowerCase();
+        const serviceStr = String(booking.serviceName ?? "").toLowerCase();
+        const customerIdStr = String(booking.customerId ?? "").toLowerCase();
+        const businessName = (BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`).toLowerCase();
+        
+        const map: Record<BookingStatus, string> = {
+          pending:   "pendiente",
+          confirmed: "confirmada",
+          paid:      "pagada",
+          canceled:  "cancelada",
+          completed: "completada",
+        };
+        const statusStr = (map[booking.status as BookingStatus] || booking.status || "").toLowerCase();
+        
+        return (
+          idStr.includes(q) ||
+          dateStr.includes(q) ||
+          timeStr.includes(q) ||
+          serviceStr.includes(q) ||
+          customerIdStr.includes(q) ||
+          businessName.includes(q) ||
+          statusStr.includes(q)
+        );
+      });
+    }
+    return result;
+  }, [roleFilteredBookings, statusFilter, search]);
+
+  const totalPages = Math.ceil(filteredBookings.length / 30) || 1;
+  const paginatedBookings = useMemo(() => {
+    const start = (currentPage - 1) * 30;
+    return filteredBookings.slice(start, start + 30);
+  }, [filteredBookings, currentPage]);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+    if (currentPage > 2) {
+      pages.push(currentPage - 1);
+    }
+    if (currentPage !== 1 && currentPage !== totalPages) {
+      pages.push(currentPage);
+    }
+    if (currentPage < totalPages - 1) {
+      pages.push(currentPage + 1);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   const totalCount = roleFilteredBookings.length;
   const pendingCount = roleFilteredBookings.filter((b) => b.status === "pending").length;
@@ -902,6 +986,17 @@ export default function BookingsClient({
         </div>
       )}
 
+      <section className="section-card">
+        <div className="search-row">
+          <input
+            className="input"
+            placeholder={texts[language].searchPlaceholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </section>
+
       <section className="section-card booking-table-card">
         <div className="panel-title-row">
           <h3 className="panel-title">
@@ -940,7 +1035,7 @@ export default function BookingsClient({
               </tr>
             </thead>
             <tbody>
-              {filteredBookings.map((booking) => (
+              {paginatedBookings.map((booking) => (
                 <tr key={booking.id}>
                   <td style={{ fontWeight: 600 }}>{booking.id}</td>
                   <td>{formatDate(booking.date ?? "")}</td>
@@ -974,6 +1069,55 @@ export default function BookingsClient({
             </tbody>
           </table>
         </div>
+
+        {filteredBookings.length > 0 && (
+          <div className="pagination-container">
+            <span className="pagination-info">
+              {texts[language].showing} {(currentPage - 1) * 30 + 1}-{Math.min(filteredBookings.length, currentPage * 30)} {texts[language].of} {filteredBookings.length} {texts[language].records}
+            </span>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous"
+                >
+                  ←
+                </button>
+                {getPageNumbers().map((page, idx) => {
+                  if (page === "...") {
+                    return (
+                      <span key={`dots-${idx}`} style={{ padding: "0 8px", color: "var(--muted)", fontWeight: 600 }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`pagination-btn ${currentPage === page ? "pagination-btn--active" : ""}`}
+                      onClick={() => setCurrentPage(page as number)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

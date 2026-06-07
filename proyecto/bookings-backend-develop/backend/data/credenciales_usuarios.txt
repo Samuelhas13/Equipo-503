@@ -7,7 +7,7 @@ Rol: admin
 businessId: null
 
 2. BUSINESS 1 (Empresa Alfa - businessId: 1)
-Email: business1@bookings.com
+Email: business1@empresa.com
 Contraseña: Business123!
 Rol: business
 
