@@ -305,10 +305,21 @@ export default function BookingsClient({
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string>("id");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, sortField, sortDirection]);
 
   const roleFilteredBookings = useMemo(() => {
     if (user?.role === "empresa") {
@@ -357,11 +368,63 @@ export default function BookingsClient({
     return result;
   }, [roleFilteredBookings, statusFilter, search]);
 
+  const sortedBookings = useMemo(() => {
+    const sorted = [...filteredBookings];
+    if (!sortField) return sorted;
+    sorted.sort((a, b) => {
+      let valA: any = "";
+      let valB: any = "";
+      switch (sortField) {
+        case "id":
+          valA = a.id;
+          valB = b.id;
+          break;
+        case "date":
+          valA = a.date ?? "";
+          valB = b.date ?? "";
+          break;
+        case "time":
+          valA = a.time ?? "";
+          valB = b.time ?? "";
+          break;
+        case "serviceName":
+          valA = a.serviceName ?? "";
+          valB = b.serviceName ?? "";
+          break;
+        case "customerId":
+          valA = a.customerId ?? 0;
+          valB = b.customerId ?? 0;
+          break;
+        case "businessId":
+          valA = BUSINESS_NAMES[a.businessId ?? 0] || `#${a.businessId ?? "?"}`;
+          valB = BUSINESS_NAMES[b.businessId ?? 0] || `#${b.businessId ?? "?"}`;
+          break;
+        case "status":
+          valA = a.status ?? "";
+          valB = b.status ?? "";
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof valA === "number" && typeof valB === "number") {
+        return sortDirection === "asc" ? valA - valB : valB - valA;
+      }
+
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+      if (strA < strB) return sortDirection === "asc" ? -1 : 1;
+      if (strA > strB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [filteredBookings, sortField, sortDirection]);
+
   const totalPages = Math.ceil(filteredBookings.length / 30) || 1;
   const paginatedBookings = useMemo(() => {
     const start = (currentPage - 1) * 30;
-    return filteredBookings.slice(start, start + 30);
-  }, [filteredBookings, currentPage]);
+    return sortedBookings.slice(start, start + 30);
+  }, [sortedBookings, currentPage]);
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -1024,13 +1087,41 @@ export default function BookingsClient({
           <table className="data-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Servicio</th>
-                <th>Customer</th>
-                <th>Comercio</th>
-                <th>Estado</th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("id")}>
+                    ID{sortField === "id" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("date")}>
+                    Fecha{sortField === "date" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("time")}>
+                    Hora{sortField === "time" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("serviceName")}>
+                    Servicio{sortField === "serviceName" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("customerId")}>
+                    Customer{sortField === "customerId" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("businessId")}>
+                    Comercio{sortField === "businessId" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="sort-btn" onClick={() => handleSort("status")}>
+                    Estado{sortField === "status" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                  </button>
+                </th>
                 <th>Acciones</th>
               </tr>
             </thead>

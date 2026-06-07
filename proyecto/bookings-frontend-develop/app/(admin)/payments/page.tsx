@@ -304,10 +304,21 @@ export default function PaymentsPage() {
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string>("id");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, sortField, sortDirection]);
 
   const filteredPayments = useMemo(() => {
     if (!search.trim()) return payments;
@@ -342,12 +353,60 @@ export default function PaymentsPage() {
     });
   }, [payments, search]);
 
+  const sortedPayments = useMemo(() => {
+    const sorted = [...filteredPayments];
+    if (!sortField) return sorted;
+    sorted.sort((a, b) => {
+      let valA: any = "";
+      let valB: any = "";
+      switch (sortField) {
+        case "id":
+          valA = a.id;
+          valB = b.id;
+          break;
+        case "appointmentId":
+          valA = a.appointmentId ?? 0;
+          valB = b.appointmentId ?? 0;
+          break;
+        case "amount":
+          valA = a.amount ?? 0;
+          valB = b.amount ?? 0;
+          break;
+        case "paymentMethod":
+          valA = a.paymentMethod ?? "";
+          valB = b.paymentMethod ?? "";
+          break;
+        case "createdAt":
+          valA = a.createdAt ?? "";
+          valB = b.createdAt ?? "";
+          break;
+        case "status":
+          valA = a.status ?? "";
+          valB = b.status ?? "";
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof valA === "number" && typeof valB === "number") {
+        return sortDirection === "asc" ? valA - valB : valB - valA;
+      }
+
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+      if (strA < strB) return sortDirection === "asc" ? -1 : 1;
+      if (strA > strB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [filteredPayments, sortField, sortDirection]);
+
   const totalPages = Math.ceil(filteredPayments.length / 30) || 1;
 
   const paginatedPayments = useMemo(() => {
     const start = (currentPage - 1) * 30;
-    return filteredPayments.slice(start, start + 30);
-  }, [filteredPayments, currentPage]);
+    return sortedPayments.slice(start, start + 30);
+  }, [sortedPayments, currentPage]);
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -725,12 +784,36 @@ export default function PaymentsPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{texts[language].id}</th>
-                  <th>{texts[language].booking}</th>
-                  <th>{texts[language].amount}</th>
-                  <th>{texts[language].method}</th>
-                  <th>{texts[language].date}</th>
-                  <th>{texts[language].status}</th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("id")}>
+                      {texts[language].id}{sortField === "id" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("appointmentId")}>
+                      {texts[language].booking}{sortField === "appointmentId" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("amount")}>
+                      {texts[language].amount}{sortField === "amount" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("paymentMethod")}>
+                      {texts[language].method}{sortField === "paymentMethod" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("createdAt")}>
+                      {texts[language].date}{sortField === "createdAt" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" className="sort-btn" onClick={() => handleSort("status")}>
+                      {texts[language].status}{sortField === "status" ? (sortDirection === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
                 </tr>
               </thead>
 
