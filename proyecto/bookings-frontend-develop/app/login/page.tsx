@@ -108,33 +108,33 @@ export default function LoginPage() {
         <div className="quick-login-section">
           <h3 className="quick-login-title">Acceso rápido de prueba</h3>
           <div className="quick-login-grid">
-            <div className="quick-login-card" onClick={() => handleQuickLogin("admin@bookflow.com", "admin123", "admin")}>
+            <div className="quick-login-card" onClick={() => handleQuickLogin("admin@bookings.com", "Password123!", "admin")}>
               <span style={{ fontSize: "20px" }}>🛡️</span>
               <div className="quick-login-role">Admin</div>
               <div className="quick-login-name">Control Total</div>
             </div>
-            <div className="quick-login-card" onClick={() => handleQuickLogin("nova@bookflow.com", "nova123", "empresa")}>
+            <div className="quick-login-card" onClick={() => handleQuickLogin("business1@empresa.com", "Password123!", "empresa")}>
               <span style={{ fontSize: "20px" }}>💇</span>
               <div className="quick-login-role">Empresa 1</div>
-              <div className="quick-login-name">P. Nova</div>
+              <div className="quick-login-name">Empresa 1</div>
             </div>
-            <div className="quick-login-card" onClick={() => handleQuickLogin("juan@bookflow.com", "juan123", "usuario")}>
+            <div className="quick-login-card" onClick={() => handleQuickLogin("cliente500@masivo.com", "Password123!", "usuario")}>
               <span style={{ fontSize: "20px" }}>👤</span>
-              <div className="quick-login-role">Usuario 1</div>
-              <div className="quick-login-name">Juan Pérez</div>
+              <div className="quick-login-role">Cliente 500</div>
+              <div className="quick-login-name">Asoc. Emp 1</div>
             </div>
           </div>
           <div className="quick-login-grid" style={{ marginTop: "8px" }}>
             <div style={{ visibility: "hidden" }}></div>
-            <div className="quick-login-card" onClick={() => handleQuickLogin("marea@bookflow.com", "marea123", "empresa")}>
+            <div className="quick-login-card" onClick={() => handleQuickLogin("business2@empresa.com", "Password123!", "empresa")}>
               <span style={{ fontSize: "20px" }}>🍲</span>
               <div className="quick-login-role">Empresa 2</div>
-              <div className="quick-login-name">Rest. Marea</div>
+              <div className="quick-login-name">Empresa 2</div>
             </div>
-            <div className="quick-login-card" onClick={() => handleQuickLogin("maria@bookflow.com", "maria123", "usuario")}>
+            <div className="quick-login-card" onClick={() => handleQuickLogin("cliente1@masivo.com", "Password123!", "usuario")}>
               <span style={{ fontSize: "20px" }}>👤</span>
-              <div className="quick-login-role">Usuario 2</div>
-              <div className="quick-login-name">María López</div>
+              <div className="quick-login-role">Cliente 1</div>
+              <div className="quick-login-name">Asoc. Emp 2</div>
             </div>
           </div>
         </div>

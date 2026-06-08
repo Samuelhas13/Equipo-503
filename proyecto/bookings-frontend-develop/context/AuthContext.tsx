@@ -61,11 +61,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const MOCK_USERS = [
-  { email: "admin@bookflow.com", password: "admin123", name: "Administrador de Sistema", role: "admin" as UserRole },
-  { email: "nova@bookflow.com", password: "nova123", name: "Peluquería Nova", role: "empresa" as UserRole, businessId: 1 },
-  { email: "marea@bookflow.com", password: "marea123", name: "Restaurante Marea", role: "empresa" as UserRole, businessId: 2 },
-  { email: "juan@bookflow.com", password: "juan123", name: "Juan Pérez", role: "usuario" as UserRole, customerId: 1 },
-  { email: "maria@bookflow.com", password: "maria123", name: "María López", role: "usuario" as UserRole, customerId: 2 },
+  { email: "admin@bookings.com", password: "Password123!", name: "Administrador de Sistema", role: "admin" as UserRole },
+  { email: "business1@empresa.com", password: "Password123!", name: "Empresa 1", role: "empresa" as UserRole, businessId: 1 },
+  { email: "business2@empresa.com", password: "Password123!", name: "Empresa 2", role: "empresa" as UserRole, businessId: 2 },
+  { email: "cliente500@masivo.com", password: "Password123!", name: "Cliente 500", role: "usuario" as UserRole, customerId: 500 },
+  { email: "cliente1@masivo.com", password: "Password123!", name: "Cliente 1", role: "usuario" as UserRole, customerId: 1 },
 ];
 
 

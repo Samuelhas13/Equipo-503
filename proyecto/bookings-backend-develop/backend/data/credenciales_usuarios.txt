@@ -6,30 +6,30 @@ Contraseña: Password123!
 Rol: admin
 businessId: null
 
-2. BUSINESS 1 (Empresa Alfa - businessId: 1)
+2. BUSINESS 1 (Empresa 1 - businessId: 1)
 Email: business1@empresa.com
-Contraseña: Business123!
+Contraseña: Password123!
 Rol: business
 
-3. BUSINESS 2 (Empresa Beta - businessId: 2)
-Email: business2@bookings.com
-Contraseña: Business123!
+3. BUSINESS 2 (Empresa 2 - businessId: 2)
+Email: business2@empresa.com
+Contraseña: Password123!
 Rol: business
 
 4. CUSTOMERS (Clientes de Prueba)
-Contraseña común: Customer123!
+Contraseña común: Password123!
 Rol: customer
 
-Asociados a la Empresa Alfa (businessId: 1):
-- customer1@bookings.com
-- customer2@bookings.com
-- customer3@bookings.com
-- customer4@bookings.com
-- customer5@bookings.com
+Asociados a la Empresa 1 (businessId: 1):
+- cliente500@masivo.com
+- cliente1000@masivo.com
+- cliente1500@masivo.com
+- cliente2000@masivo.com
+- cliente2500@masivo.com
 
-Asociados a la Empresa Beta (businessId: 2):
-- customer6@bookings.com
-- customer7@bookings.com
-- customer8@bookings.com
-- customer9@bookings.com
-- customer10@bookings.com
+Asociados a la Empresa 2 (businessId: 2):
+- cliente1@masivo.com
+- cliente501@masivo.com
+- cliente1001@masivo.com
+- cliente1501@masivo.com
+- cliente2001@masivo.com
