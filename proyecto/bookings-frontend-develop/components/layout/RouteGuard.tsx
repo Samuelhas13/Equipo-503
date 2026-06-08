@@ -59,7 +59,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>
-        <p>Cargando BookFlow...</p>
+        <p>Cargando Turniagenidx...</p>
       </div>
     );
   }

@@ -12,6 +12,10 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
+  async register(registerDto: any) {
+    return this.usersService.registerCustomer(registerDto);
+  }
+
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     const user = await this.usersService.findOneByEmail(email);

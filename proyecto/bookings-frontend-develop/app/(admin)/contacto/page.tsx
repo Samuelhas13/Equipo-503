@@ -12,10 +12,10 @@ export default function ContactoPage() {
   const texts = {
     es: {
       title: "Contacto y Soporte",
-      subtitle: "¿Tienes dudas o necesitas ayuda? Ponte en contacto con el equipo de soporte de BookFlow.",
+      subtitle: "¿Tienes dudas o necesitas ayuda? Ponte en contacto con el equipo de soporte de Turniagenidx.",
       contactInfo: "Información de Contacto",
       addressLabel: "📍 DIRECCIÓN PRINCIPAL",
-      officeTitle: "Oficinas BookFlow",
+      officeTitle: "Oficinas Turniagenidx",
       address: "Paseo de la Castellana, 105, 28046 Madrid, España",
       emailLabel: "✉ CORREO ELECTRÓNICO",
       supportTitle: "Soporte Técnico",
@@ -41,10 +41,10 @@ export default function ContactoPage() {
     },
     en: {
       title: "Contact and Support",
-      subtitle: "Do you have questions or need help? Contact the BookFlow support team.",
+      subtitle: "Do you have questions or need help? Contact the Turniagenidx support team.",
       contactInfo: "Contact Information",
       addressLabel: "📍 MAIN ADDRESS",
-      officeTitle: "BookFlow Offices",
+      officeTitle: "Turniagenidx Offices",
       address: "Paseo de la Castellana, 105, 28046 Madrid, Spain",
       emailLabel: "✉ EMAIL",
       supportTitle: "Technical Support",
@@ -162,7 +162,7 @@ export default function ContactoPage() {
               <div className="info-box">
                 <p className="info-box__eyebrow">{texts[language].emailLabel}</p>
                 <h4 className="info-box__title">{texts[language].supportTitle}</h4>
-                <p className="info-box__text">soporte@bookflow.com</p>
+                <p className="info-box__text">soporte@turniagenidx.com</p>
                 <p className="info-box__text" style={{ fontSize: "12px", marginTop: "4px" }}>{texts[language].emailResponse}</p>
               </div>
 

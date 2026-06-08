@@ -51,7 +51,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<UserRole | null>;
+  register: (nombre: string, apellido: string, email: string, numero: string, password: string) => Promise<boolean>;
   logout: () => void;
   getAuthHeaders: () => Record<string, string>;
 }
@@ -113,26 +114,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     restoreSession();
   }, []);
 
-  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<UserRole | null> => {
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) return false;
+      if (!res.ok) return null;
 
       const data: { access_token: string; token_type: string; expires_in: number; user: RawUser } = await res.json();
 
+      const mapped = mapUser(data.user);
       setToken(data.access_token);
-      setUser(mapUser(data.user));
+      setUser(mapped);
       localStorage.setItem("bookflow_token", data.access_token);
       localStorage.setItem("bookflow_user", JSON.stringify(data.user));
 
-      return true;
+      return mapped.role;
     } catch (err) {
       console.error("[AuthContext] Error en login:", err);
+      return null;
+    }
+  };
+
+  const register = async (
+    nombre: string,
+    apellido: string,
+    email: string,
+    numero: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, apellido, email, numero, password }),
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("[AuthContext] Error en registro:", err);
       return false;
     }
   };
@@ -151,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, getAuthHeaders }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, getAuthHeaders }}>
       {children}
     </AuthContext.Provider>
   );

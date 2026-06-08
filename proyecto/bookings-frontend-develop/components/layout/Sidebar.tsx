@@ -22,7 +22,7 @@ interface SidebarProps {
 export default function Sidebar({
   menuItems,
   onNavigate,
-  brandTitle = "BookFlow",
+  brandTitle = "Turniagenidx",
   brandSubtitle,
 }: SidebarProps) {
   const { user } = useAuth();

@@ -13,6 +13,7 @@ import { JwtPayload } from '../auth/jwt-payload.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Business } from '../business/business.entity';
+import { Customer } from '../customers/customer.entity';
 
 @Injectable()
 export class UsersService {
@@ -72,6 +73,39 @@ export class UsersService {
     });
 
     return this.userRepository.save(user);
+  }
+
+  async registerCustomer(registerDto: any) {
+    const { nombre, apellido, email, numero, password } = registerDto;
+
+    const existingUser = await this.userRepository.findOneBy({ email });
+    if (existingUser) {
+      throw new ConflictException('Ya existe una cuenta con este email');
+    }
+
+    const saltOrRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+
+    const user = this.userRepository.create({
+      nombre,
+      apellido,
+      email,
+      numero,
+      password: hashedPassword,
+      role: UserRole.CUSTOMER,
+    });
+    const savedUser = await this.userRepository.save(user);
+
+    const customerRepo = this.dataSource.getRepository(Customer);
+    const customer = customerRepo.create({
+      nombre,
+      apellido,
+      email,
+      numero,
+    });
+    await customerRepo.save(customer);
+
+    return savedUser;
   }
 
   findAll(currentUser: JwtPayload) {
