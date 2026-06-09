@@ -4,6 +4,7 @@ import { Service } from 'src/services/service.entity';
 import { Customer } from '../customers/customer.entity';
 import { Appointment } from '../appointments/appointment.entity';
 import { User } from 'src/users/user.entity';
+import { Reward } from '../rewards/reward.entity';
 
 @Entity('business')
 export class Business {
@@ -34,4 +35,8 @@ export class Business {
   @ApiProperty({ type: () => [User] })
   @OneToMany(() => User, (user) => user.business)
   users: User[];
+
+  @ApiProperty({ type: () => [Reward] })
+  @OneToMany(() => Reward, (reward) => reward.business)
+  rewards: Reward[];
 }

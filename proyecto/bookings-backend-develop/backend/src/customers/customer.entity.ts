@@ -9,6 +9,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment } from '../payments/payment.entity';
 import { Business } from '../business/business.entity';
+import { RewardRedemption } from '../rewards/reward-redemption.entity';
 
 @Entity('customers')
 export class Customer {
@@ -46,4 +47,12 @@ export class Customer {
   @ApiProperty({ type: () => [Payment], description: 'Pagos del cliente' })
   @OneToMany(() => Payment, (payment) => payment.customer)
   payments: Payment[];
+
+  @ApiProperty({ description: 'Puntos acumulados del cliente', default: 0 })
+  @Column({ default: 0 })
+  puntos: number;
+
+  @ApiProperty({ type: () => [RewardRedemption], description: 'Canjes del cliente' })
+  @OneToMany(() => RewardRedemption, (redemption) => redemption.customer)
+  redemptions: RewardRedemption[];
 }

@@ -7,11 +7,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
-import { Payment } from './payment.entity';
+import { Payment, PaymentStatus } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UserRole } from '../users/user.entity';
+import { Customer } from '../customers/customer.entity';
+import { Service } from '../services/service.entity';
+import { CustomerBusinessPoints } from '../rewards/customer-business-points.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +23,12 @@ export class PaymentsService {
     private readonly paymentsRepository: Repository<Payment>,
     @InjectRepository(Appointment)
     private readonly appointmentsRepository: Repository<Appointment>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(Service)
+    private readonly serviceRepository: Repository<Service>,
+    @InjectRepository(CustomerBusinessPoints)
+    private readonly cbPointsRepository: Repository<CustomerBusinessPoints>,
   ) {}
 
   findAll(currentUser?: JwtPayload) {
@@ -131,7 +140,13 @@ export class PaymentsService {
       servicio: { id: servicioId },
     });
 
-    return this.paymentsRepository.save(payment);
+    const savedPayment = await this.paymentsRepository.save(payment);
+
+    if (savedPayment.estado === PaymentStatus.PAGADO) {
+      await this.adjustCustomerPoints(customerId, servicioId, 'add');
+    }
+
+    return savedPayment;
   }
 
   async update(
@@ -140,6 +155,10 @@ export class PaymentsService {
     currentUser?: JwtPayload,
   ) {
     const payment = await this.findOne(id, currentUser);
+
+    const oldEstado = payment.estado;
+    const oldCustomerId = payment.customer?.id;
+    const oldServiceId = payment.servicio?.id;
 
     if (currentUser?.role === UserRole.CUSTOMER) {
       // El cliente no puede cambiar asociaciones clave
@@ -174,12 +193,86 @@ export class PaymentsService {
       servicio: servicioId ? { id: servicioId } : undefined,
     });
 
-    return this.paymentsRepository.save(updatedPayment);
+    const savedPayment = await this.paymentsRepository.save(updatedPayment);
+
+    const newEstado = savedPayment.estado;
+    const newCustomerId = customerId || oldCustomerId;
+    const newServiceId = servicioId || oldServiceId;
+
+    if (oldEstado === PaymentStatus.PAGADO && newEstado !== PaymentStatus.PAGADO) {
+      if (oldCustomerId && oldServiceId) {
+        await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+      }
+    } else if (oldEstado !== PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
+      if (newCustomerId && newServiceId) {
+        await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+      }
+    } else if (oldEstado === PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
+      if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
+        if (oldCustomerId && oldServiceId) {
+          await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+        }
+        if (newCustomerId && newServiceId) {
+          await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        }
+      }
+    }
+
+    return savedPayment;
   }
 
   async remove(id: number, currentUser?: JwtPayload) {
     const payment = await this.findOne(id, currentUser);
+
+    if (payment.estado === PaymentStatus.PAGADO && payment.customer?.id && payment.servicio?.id) {
+      await this.adjustCustomerPoints(payment.customer.id, payment.servicio.id, 'subtract');
+    }
+
     await this.paymentsRepository.remove(payment);
     return { message: `Pago ${id} eliminado correctamente` };
+  }
+
+  private async adjustCustomerPoints(
+    customerId: number,
+    serviceId: number,
+    action: 'add' | 'subtract',
+  ) {
+    try {
+      const customer = await this.customerRepository.findOneBy({ id: customerId });
+      const service = await this.serviceRepository.findOne({
+        where: { id: serviceId },
+        relations: ['business'],
+      });
+
+      if (customer && service && service.business) {
+        const businessId = service.business.id;
+        const points = Math.floor(Number(service.precio) * 10);
+
+        let cbPoints = await this.cbPointsRepository.findOne({
+          where: {
+            customer: { id: customerId },
+            business: { id: businessId },
+          },
+        });
+
+        if (!cbPoints) {
+          cbPoints = this.cbPointsRepository.create({
+            customer: { id: customerId },
+            business: { id: businessId },
+            points: 0,
+          });
+        }
+
+        if (action === 'add') {
+          cbPoints.points += points;
+        } else {
+          cbPoints.points = Math.max(0, cbPoints.points - points);
+        }
+
+        await this.cbPointsRepository.save(cbPoints);
+      }
+    } catch (err) {
+      console.error('Error al ajustar puntos del cliente:', err);
+    }
   }
 }

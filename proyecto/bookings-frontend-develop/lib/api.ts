@@ -18,6 +18,9 @@ import type {
   CreateContactDto,
   Notification,
   Service,
+  Reward,
+  RewardRedemption,
+  CustomerBusinessPoints,
 } from "./types";
 
 export type {
@@ -32,6 +35,9 @@ export type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  Reward,
+  RewardRedemption,
+  CustomerBusinessPoints,
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -331,3 +337,67 @@ export async function updateUser(id: number, data: any): Promise<any> {
     body: JSON.stringify(data),
   });
 }
+
+// ── REWARDS ──────────────────────────────────────────────────────
+
+export async function getRewards(businessId?: number): Promise<Reward[]> {
+  const query = businessId ? `?businessId=${businessId}` : "";
+  return apiRequest<Reward[]>(`/rewards${query}`, { cache: "no-store" });
+}
+
+export async function getRewardById(id: number): Promise<Reward> {
+  return apiRequest<Reward>(`/rewards/${id}`, { cache: "no-store" });
+}
+
+export async function createReward(data: {
+  title: string;
+  description?: string;
+  type: "discount" | "gift";
+  discountValue?: number;
+  requiredPoints: number;
+  businessId?: number;
+}): Promise<Reward> {
+  return apiRequest<Reward>("/rewards", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateReward(id: number, data: Partial<Reward>): Promise<Reward> {
+  return apiRequest<Reward>(`/rewards/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteReward(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/rewards/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function claimReward(rewardId: number): Promise<RewardRedemption> {
+  return apiRequest<RewardRedemption>(`/rewards/claim/${rewardId}`, {
+    method: "POST",
+  });
+}
+
+export async function getMyRedemptions(): Promise<RewardRedemption[]> {
+  return apiRequest<RewardRedemption[]>("/rewards/my-redemptions", { cache: "no-store" });
+}
+
+export async function getBusinessRedemptions(): Promise<RewardRedemption[]> {
+  return apiRequest<RewardRedemption[]>("/rewards/business-redemptions", { cache: "no-store" });
+}
+
+export async function validateRedemptionCode(code: string): Promise<RewardRedemption> {
+  return apiRequest<RewardRedemption>("/rewards/validate", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
+export async function getMyPoints(): Promise<CustomerBusinessPoints[]> {
+  return apiRequest<CustomerBusinessPoints[]>("/rewards/my-points", { cache: "no-store" });
+}
+

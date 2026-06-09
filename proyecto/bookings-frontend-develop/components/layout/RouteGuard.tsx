@@ -33,7 +33,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
 
       // Check role permissions:
       if (user.role === "usuario") {
-        const allowedUserPaths = ["/bookings", "/empresas", "/contacto", "/mi-perfil"];
+        const allowedUserPaths = ["/bookings", "/empresas", "/contacto", "/mi-perfil", "/premios"];
         const isAllowed = allowedUserPaths.some(
           (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
         );
@@ -42,7 +42,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
           router.push("/bookings");
         }
       } else if (user.role === "empresa") {
-        const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers", "/mi-perfil"];
+        const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers", "/mi-perfil", "/premios"];
         const isAllowed = allowedEmpresaPaths.some(
           (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
         );
@@ -75,13 +75,13 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
 
   // Enforce role routing check (prevent rendering unauthorized pages for a split second)
   if (user && user.role === "usuario") {
-    const allowedUserPaths = ["/bookings", "/empresas", "/contacto", "/mi-perfil"];
+    const allowedUserPaths = ["/bookings", "/empresas", "/contacto", "/mi-perfil", "/premios"];
     const isAllowed = allowedUserPaths.some(
       (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
     );
     if (!isAllowed) return null;
   } else if (user && user.role === "empresa") {
-    const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers", "/mi-perfil"];
+    const allowedEmpresaPaths = ["/dashboard", "/bookings", "/contacto", "/empresas", "/customers", "/mi-perfil", "/premios"];
     const isAllowed = allowedEmpresaPaths.some(
       (path) => (pathname === path || pathname.startsWith(path + "/")) && !pathname.startsWith("/contacto/mensajes")
     );

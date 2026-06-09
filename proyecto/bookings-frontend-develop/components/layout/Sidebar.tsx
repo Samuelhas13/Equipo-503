@@ -80,6 +80,7 @@ export default function Sidebar({
       changeToLight: "Cambiar a modo claro",
       changeToDark: "Cambiar a modo oscuro",
       miPerfil: "Mi perfil",
+      premios: "Premios",
     },
     en: {
       dashboard: "Dashboard",
@@ -99,6 +100,7 @@ export default function Sidebar({
       changeToLight: "Switch to light mode",
       changeToDark: "Switch to dark mode",
       miPerfil: "My profile",
+      premios: "Rewards",
     },
   };
 
@@ -116,6 +118,7 @@ export default function Sidebar({
     { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
     { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
     { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
+    { label: sidebarTexts[language].premios, href: "/premios", icon: "🎁" },
     { label: sidebarTexts[language].miPerfil, href: "/mi-perfil", icon: "⚙" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
@@ -123,6 +126,7 @@ export default function Sidebar({
   const usuarioMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
     { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
+    { label: sidebarTexts[language].premios, href: "/premios", icon: "🎁" },
     { label: sidebarTexts[language].miPerfil, href: "/mi-perfil", icon: "⚙" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];

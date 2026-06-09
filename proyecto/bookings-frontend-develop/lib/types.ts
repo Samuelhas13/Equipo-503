@@ -86,6 +86,8 @@ export interface Customer {
   business?: Business | number | null;
   appointments?: Booking[];
   payments?: Payment[];
+  puntos?: number;
+  redemptions?: RewardRedemption[];
   // convenience fields used in frontend
   name?: string;
   phone?: string;
@@ -178,5 +180,33 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
 }
+
+export interface Reward {
+  id: number;
+  title: string;
+  description?: string;
+  type: "discount" | "gift";
+  discountValue?: number;
+  requiredPoints: number;
+  isActive: boolean;
+  business?: Business | number;
+}
+
+export interface RewardRedemption {
+  id: number;
+  customer?: Customer | number;
+  reward?: Reward | number;
+  redeemedAt: string;
+  status: "pending" | "used";
+  code: string;
+}
+
+export interface CustomerBusinessPoints {
+  id: number;
+  customer?: Customer | number;
+  business: Business;
+  points: number;
+}
+
 
 
