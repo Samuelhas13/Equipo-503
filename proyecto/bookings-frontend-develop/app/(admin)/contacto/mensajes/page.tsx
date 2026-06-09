@@ -5,7 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { 
   getContactMessages, 
   updateContactMessageReadStatus, 
-  deleteContactMessage 
+  deleteContactMessage,
+  replyToContactMessage
 } from "@/lib/api";
 import { ContactMessage } from "@/lib/types";
 
@@ -17,6 +18,34 @@ export default function MensajesContactoPage() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [search, setSearch] = useState("");
+
+  // Estados para responder a mensajes
+  const [replyText, setReplyText] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
+  const [replySuccess, setReplySuccess] = useState(false);
+
+  const handleSendReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMessage || !replyText.trim()) return;
+
+    setIsReplying(true);
+    setReplySuccess(false);
+
+    try {
+      const updated = await replyToContactMessage(selectedMessage.id, replyText);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === selectedMessage.id ? updated : m))
+      );
+      setSelectedMessage(updated);
+      setReplyText("");
+      setReplySuccess(true);
+      setTimeout(() => setReplySuccess(false), 3000);
+    } catch (err) {
+      console.error("Error sending reply:", err);
+    } finally {
+      setIsReplying(false);
+    }
+  };
 
   const texts = {
     es: {
@@ -260,6 +289,8 @@ export default function MensajesContactoPage() {
                         key={msg.id}
                         onClick={() => {
                           setSelectedMessage(msg);
+                          setReplyText("");
+                          setReplySuccess(false);
                           // Auto mark as read on click if it's unread
                           if (!msg.isRead) {
                             handleToggleRead(msg);
@@ -349,11 +380,55 @@ export default function MensajesContactoPage() {
                     </div>
                   </div>
 
-                  <div className="inbox-details__body">
-                    <h4 className="body-title">{texts[language].message}:</h4>
-                    <div className="body-content">
-                      {selectedMessage.message}
+                  <div className="inbox-details__body" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                    <div>
+                      <h4 className="body-title">{texts[language].message}:</h4>
+                      <div className="body-content">
+                        {selectedMessage.message}
+                      </div>
                     </div>
+
+                    {selectedMessage.replyMessage && (
+                      <div style={{ marginTop: "12px", padding: "16px", borderRadius: "12px", background: "var(--purple-50)", borderLeft: "4px solid var(--purple-400)" }}>
+                        <h4 className="body-title" style={{ marginTop: 0, color: "var(--purple-900)", fontSize: "14px" }}>
+                          {language === "es" ? "Respuesta del Administrador:" : "Administrator Reply:"}
+                        </h4>
+                        <div className="body-content" style={{ color: "var(--purple-900)", whiteSpace: "pre-line", fontSize: "13px" }}>
+                          {selectedMessage.replyMessage}
+                        </div>
+                      </div>
+                    )}
+
+                    {!selectedMessage.replyMessage && (
+                      <form onSubmit={handleSendReply} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <h4 className="body-title" style={{ margin: 0 }}>
+                          {language === "es" ? "Responder a esta consulta:" : "Reply to this query:"}
+                        </h4>
+                        <textarea
+                          className="input"
+                          style={{ minHeight: "100px", resize: "vertical", fontFamily: "inherit" }}
+                          placeholder={language === "es" ? "Escribe tu respuesta aquí..." : "Type your reply here..."}
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          required
+                        />
+                        {replySuccess && (
+                          <div className="message-success" style={{ padding: "8px 12px", borderRadius: "8px", background: "rgba(15, 110, 86, 0.1)", border: "1px solid rgba(15, 110, 86, 0.2)", color: "var(--success-text)", fontSize: "13px" }}>
+                            {language === "es" ? "✓ Respuesta enviada con éxito" : "✓ Reply sent successfully"}
+                          </div>
+                        )}
+                        <button
+                          type="submit"
+                          className="primary-btn"
+                          disabled={isReplying || !replyText.trim()}
+                          style={{ alignSelf: "flex-end", padding: "8px 20px" }}
+                        >
+                          {isReplying 
+                            ? (language === "es" ? "Enviando..." : "Sending...") 
+                            : (language === "es" ? "Enviar Respuesta" : "Send Reply")}
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
               ) : (

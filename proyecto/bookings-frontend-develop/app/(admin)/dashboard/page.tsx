@@ -638,6 +638,13 @@ export default function DashboardPage() {
       viewDefault: "📋 Ver Predeterminado",
       monthlyCalendar: "Calendario Mensual de Citas",
       loadingAgenda: "Cargando agenda...",
+      historicRevenue: "Ingresos históricos",
+      weeklyRevenue: "Ingresos semanales",
+      activeBusinesses: "Comercios activos",
+      estimatedRevenue: "Ingresos estimados",
+      paidRevenue: "Ingresos cobrados",
+      pendingRevenue: "Ingresos pendientes",
+      totalBookingsShort: "Reservas totales",
     },
     en: {
       title: "Dashboard overview",
@@ -672,6 +679,13 @@ export default function DashboardPage() {
       viewDefault: "📋 View Default",
       monthlyCalendar: "Monthly Booking Calendar",
       loadingAgenda: "Loading agenda...",
+      historicRevenue: "Historic revenue",
+      weeklyRevenue: "Weekly revenue",
+      activeBusinesses: "Active businesses",
+      estimatedRevenue: "Estimated revenue",
+      paidRevenue: "Paid revenue",
+      pendingRevenue: "Pending revenue",
+      totalBookingsShort: "Total bookings",
     },
   };
 
@@ -747,6 +761,31 @@ export default function DashboardPage() {
     };
   }, [filteredBookings]);
 
+  // Cómputo de ingresos y totalizadores dinámicos para admin y empresa
+  const historicRevenue = useMemo(() => {
+    return filteredBookings.reduce((sum, b) => sum + bookingPrice(b), 0);
+  }, [filteredBookings]);
+
+  const weeklyRevenue = useMemo(() => {
+    return revenueData.reduce((sum, d) => sum + d.revenue, 0);
+  }, [revenueData]);
+
+  const paidRevenue = useMemo(() => {
+    return filteredBookings
+      .filter((b) => bookingStatus(b) === "paid")
+      .reduce((sum, b) => sum + bookingPrice(b), 0);
+  }, [filteredBookings]);
+
+  const pendingRevenue = useMemo(() => {
+    return filteredBookings
+      .filter((b) => bookingStatus(b) === "pending")
+      .reduce((sum, b) => sum + bookingPrice(b), 0);
+  }, [filteredBookings]);
+
+  const activeBusinessesCount = useMemo(() => {
+    return new Set(filteredBookings.map(bookingBusinessId).filter(Boolean)).size;
+  }, [filteredBookings]);
+
   const nextBooking = [...todayBookings].sort((a, b) =>
     bookingTime(a).localeCompare(bookingTime(b))
   )[0];
@@ -782,39 +821,188 @@ export default function DashboardPage() {
       </section>
 
       <section className="kpi-grid">
-        <KpiCard
-          title={texts[language].todayBookings}
-          value={todayBookings.length}
-          trend={`${todayBookings.filter((b) => bookingStatus(b) === "confirmed").length} ${texts[language].confirmed}`}
-          color={KPI_COLORS.teal}
-          activity={ACTIVITY_DATA.bookings}
-          loading={loading}
-        />
-        <KpiCard
-          title={texts[language].paidToday}
-          value={paidBookings.filter((b) => bookingDate(b) === today).length}
-          trend={`de ${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
-          color={KPI_COLORS.blue}
-          activity={ACTIVITY_DATA.paid}
-          loading={loading}
-        />
-        <KpiCard
-          title={texts[language].pending}
-          value={pendingBookings.length}
-          trend={texts[language].pendingConfirmations}
-          color={KPI_COLORS.amber}
-          activity={ACTIVITY_DATA.pending}
-          loading={loading}
-        />
-        <KpiCard
-          title={texts[language].totalBookings}
-          value={filteredBookings.length}
-          trend={`${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`}
-          color={KPI_COLORS.purple}
-          activity={ACTIVITY_DATA.total}
-          loading={loading}
-        />
+        {user?.role === "admin" ? (
+          <>
+            <KpiCard
+              title={texts[language].historicRevenue}
+              value={`${historicRevenue.toLocaleString()}€`}
+              trend={language === "es" ? "acumulado total" : "total accumulated"}
+              color={KPI_COLORS.teal}
+              activity={ACTIVITY_DATA.paid}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].weeklyRevenue}
+              value={`${weeklyRevenue.toLocaleString()}€`}
+              trend={language === "es" ? "esta semana" : "this week"}
+              color={KPI_COLORS.blue}
+              activity={ACTIVITY_DATA.total}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].totalBookingsShort}
+              value={filteredBookings.length}
+              trend={language === "es" ? "citas registradas" : "registered slots"}
+              color={KPI_COLORS.purple}
+              activity={ACTIVITY_DATA.bookings}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].activeBusinesses}
+              value={activeBusinessesCount}
+              trend={language === "es" ? "comercios activos" : "active businesses"}
+              color={KPI_COLORS.amber}
+              activity={ACTIVITY_DATA.pending}
+              loading={loading}
+            />
+          </>
+        ) : (
+          <>
+            <KpiCard
+              title={texts[language].estimatedRevenue}
+              value={`${historicRevenue.toLocaleString()}€`}
+              trend={language === "es" ? "ingresos estimados" : "estimated revenue"}
+              color={KPI_COLORS.teal}
+              activity={ACTIVITY_DATA.total}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].paidRevenue}
+              value={`${paidRevenue.toLocaleString()}€`}
+              trend={language === "es" ? "ingresos cobrados" : "paid revenue"}
+              color={KPI_COLORS.blue}
+              activity={ACTIVITY_DATA.paid}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].pendingRevenue}
+              value={`${pendingRevenue.toLocaleString()}€`}
+              trend={language === "es" ? "pendiente de cobro" : "pending collection"}
+              color={KPI_COLORS.amber}
+              activity={ACTIVITY_DATA.pending}
+              loading={loading}
+            />
+            <KpiCard
+              title={texts[language].totalBookingsShort}
+              value={filteredBookings.length}
+              trend={language === "es" ? "reservas de tu negocio" : "your business bookings"}
+              color={KPI_COLORS.purple}
+              activity={ACTIVITY_DATA.bookings}
+              loading={loading}
+            />
+          </>
+        )}
       </section>
+
+      {/* Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
+          Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards).
+          Ocultamos este bloque para administradores, ya que solo aplica a empresas. */}
+      {user?.role !== "admin" && (
+        user?.role === "empresa" && viewMode === "calendar" ? (
+          <section className="section-card" style={{ width: "100%" }}>
+            <div className="panel-title-row" style={{ marginBottom: "16px" }}>
+              <h3 className="panel-title">{texts[language].monthlyCalendar}</h3>
+            </div>
+            {loading ? (
+              <p className="table-feedback">{texts[language].loadingAgenda}</p>
+            ) : error ? (
+              <p className="table-feedback table-feedback--error">{error}</p>
+            ) : (
+              <BusinessCalendar bookings={filteredBookings} />
+            )}
+          </section>
+        ) : (
+          <section className="dashboard-prueba-lg dashboard-prueba-responsive">
+            <div className="section-card">
+              <div className="panel-title-row">
+                <h3 className="panel-title">{texts[language].upcomingBookings}</h3>
+                <button
+                  className="panel-subtle-link"
+                  type="button"
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? texts[language].seeLess : texts[language].seeAll}
+                </button>
+              </div>
+
+              <div className="table-responsive">
+                {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
+                {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
+                {!loading && !error && todayBookings.length === 0 && (
+                  <p className="table-feedback">{texts[language].noBookingsToday}</p>
+                )}
+
+                {!loading && !error && todayBookings.length > 0 && (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>{texts[language].time}</th>
+                        <th>{texts[language].customer}</th>
+                        <th>{texts[language].business}</th>
+                        <th>{texts[language].service}</th>
+                        <th>{texts[language].status}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayedBookings.map((booking) => (
+                        <tr key={booking.id}>
+                          <td style={{ fontWeight: 600 }}>{bookingTime(booking)}</td>
+                          <td>#{bookingCustomerId(booking) ?? "?"}</td>
+                          <td>#{bookingBusinessId(booking) ?? "?"}</td>
+                          <td>{bookingServiceName(booking)}</td>
+                          <td>
+                            <Badge status={bookingStatus(booking) as DashboardBookingStatus} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            <div className="info-stack dashboard-cartas-lg">
+              <div className="info-box">
+                <p className="info-box__eyebrow">{texts[language].nextBooking}</p>
+                {nextBooking ? (
+                  <>
+                    <p className="info-box__title">
+                      {texts[language].customer} #{bookingCustomerId(nextBooking) ?? "?"}
+                    </p>
+                    <p className="info-box__text">{bookingTime(nextBooking)} · {bookingServiceName(nextBooking)}</p>
+                  </>
+                ) : (
+                  <p className="info-box__text">{texts[language].noBookings}</p>
+                )}
+              </div>
+              <div className="info-box">
+                <p className="info-box__eyebrow">
+                  {user?.role === "empresa"
+                    ? texts[language].myBusiness
+                    : texts[language].featuredBusiness}
+                </p>
+                <p className="info-box__title">
+                  {user?.role === "empresa"
+                    ? user.name ?? user.email ?? texts[language].business
+                    : "Restaurante Marea"}
+                </p>
+                <p className="info-box__text">
+                  {user?.role === "empresa"
+                    ? `${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`
+                    : `6 ${texts[language].todayBookings.toLowerCase()}`}
+                </p>
+              </div>
+              <div className="info-box">
+                <p className="info-box__eyebrow">{texts[language].reminders}</p>
+                <p className="info-box__title">
+                  {pendingBookings.length} {texts[language].pendingConfirmations}
+                </p>
+                <p className="info-box__text">{texts[language].recommendedReview}</p>
+              </div>
+            </div>
+          </section>
+        )
+      )}
 
       {/* ─── GRÁFICOS DE HISTORIAL DE INGRESOS Y RESERVAS ─── */}
       {!loading && !error && (
@@ -822,112 +1010,6 @@ export default function DashboardPage() {
           <RevenueChart data={revenueData} />
           <PopularServicesChart data={popularServices} />
           <CylinderKpisChart stats={stats} />
-        </section>
-      )}
-      {/* Si es una empresa y seleccionó el modo 'calendar', renderizamos el calendario a ancho completo.
-          Si está en modo 'default' (o es Admin), se dibuja la distribución predeterminada (Tabla + Info Cards). */}
-      {user?.role === "empresa" && viewMode === "calendar" ? (
-        <section className="section-card" style={{ width: "100%" }}>
-          <div className="panel-title-row" style={{ marginBottom: "16px" }}>
-            <h3 className="panel-title">{texts[language].monthlyCalendar}</h3>
-          </div>
-          {loading ? (
-            <p className="table-feedback">{texts[language].loadingAgenda}</p>
-          ) : error ? (
-            <p className="table-feedback table-feedback--error">{error}</p>
-          ) : (
-            <BusinessCalendar bookings={filteredBookings} />
-          )}
-        </section>
-      ) : (
-        <section className="dashboard-prueba-lg dashboard-prueba-responsive">
-          <div className="section-card">
-            <div className="panel-title-row">
-              <h3 className="panel-title">{texts[language].upcomingBookings}</h3>
-              <button
-                className="panel-subtle-link"
-                type="button"
-                onClick={() => setShowAll(!showAll)}
-              >
-                {showAll ? texts[language].seeLess : texts[language].seeAll}
-              </button>
-            </div>
-
-            <div className="table-responsive">
-              {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
-              {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
-              {!loading && !error && todayBookings.length === 0 && (
-                <p className="table-feedback">{texts[language].noBookingsToday}</p>
-              )}
-
-              {!loading && !error && todayBookings.length > 0 && (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{texts[language].time}</th>
-                      <th>{texts[language].customer}</th>
-                      <th>{texts[language].business}</th>
-                      <th>{texts[language].service}</th>
-                      <th>{texts[language].status}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayedBookings.map((booking) => (
-                      <tr key={booking.id}>
-                        <td style={{ fontWeight: 600 }}>{bookingTime(booking)}</td>
-                        <td>#{bookingCustomerId(booking) ?? "?"}</td>
-                        <td>#{bookingBusinessId(booking) ?? "?"}</td>
-                        <td>{bookingServiceName(booking)}</td>
-                        <td>
-                          <Badge status={bookingStatus(booking) as DashboardBookingStatus} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-
-          <div className="info-stack dashboard-cartas-lg">
-            <div className="info-box">
-              <p className="info-box__eyebrow">{texts[language].nextBooking}</p>
-              {nextBooking ? (
-                <>
-                  <p className="info-box__title">
-                    {texts[language].customer} #{bookingCustomerId(nextBooking) ?? "?"}
-                  </p>
-                  <p className="info-box__text">{bookingTime(nextBooking)} · {bookingServiceName(nextBooking)}</p>
-                </>
-              ) : (
-                <p className="info-box__text">{texts[language].noBookings}</p>
-              )}
-            </div>
-            <div className="info-box">
-              <p className="info-box__eyebrow">
-                {user?.role === "empresa"
-                  ? texts[language].myBusiness
-                  : texts[language].featuredBusiness}
-              </p>
-              <p className="info-box__title">
-                {user?.role === "empresa"
-                  ? user.name ?? user.email ?? texts[language].business
-                  : "Restaurante Marea"}
-              </p>
-              <p className="info-box__text">
-                {user?.role === "empresa"
-                  ? `${todayBookings.length} ${texts[language].todayBookings.toLowerCase()}`
-                  : `6 ${texts[language].todayBookings.toLowerCase()}`}
-              </p>
-            </div>
-            <div className="info-box">
-              <p className="info-box__eyebrow">{texts[language].reminders}</p>
-              <p className="info-box__title">
-                {pendingBookings.length} {texts[language].pendingConfirmations}
-              </p>
-              <p className="info-box__text">{texts[language].recommendedReview}</p>
-            </div>
-          </div>
         </section>
       )}
     </div>
@@ -954,11 +1036,13 @@ function bookingServiceName(b: Booking): string {
 }
 
 function bookingCustomerId(b: Booking): number | undefined {
+  if (typeof b.customerId === "number") return b.customerId;
   const c = (b as any).customer;
   return typeof c === "number" ? c : c?.id;
 }
 
 function bookingBusinessId(b: Booking): number | undefined {
+  if (typeof b.businessId === "number") return b.businessId;
   const c = (b as any).business;
   return typeof c === "number" ? c : c?.id;
 }

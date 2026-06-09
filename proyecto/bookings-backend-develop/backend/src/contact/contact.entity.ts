@@ -45,6 +45,10 @@ export class ContactMessage {
   @Column({ default: false })
   isRead: boolean;
 
+  @ApiProperty({ description: 'Respuesta del administrador', required: false })
+  @Column({ type: 'text', nullable: true })
+  replyMessage?: string;
+
   @ApiProperty({ description: 'Fecha de creación del registro' })
   @CreateDateColumn()
   createdAt: Date;

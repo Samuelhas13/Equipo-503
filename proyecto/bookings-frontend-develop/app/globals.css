@@ -2528,6 +2528,277 @@ html.dark .logo-dark {
    24. MENSAJES DE CONTACTO (ADMIN)
    ========================================================================== */
 
+/* Insignia de mensajes no leídos en la barra lateral */
+.sidebar-unread-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #e24b4a;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 6px rgba(226, 75, 74, 0.4);
+  animation: badgePulse 2s infinite ease-in-out;
+  flex-shrink: 0;
+  border: 1px solid var(--sidebar-bg);
+}
+
+/* Posición absoluta cuando el sidebar está contraído */
+.admin-sidebar--collapsed .sidebar-unread-badge {
+  position: absolute;
+  top: 4px;
+  right: 12px;
+  margin-left: 0;
+  box-shadow: 0 2px 8px rgba(226, 75, 74, 0.6);
+  border-width: 2px;
+}
+
+/* Centro de Notificaciones */
+.notification-center {
+  position: relative;
+}
+
+.notification-bell-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+
+.notification-bell-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--purple-400);
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(127, 119, 221, 0.25);
+}
+
+.notification-bell-btn:active {
+  transform: translateY(0);
+}
+
+.notification-bell-btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #e24b4a;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 6px rgba(226, 75, 74, 0.4);
+  animation: badgePulse 2s infinite ease-in-out;
+  border: 2px solid var(--surface);
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideDownIn 0.2s ease-out;
+}
+
+@keyframes slideDownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-dropdown__header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+}
+
+.notification-dropdown__header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notification-dropdown__unread-count {
+  background: var(--purple-100);
+  color: var(--purple-900);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.notification-dropdown__list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 340px;
+}
+
+.notification-dropdown__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.notification-dropdown__empty-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.notification-dropdown__empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.notification-dropdown__error {
+  padding: 20px;
+  text-align: center;
+  color: var(--error);
+  font-size: 13px;
+}
+
+.notification-item {
+  display: flex;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.notification-item:hover {
+  background: var(--surface-2);
+}
+
+.notification-item--unread {
+  background: rgba(127, 119, 221, 0.05);
+}
+
+.notification-item--unread::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.notification-item__content {
+  flex: 1;
+}
+
+.notification-item__title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notification-item__message {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: pre-line;
+}
+
+.notification-item__date {
+  font-size: 10px;
+  color: var(--muted-2);
+}
+
+.notification-item__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.notification-item:hover .notification-item__actions {
+  opacity: 1;
+}
+
+.notification-item__action-btn {
+  background: transparent;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: background 0.2s ease;
+}
+
+.notification-item__action-btn--read {
+  color: var(--success-text);
+  background: var(--success-bg);
+}
+
+.notification-item__action-btn--read:hover {
+  background: #c3eedf;
+}
+
+.notification-item__action-btn--delete {
+  color: var(--error);
+  background: rgba(226, 75, 74, 0.1);
+}
+
+.notification-item__action-btn--delete:hover {
+  background: rgba(226, 75, 74, 0.2);
+}
+
 /* Botón de mensajes del Header */
 .messages-btn-header {
   position: relative;

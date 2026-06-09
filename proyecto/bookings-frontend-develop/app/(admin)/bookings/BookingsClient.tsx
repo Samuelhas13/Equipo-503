@@ -212,6 +212,11 @@ export default function BookingsClient({
       records: "registros",
       previous: "Anterior",
       next: "Siguiente",
+      visitedBusinesses: "Comercios visitados",
+      distinctBusinesses: "comercios distintos",
+      myRequestedAppointments: "mis citas solicitadas",
+      awaitingApproval: "en espera de aprobación",
+      scheduledAppointments: "citas programadas",
     },
     en: {
       title: "Bookings Dashboard",
@@ -249,6 +254,11 @@ export default function BookingsClient({
       records: "records",
       previous: "Previous",
       next: "Next",
+      visitedBusinesses: "Businesses visited",
+      distinctBusinesses: "distinct businesses",
+      myRequestedAppointments: "my requested appointments",
+      awaitingApproval: "awaiting approval",
+      scheduledAppointments: "scheduled appointments",
     },
   };
 
@@ -453,6 +463,9 @@ export default function BookingsClient({
   const pendingCount = roleFilteredBookings.filter((b) => b.status === "pending").length;
   const confirmedCount = roleFilteredBookings.filter((b) => b.status === "confirmed").length;
   const paidCount = roleFilteredBookings.filter((b) => b.status === "paid").length;
+  const visitedBusinessesCount = useMemo(() => {
+    return new Set(roleFilteredBookings.map((b) => b.businessId).filter(Boolean)).size;
+  }, [roleFilteredBookings]);
 
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
@@ -646,42 +659,77 @@ export default function BookingsClient({
         )}
       </section>
 
-      {/* Ocultamos las tarjetas KPI si el rol es un cliente convencional */}
-      {user?.role !== "usuario" && (
-        <section className="kpi-grid">
-          <KpiCard
-            title={texts[language].totalBookings}
-            value={totalCount}
-            trend={texts[language].availableRecords}
-            color={KPI_COLORS.teal}
-            activity={ACTIVITY_DATA.total}
-          />
+      <section className="kpi-grid">
+        {user?.role === "usuario" ? (
+          <>
+            <KpiCard
+              title={texts[language].totalBookings}
+              value={totalCount}
+              trend={texts[language].myRequestedAppointments}
+              color={KPI_COLORS.teal}
+              activity={ACTIVITY_DATA.total}
+            />
 
-          <KpiCard
-            title={texts[language].pending}
-            value={pendingCount}
-            trend={texts[language].needsFollowUp}
-            color={KPI_COLORS.amber}
-            activity={ACTIVITY_DATA.pending}
-          />
+            <KpiCard
+              title={texts[language].pending}
+              value={pendingCount}
+              trend={texts[language].awaitingApproval}
+              color={KPI_COLORS.amber}
+              activity={ACTIVITY_DATA.pending}
+            />
 
-          <KpiCard
-            title={texts[language].confirmed}
-            value={confirmedCount}
-            trend={texts[language].activeStatus}
-            color={KPI_COLORS.green}
-            activity={ACTIVITY_DATA.confirmed}
-          />
+            <KpiCard
+              title={texts[language].confirmed}
+              value={confirmedCount}
+              trend={texts[language].scheduledAppointments}
+              color={KPI_COLORS.green}
+              activity={ACTIVITY_DATA.confirmed}
+            />
 
-          <KpiCard
-            title={texts[language].paid}
-            value={paidCount}
-            trend={texts[language].closedBookings}
-            color={KPI_COLORS.purple}
-            activity={ACTIVITY_DATA.paid}
-          />
-        </section>
-      )}
+            <KpiCard
+              title={texts[language].visitedBusinesses}
+              value={visitedBusinessesCount}
+              trend={texts[language].distinctBusinesses}
+              color={KPI_COLORS.purple}
+              activity={ACTIVITY_DATA.paid}
+            />
+          </>
+        ) : (
+          <>
+            <KpiCard
+              title={texts[language].totalBookings}
+              value={totalCount}
+              trend={texts[language].availableRecords}
+              color={KPI_COLORS.teal}
+              activity={ACTIVITY_DATA.total}
+            />
+
+            <KpiCard
+              title={texts[language].pending}
+              value={pendingCount}
+              trend={texts[language].needsFollowUp}
+              color={KPI_COLORS.amber}
+              activity={ACTIVITY_DATA.pending}
+            />
+
+            <KpiCard
+              title={texts[language].confirmed}
+              value={confirmedCount}
+              trend={texts[language].activeStatus}
+              color={KPI_COLORS.green}
+              activity={ACTIVITY_DATA.confirmed}
+            />
+
+            <KpiCard
+              title={texts[language].paid}
+              value={paidCount}
+              trend={texts[language].closedBookings}
+              color={KPI_COLORS.purple}
+              activity={ACTIVITY_DATA.paid}
+            />
+          </>
+        )}
+      </section>
 
       {isCreateOpen && (
         <section ref={createFormRef} className="section-card booking-form-card">

@@ -160,6 +160,7 @@ export interface ContactMessage {
   subject: "support" | "billing" | "sales" | "other";
   message: string;
   isRead: boolean;
+  replyMessage?: string;
   createdAt: string;
 }
 
@@ -168,6 +169,14 @@ export interface CreateContactDto {
   email: string;
   subject: "support" | "billing" | "sales" | "other";
   message: string;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 

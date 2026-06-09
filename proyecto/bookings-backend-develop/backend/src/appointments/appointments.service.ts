@@ -13,6 +13,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UserRole } from '../users/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -21,6 +22,7 @@ export class AppointmentsService {
     private readonly appointmentsRepository: Repository<Appointment>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   findAll(page?: number, limit?: number, currentUser?: JwtPayload) {
@@ -123,7 +125,45 @@ export class AppointmentsService {
       user: userId ? { id: userId } : undefined,
     });
 
-    return this.appointmentsRepository.save(appointment);
+    const saved = await this.appointmentsRepository.save(appointment);
+
+    try {
+      const fullApp = await this.appointmentsRepository.findOne({
+        where: { id: saved.id },
+        relations: ['service', 'business', 'customer', 'user'],
+      });
+
+      if (fullApp) {
+        const serviceName = fullApp.serviceName || (fullApp.service ? fullApp.service.nombre : 'Servicio');
+        const businessName = fullApp.business ? fullApp.business.nombre : 'Negocio';
+
+        if (fullApp.user?.id) {
+          await this.notificationsService.createNotification(
+            fullApp.user.id,
+            'Reserva Confirmada',
+            `Tu reserva para el servicio "${serviceName}" en "${businessName}" ha sido programada con éxito para el ${fullApp.hora_reserva}.`,
+          );
+        }
+
+        if (fullApp.business?.id) {
+          const clientName = fullApp.customer
+            ? `${fullApp.customer.nombre} ${fullApp.customer.apellido}`
+            : fullApp.user
+            ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
+            : 'Cliente';
+
+          await this.notificationsService.notifyBusiness(
+            fullApp.business.id,
+            'Nueva Reserva Recibida',
+            `El cliente ${clientName} ha reservado el servicio "${serviceName}" para el ${fullApp.hora_reserva}.`,
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Error enviando notificaciones de creación de reserva:', err);
+    }
+
+    return saved;
   }
 
   async update(
@@ -132,6 +172,7 @@ export class AppointmentsService {
     currentUser?: JwtPayload,
   ) {
     const appointment = await this.findOne(id, currentUser);
+    const oldHora = appointment.hora_reserva;
 
     if (currentUser?.role === UserRole.BUSINESS) {
       updateAppointmentDto.businessId = currentUser.businessId!;
@@ -150,12 +191,84 @@ export class AppointmentsService {
       user: userId ? { id: userId } : undefined,
     });
 
-    return this.appointmentsRepository.save(updatedAppointment);
+    const saved = await this.appointmentsRepository.save(updatedAppointment);
+
+    try {
+      const fullApp = await this.appointmentsRepository.findOne({
+        where: { id: saved.id },
+        relations: ['service', 'business', 'customer', 'user'],
+      });
+
+      if (fullApp) {
+        const serviceName = fullApp.serviceName || (fullApp.service ? fullApp.service.nombre : 'Servicio');
+        const businessName = fullApp.business ? fullApp.business.nombre : 'Negocio';
+        const newHora = fullApp.hora_reserva;
+
+        if (fullApp.user?.id) {
+          await this.notificationsService.createNotification(
+            fullApp.user.id,
+            'Reserva Modificada',
+            `Tu reserva para "${serviceName}" en "${businessName}" ha sido modificada. Nuevo horario: ${newHora} (Antes: ${oldHora}).`,
+          );
+        }
+
+        if (fullApp.business?.id) {
+          const clientName = fullApp.customer
+            ? `${fullApp.customer.nombre} ${fullApp.customer.apellido}`
+            : fullApp.user
+            ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
+            : 'Cliente';
+
+          await this.notificationsService.notifyBusiness(
+            fullApp.business.id,
+            'Reserva Modificada',
+            `La reserva del cliente ${clientName} para "${serviceName}" ha sido modificada. Nuevo horario: ${newHora} (Antes: ${oldHora}).`,
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Error enviando notificaciones de modificación de reserva:', err);
+    }
+
+    return saved;
   }
 
   async remove(id: number, currentUser?: JwtPayload) {
     const appointment = await this.findOne(id, currentUser);
+    
+    const serviceName = appointment.serviceName || (appointment.service ? appointment.service.nombre : 'Servicio');
+    const businessName = appointment.business ? appointment.business.nombre : 'Negocio';
+    const businessId = appointment.business?.id;
+    const customerUserId = appointment.user?.id;
+    const customerName = appointment.customer 
+      ? `${appointment.customer.nombre} ${appointment.customer.apellido}` 
+      : appointment.user 
+      ? `${appointment.user.nombre} ${appointment.user.apellido}` 
+      : 'Cliente';
+    const hora = appointment.hora_reserva;
+
     await this.appointmentsRepository.remove(appointment);
+
+    try {
+      if (customerUserId) {
+        await this.notificationsService.createNotification(
+          customerUserId,
+          'Reserva Cancelada',
+          `Tu reserva para el servicio "${serviceName}" en "${businessName}" programada para el ${hora} ha sido cancelada.`,
+        );
+      }
+
+      if (businessId) {
+        await this.notificationsService.notifyBusiness(
+          businessId,
+          'Reserva Cancelada',
+          `La reserva del cliente ${customerName} para el servicio "${serviceName}" programada para el ${hora} ha sido cancelada.`,
+        );
+      }
+    } catch (err) {
+      console.error('Error enviando notificaciones de cancelación de reserva:', err);
+    }
+
     return { message: `Reserva ${id} eliminada correctamente` };
   }
 

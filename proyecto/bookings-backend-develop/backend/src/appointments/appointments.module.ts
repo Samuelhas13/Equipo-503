@@ -12,9 +12,14 @@ import { Appointment } from './appointment.entity';
 import { Customer } from '../customers/customer.entity';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Appointment, Customer]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([Appointment, Customer]),
+    AuthModule,
+    NotificationsModule,
+  ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],
   exports: [AppointmentsService],

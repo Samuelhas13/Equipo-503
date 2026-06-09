@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContactMessage } from './contact.entity';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ContactService {
   constructor(
     @InjectRepository(ContactMessage)
     private readonly contactRepository: Repository<ContactMessage>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createContactDto: CreateContactDto): Promise<ContactMessage> {
@@ -47,6 +49,38 @@ export class ContactService {
 
     message.isRead = isRead;
     return this.contactRepository.save(message);
+  }
+
+  async replyToMessage(
+    id: number,
+    replyMessage: string,
+  ): Promise<ContactMessage> {
+    const message = await this.contactRepository.findOne({
+      where: { id },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`No existe mensaje de contacto con id ${id}`);
+    }
+
+    message.replyMessage = replyMessage;
+    message.isRead = true; // Auto-leer al responder
+    const saved = await this.contactRepository.save(message);
+
+    try {
+      // Crear notificación para el usuario dueño del email si está registrado
+      await this.notificationsService.createNotificationByEmail(
+        message.email,
+        'Respuesta de soporte',
+        `El administrador ha respondido a tu consulta sobre "${
+          message.subject.toUpperCase()
+        }":\n\n"${replyMessage}"`,
+      );
+    } catch (err) {
+      console.error('Error enviando notificación de respuesta:', err);
+    }
+
+    return saved;
   }
 
   async remove(id: number): Promise<{ message: string }> {

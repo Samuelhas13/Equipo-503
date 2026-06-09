@@ -120,36 +120,96 @@ async function seed() {
     const savedCustomers = await customerRepo.save(customerChunk);
 
     const appointmentChunk: any[] = [];
-    const paymentChunk: any[] = [];
+    const baseDate = new Date('2026-06-09T12:00:00');
 
     for (let j = 0; j < CHUNK_SIZE; j++) {
       const idx = i + j + 1;
       const bIndex = idx % TOTAL_BUSINESSES;
-      // Asignamos a la reserva el primer servicio de la empresa correspondiente
       const serviceIdx = (bIndex * SERVICES_PER_BUSINESS); 
       
+      // Calculate realistic date and time (spread across 60 days)
+      const dayOffset = (idx % 60) - 30; // -30 to +29 days
+      const hour = 8 + (idx % 12); // Hours from 8:00 to 19:00
+      const minutes = (idx % 4) * 15; // 00, 15, 30, 45 minutes
+      
+      const appDate = new Date(baseDate);
+      appDate.setDate(baseDate.getDate() + dayOffset);
+      
+      const yyyy = appDate.getFullYear();
+      const mm = String(appDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(appDate.getDate()).padStart(2, '0');
+      const hh = String(hour).padStart(2, '0');
+      const min = String(minutes).padStart(2, '0');
+      
+      const hora_reserva = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+      
+      // Calculate realistic status based on timeframe
+      let status = 'pending';
+      if (dayOffset < 0) {
+        if (idx % 10 < 7) {
+          status = 'completed';
+        } else if (idx % 10 < 9) {
+          status = 'paid';
+        } else {
+          status = 'canceled';
+        }
+      } else {
+        if (idx % 10 < 5) {
+          status = 'pending';
+        } else if (idx % 10 < 9) {
+          status = 'confirmed';
+        } else {
+          status = 'canceled';
+        }
+      }
+
       appointmentChunk.push(appointmentRepo.create({
         user: savedUsers[j],
         customer: savedCustomers[j],
         business: savedBusinesses[bIndex],
         service: savedServices[serviceIdx],
-        hora_reserva: `2026-06-15 10:00`,
+        hora_reserva,
+        status,
       }));
     }
     const savedAppointments = await appointmentRepo.save(appointmentChunk);
 
+    const paymentChunk: any[] = [];
     for (let j = 0; j < CHUNK_SIZE; j++) {
       const idx = i + j + 1;
       const bIndex = idx % TOTAL_BUSINESSES;
       const serviceIdx = (bIndex * SERVICES_PER_BUSINESS); 
+      const appointment = savedAppointments[j];
       
+      // Set payment status based on reservation status
+      let estado = PaymentStatus.POR_COBRAR;
+      if (appointment.status === 'completed' || appointment.status === 'paid') {
+        estado = PaymentStatus.PAGADO;
+      } else if (appointment.status === 'canceled') {
+        estado = PaymentStatus.CANCELADO;
+      }
+      
+      // Calculate realistic payment time (15 minutes after appointment start time)
+      const rawTime = appointment.hora_reserva;
+      const dateParts = rawTime.split(' ');
+      const dateStr = dateParts[0];
+      const timeStr = dateParts[1] || '10:00';
+      const [hStr, mStr] = timeStr.split(':');
+      let hour = parseInt(hStr, 10);
+      let minute = parseInt(mStr, 10) + 15;
+      if (minute >= 60) {
+        hour += 1;
+        minute -= 60;
+      }
+      const hora_pago = `${dateStr} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
       paymentChunk.push(paymentRepo.create({
         customer: savedCustomers[j],
         metodo_pago: idx % 2 === 0 ? PaymentMethod.TARJETA : PaymentMethod.EFECTIVO,
-        estado: PaymentStatus.PAGADO,
+        estado,
         servicio: savedServices[serviceIdx],
-        hora_pago: `2026-06-15 10:30`,
-        appointment: savedAppointments[j],
+        hora_pago,
+        appointment,
       }));
     }
     await paymentRepo.save(paymentChunk);

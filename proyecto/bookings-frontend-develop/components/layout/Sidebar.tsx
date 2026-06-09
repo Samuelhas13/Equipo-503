@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { getUnreadContactMessagesCount } from "@/lib/api";
 
 type MenuItem = {
   label: string;
@@ -36,6 +37,28 @@ export default function Sidebar({
 
   // Estado para controlar si el sidebar está expandido o colapsado
   const [isOpen, setIsOpen] = useState(true);
+
+  // Estado y polling para los mensajes no leídos del administrador
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user || user.role !== "admin") return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { count } = await getUnreadContactMessagesCount();
+        setUnreadCount(count);
+      } catch (err) {
+        console.error("Error fetching unread contact messages count in sidebar:", err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Polling cada 30 segundos para mantener la notificación actualizada
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Textos del sidebar en español e inglés
   const sidebarTexts = {
@@ -84,7 +107,7 @@ export default function Sidebar({
     { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
     { label: sidebarTexts[language].payments, href: "/payments", icon: "◌" },
-    { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
+    { label: sidebarTexts[language].contacto, href: "/contacto/mensajes", icon: "✉" },
   ];
 
   const empresaMenuItems: MenuItem[] = [
@@ -187,7 +210,9 @@ export default function Sidebar({
         <nav className="admin-sidebar__nav" aria-label="Main navigation">
           {activeMenuItems.map((item) => {
             const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+              pathname === item.href ||
+              pathname.startsWith(item.href + "/") ||
+              (item.href === "/contacto/mensajes" && pathname.startsWith("/contacto"));
 
             const handleClick = () => {
               onNavigate?.(item.href);
@@ -195,6 +220,9 @@ export default function Sidebar({
 
             const linkClasses = `admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""
               } admin-sidebar__link--hoverable`;
+
+            const isContact = item.href === "/contacto/mensajes";
+            const showBadge = isContact && user?.role === "admin" && unreadCount > 0;
 
             return (
               <Link
@@ -208,6 +236,9 @@ export default function Sidebar({
                   {item.icon}
                 </span>
                 <span className="admin-sidebar__label">{item.label}</span>
+                {showBadge && (
+                  <span className="sidebar-unread-badge">{unreadCount}</span>
+                )}
               </Link>
             );
           })}

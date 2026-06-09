@@ -54,6 +54,17 @@ export class ContactController {
     return this.contactService.updateReadStatus(id, isRead);
   }
 
+  @Post(':id/reply')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  reply(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('replyMessage') replyMessage: string,
+  ) {
+    return this.contactService.replyToMessage(id, replyMessage);
+  }
+
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)

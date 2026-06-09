@@ -16,6 +16,7 @@ import type {
   UpdateBusinessDto,
   ContactMessage,
   CreateContactDto,
+  Notification,
 } from "./types";
 
 export type {
@@ -263,5 +264,30 @@ export async function updateContactMessageReadStatus(id: number, isRead: boolean
 export async function deleteContactMessage(id: number): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/contact/${id}`, {
     method: "DELETE",
+  });
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────────
+
+export async function getNotifications(): Promise<Notification[]> {
+  return apiRequest<Notification[]>("/notifications", { cache: "no-store" });
+}
+
+export async function markNotificationAsRead(id: number): Promise<Notification> {
+  return apiRequest<Notification>(`/notifications/${id}/read`, {
+    method: "PATCH",
+  });
+}
+
+export async function deleteNotification(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/notifications/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function replyToContactMessage(id: number, replyMessage: string): Promise<ContactMessage> {
+  return apiRequest<ContactMessage>(`/contact/${id}/reply`, {
+    method: "POST",
+    body: JSON.stringify({ replyMessage }),
   });
 }
