@@ -5,6 +5,7 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useRouter } from "next/navigation";
 import type {
   Booking,
   BookingStatus,
@@ -172,6 +173,7 @@ export default function BookingsClient({
 }) {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const router = useRouter();
 
   const texts = {
     es: {
@@ -638,7 +640,7 @@ export default function BookingsClient({
         </div>
 
         {user?.role !== "empresa" && (
-          <button className="primary-btn" type="button" onClick={openCreateForm}>
+          <button className="primary-btn" type="button" onClick={user?.role === "usuario" ? () => router.push("/empresas") : openCreateForm}>
             {texts[language].newBooking}
           </button>
         )}
@@ -926,6 +928,7 @@ export default function BookingsClient({
           onChange={(e) =>
             updateEditForm("status", e.target.value as BookingStatus)
           }
+          disabled={user?.role === "usuario"}
         >
           <option value="pending">{texts[language].pendingOption}</option>
           <option value="confirmed">{texts[language].confirmedOption}</option>
@@ -1034,20 +1037,46 @@ export default function BookingsClient({
         <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) closeDeleteModal(); }}>
           <div className="modal-card">
             <div className="modal-icon">!</div>
-            <h3 className="modal-title">Eliminar reserva</h3>
-            <p className="modal-text">¿Seguro que quieres eliminar la reserva #{deleteTargetId}?</p>
+            <h3 className="modal-title">
+              {user?.role === "usuario" ? "Cancelar reserva" : "Eliminar reserva"}
+            </h3>
+            <p className="modal-text">
+              {user?.role === "usuario"
+                ? `¿Seguro que quieres cancelar la reserva #${deleteTargetId}?`
+                : `¿Seguro que quieres eliminar la reserva #${deleteTargetId}?`}
+            </p>
             <div className="modal-actions">
               <button type="button" className="secondary-btn" onClick={closeDeleteModal}>Cancelar</button>
               <button type="button" className="danger-btn" onClick={confirmDelete} disabled={deletingBookingId === deleteTargetId}>
-                {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+                {deletingBookingId === deleteTargetId
+                  ? (user?.role === "usuario" ? "Cancelando..." : "Eliminando...")
+                  : (user?.role === "usuario" ? "Cancelar" : "Eliminar")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <section className="section-card">
-        <div className="search-row">
+      {user?.role === "usuario" && roleFilteredBookings.length === 0 ? (
+        <section className="section-card" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center", gap: "16px" }}>
+          <span style={{ fontSize: "48px" }}>📅</span>
+          <h3 className="panel-title" style={{ margin: 0, fontSize: "20px" }}>No tienes ninguna reserva registrada</h3>
+          <p style={{ color: "var(--muted)", margin: 0, maxWidth: "400px" }}>
+            Aún no has solicitado ninguna cita. Encuentra un comercio y realiza tu primera reserva hoy mismo.
+          </p>
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={() => router.push("/empresas")}
+            style={{ marginTop: "8px" }}
+          >
+            Hacer mi primera reserva
+          </button>
+        </section>
+      ) : (
+        <>
+          <section className="section-card">
+            <div className="search-row">
           <input
             className="input"
             placeholder={texts[language].searchPlaceholder}
@@ -1138,26 +1167,24 @@ export default function BookingsClient({
                   <td>{booking.customerId}</td>
                   <td>{BUSINESS_NAMES[booking.businessId ?? 0] || `#${booking.businessId ?? "?"}`}</td>
                   <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
-                  {user?.role !== "usuario" && (
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openEditForm(booking)}
-                        >
-                          {texts[language].edit}
-                        </button>
-                        <button
-                          type="button"
-                          className="secondary-btn"
-                          onClick={() => openDeleteModal(booking.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  )}
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openEditForm(booking)}
+                      >
+                        {texts[language].edit}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => openDeleteModal(booking.id)}
+                      >
+                        {user?.role === "usuario" ? "Cancelar" : "Eliminar"}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1213,6 +1240,7 @@ export default function BookingsClient({
           </div>
         )}
       </section>
+      </>)}
     </div>
   );
 }

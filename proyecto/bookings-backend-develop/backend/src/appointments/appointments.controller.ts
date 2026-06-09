@@ -91,7 +91,7 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Reserva actualizada', type: Appointment })
   @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
   @ApiBadRequestResponse({ description: 'Datos de reserva invalidos' })
