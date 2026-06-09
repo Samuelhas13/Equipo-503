@@ -11,13 +11,13 @@ export interface Service {
   id: number;
   nombre: string;
   precio?: number;
-  date: string;
-  time: string;
-  status: BookingStatus;
-  customerId: number;
-  businessId: number;
+  date?: string;
+  time?: string;
+  status?: BookingStatus;
+  customerId?: number;
+  businessId?: number;
   userId?: number;
-  serviceName: string;
+  serviceName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

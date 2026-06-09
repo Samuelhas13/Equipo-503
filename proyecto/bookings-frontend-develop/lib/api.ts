@@ -17,6 +17,7 @@ import type {
   ContactMessage,
   CreateContactDto,
   Notification,
+  Service,
 } from "./types";
 
 export type {
@@ -289,5 +290,44 @@ export async function replyToContactMessage(id: number, replyMessage: string): P
   return apiRequest<ContactMessage>(`/contact/${id}/reply`, {
     method: "POST",
     body: JSON.stringify({ replyMessage }),
+  });
+}
+
+// ── SERVICES ───────────────────────────────────────────────────
+
+export async function getServices(): Promise<Service[]> {
+  return apiRequest<Service[]>("/services", { cache: "no-store" });
+}
+
+export async function createService(data: { nombre: string; precio: number; businessId?: number }): Promise<Service> {
+  return apiRequest<Service>("/services", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateService(id: number, data: { nombre?: string; precio?: number; businessId?: number }): Promise<Service> {
+  return apiRequest<Service>(`/services/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteService(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/services/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// ── USERS ───────────────────────────────────────────────────────
+
+export async function getUserById(id: number): Promise<any> {
+  return apiRequest<any>(`/users/${id}`, { cache: "no-store" });
+}
+
+export async function updateUser(id: number, data: any): Promise<any> {
+  return apiRequest<any>(`/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
   });
 }

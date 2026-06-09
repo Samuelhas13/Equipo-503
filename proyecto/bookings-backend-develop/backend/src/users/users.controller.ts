@@ -46,6 +46,7 @@ export class UsersController {
 
   @Get(':id')
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: { user: JwtPayload },

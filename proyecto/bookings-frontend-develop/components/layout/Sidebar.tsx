@@ -79,6 +79,7 @@ export default function Sidebar({
       darkMode: "Modo Oscuro",
       changeToLight: "Cambiar a modo claro",
       changeToDark: "Cambiar a modo oscuro",
+      miPerfil: "Mi perfil",
     },
     en: {
       dashboard: "Dashboard",
@@ -97,6 +98,7 @@ export default function Sidebar({
       darkMode: "Dark Mode",
       changeToLight: "Switch to light mode",
       changeToDark: "Switch to dark mode",
+      miPerfil: "My profile",
     },
   };
 
@@ -113,14 +115,15 @@ export default function Sidebar({
   const empresaMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].dashboard, href: "/dashboard", icon: "◫" },
     { label: sidebarTexts[language].bookings, href: "/bookings", icon: "☰" },
-    { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
     { label: sidebarTexts[language].customers, href: "/customers", icon: "◎" },
+    { label: sidebarTexts[language].miPerfil, href: "/mi-perfil", icon: "⚙" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 
   const usuarioMenuItems: MenuItem[] = [
     { label: sidebarTexts[language].myBookings, href: "/bookings", icon: "☰" },
     { label: sidebarTexts[language].empresas, href: "/empresas", icon: "⌂" },
+    { label: sidebarTexts[language].miPerfil, href: "/mi-perfil", icon: "⚙" },
     { label: sidebarTexts[language].contacto, href: "/contacto", icon: "✉" },
   ];
 
