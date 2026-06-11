@@ -120,7 +120,11 @@ const ACTIVITY_DATA = {
 };
 
 function getTodayISO() {
-  return new Date().toISOString().split("T")[0];
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const monthNames = [
@@ -1018,18 +1022,21 @@ export default function DashboardPage() {
 
 // Helpers para normalizar campos de Booking (backend usa `hora_reserva`, `service`, `customer`, `business`)
 function bookingDate(b: Booking): string {
+  if (b.date) return b.date;
   const raw = (b as any).hora_reserva || "";
   const parts = raw.split(" ");
   return parts[0]?.includes("-") ? parts[0] : getTodayISO();
 }
 
 function bookingTime(b: Booking): string {
+  if (b.time) return b.time;
   const raw = (b as any).hora_reserva || "";
   const parts = raw.split(" ");
   return parts.length > 1 ? parts.slice(1).join(" ") : raw;
 }
 
 function bookingServiceName(b: Booking): string {
+  if (b.serviceName) return b.serviceName;
   const svc = (b as any).service;
   if (!svc) return String((b as any).serviceId || "");
   return typeof svc === "object" ? svc.nombre || String(svc.id) : String(svc);

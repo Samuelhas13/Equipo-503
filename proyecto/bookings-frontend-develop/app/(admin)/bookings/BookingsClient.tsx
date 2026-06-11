@@ -209,6 +209,7 @@ export default function BookingsClient({
       confirmedOption: "Confirmada",
       paidOption: "Pagada",
       edit: "Editar",
+      pay: "Cobrar",
       searchPlaceholder: "Buscar reserva...",
       showing: "Mostrando",
       to: "a",
@@ -251,6 +252,7 @@ export default function BookingsClient({
       confirmedOption: "Confirmed",
       paidOption: "Paid",
       edit: "Edit",
+      pay: "Mark as Paid",
       searchPlaceholder: "Search booking...",
       showing: "Showing",
       to: "to",
@@ -284,6 +286,7 @@ export default function BookingsClient({
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
+  const [loadingPayId, setLoadingPayId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -730,6 +733,24 @@ export default function BookingsClient({
       setErrorMessage("No se pudo eliminar la reserva.");
     } finally {
       setDeletingBookingId(null);
+    }
+  }
+
+  async function handleDirectPay(bookingId: number) {
+    setLoadingPayId(bookingId);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const updated = await updateAppointment(bookingId, { status: "paid" });
+      setBookings((prev) =>
+        prev.map((booking) => (booking.id === bookingId ? updated : booking))
+      );
+      setSuccessMessage(language === "en" ? "Booking marked as paid." : "Reserva marcada como pagada.");
+    } catch {
+      setErrorMessage(language === "en" ? "Failed to update booking status." : "No se pudo marcar la reserva como pagada.");
+    } finally {
+      setLoadingPayId(null);
     }
   }
 
@@ -1344,6 +1365,22 @@ export default function BookingsClient({
                   <td><StatusBadge status={(booking.status as BookingStatus) ?? "pending"} /></td>
                   <td>
                     <div className="table-actions">
+                      {user?.role === "empresa" &&
+                        booking.status !== "paid" &&
+                        booking.status !== "completed" &&
+                        booking.status !== "canceled" && (
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+                            onClick={() => handleDirectPay(booking.id)}
+                            disabled={loadingPayId !== null}
+                          >
+                            {loadingPayId === booking.id
+                              ? (language === "en" ? "Paying..." : "Cobrando...")
+                              : texts[language].pay}
+                          </button>
+                        )}
                       <button
                         type="button"
                         className="secondary-btn"
