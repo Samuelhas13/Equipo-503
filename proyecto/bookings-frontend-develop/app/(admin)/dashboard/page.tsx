@@ -1052,6 +1052,9 @@ function bookingStatus(b: Booking): string {
 }
 
 function bookingPrice(b: Booking): number {
+  if (b.couponCode) {
+    return 0;
+  }
   const svc = (b as any).service;
   if (svc && typeof svc === "object" && typeof svc.precio === "number") {
     return svc.precio;

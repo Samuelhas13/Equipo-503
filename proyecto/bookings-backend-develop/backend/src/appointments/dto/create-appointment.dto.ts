@@ -45,4 +45,9 @@ export class CreateAppointmentDto {
   @IsOptional()
   @IsString()
   serviceName?: string;
+
+  @ApiProperty({ example: 'PREM-XYZ123', required: false })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }

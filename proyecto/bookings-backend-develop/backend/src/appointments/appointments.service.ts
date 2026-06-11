@@ -5,11 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import { Repository, FindManyOptions, FindOptionsWhere, DataSource } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Appointment } from './appointment.entity';
 import { Customer } from '../customers/customer.entity';
 import { Service } from '../services/service.entity';
+import { RewardRedemption } from '../rewards/reward-redemption.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
@@ -26,6 +27,7 @@ export class AppointmentsService {
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
     private readonly notificationsService: NotificationsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   findAll(page?: number, limit?: number, currentUser?: JwtPayload) {
@@ -131,7 +133,11 @@ export class AppointmentsService {
     const saved = await this.appointmentsRepository.save(appointment);
 
     if (saved.status === 'paid' && customerId && serviceId) {
-      await this.adjustCustomerPoints(customerId, serviceId, 'add');
+      if (!saved.couponCode) {
+        await this.adjustCustomerPoints(customerId, serviceId, 'add');
+      } else {
+        await this.markCouponAsUsed(saved.couponCode);
+      }
     }
 
     try {
@@ -209,19 +215,23 @@ export class AppointmentsService {
     const newServiceId = serviceId || oldServiceId;
 
     if (oldStatus === 'paid' && newStatus !== 'paid') {
-      if (oldCustomerId && oldServiceId) {
+      if (oldCustomerId && oldServiceId && !saved.couponCode) {
         await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
       }
     } else if (oldStatus !== 'paid' && newStatus === 'paid') {
       if (newCustomerId && newServiceId) {
-        await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        if (!saved.couponCode) {
+          await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        } else {
+          await this.markCouponAsUsed(saved.couponCode);
+        }
       }
     } else if (oldStatus === 'paid' && newStatus === 'paid') {
       if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
-        if (oldCustomerId && oldServiceId) {
+        if (oldCustomerId && oldServiceId && !saved.couponCode) {
           await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
         }
-        if (newCustomerId && newServiceId) {
+        if (newCustomerId && newServiceId && !saved.couponCode) {
           await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
         }
       }
@@ -376,6 +386,19 @@ export class AppointmentsService {
       }
     } catch (err) {
       console.error('Error al ajustar puntos del cliente desde reserva:', err);
+    }
+  }
+
+  private async markCouponAsUsed(code: string) {
+    try {
+      const redemptionRepo = this.dataSource.getRepository(RewardRedemption);
+      const redemption = await redemptionRepo.findOneBy({ code });
+      if (redemption && redemption.status !== 'used') {
+        redemption.status = 'used';
+        await redemptionRepo.save(redemption);
+      }
+    } catch (err) {
+      console.error('Error al marcar cupón como usado:', err);
     }
   }
 }

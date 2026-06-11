@@ -48,6 +48,7 @@ export interface Booking {
   businessId?: number;
   userId?: number;
   status?: BookingStatus | string;
+  couponCode?: string;
 }
 
 // CreateAppointmentDto shape expected by backend
@@ -62,6 +63,7 @@ export interface CreateBookingDto {
   time?: string;
   serviceName?: string;
   status?: BookingStatus | string;
+  couponCode?: string;
 }
 
 export interface UpdateBookingDto {
@@ -74,6 +76,7 @@ export interface UpdateBookingDto {
   time?: string;
   status?: BookingStatus | string;
   serviceName?: string;
+  couponCode?: string;
 }
 
 // Tipo que representa un cliente tal y como llega desde el backend

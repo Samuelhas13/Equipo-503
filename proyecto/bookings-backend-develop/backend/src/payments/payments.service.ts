@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere, DataSource } from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -14,6 +14,7 @@ import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UserRole } from '../users/user.entity';
 import { Customer } from '../customers/customer.entity';
 import { Service } from '../services/service.entity';
+import { RewardRedemption } from '../rewards/reward-redemption.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -26,6 +27,7 @@ export class PaymentsService {
     private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+    private readonly dataSource: DataSource,
   ) {}
 
   findAll(currentUser?: JwtPayload) {
@@ -140,7 +142,14 @@ export class PaymentsService {
     const savedPayment = await this.paymentsRepository.save(payment);
 
     if (savedPayment.estado === PaymentStatus.PAGADO) {
-      await this.adjustCustomerPoints(customerId, servicioId, 'add');
+      const app = await this.appointmentsRepository.findOne({
+        where: { id: appointmentId },
+      });
+      if (app && app.couponCode) {
+        await this.markCouponAsUsed(app.couponCode);
+      } else {
+        await this.adjustCustomerPoints(customerId, servicioId, 'add');
+      }
     }
 
     return savedPayment;
@@ -196,20 +205,29 @@ export class PaymentsService {
     const newCustomerId = customerId || oldCustomerId;
     const newServiceId = servicioId || oldServiceId;
 
+    const app = await this.appointmentsRepository.findOne({
+      where: { id: savedPayment.appointment?.id },
+    });
+    const hasCoupon = app && app.couponCode;
+
     if (oldEstado === PaymentStatus.PAGADO && newEstado !== PaymentStatus.PAGADO) {
-      if (oldCustomerId && oldServiceId) {
+      if (oldCustomerId && oldServiceId && !hasCoupon) {
         await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
       }
     } else if (oldEstado !== PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
       if (newCustomerId && newServiceId) {
-        await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        if (hasCoupon) {
+          await this.markCouponAsUsed(app.couponCode);
+        } else {
+          await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        }
       }
     } else if (oldEstado === PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
       if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
-        if (oldCustomerId && oldServiceId) {
+        if (oldCustomerId && oldServiceId && !hasCoupon) {
           await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
         }
-        if (newCustomerId && newServiceId) {
+        if (newCustomerId && newServiceId && !hasCoupon) {
           await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
         }
       }
@@ -254,6 +272,19 @@ export class PaymentsService {
       }
     } catch (err) {
       console.error('Error al ajustar puntos del cliente:', err);
+    }
+  }
+
+  private async markCouponAsUsed(code: string) {
+    try {
+      const redemptionRepo = this.dataSource.getRepository(RewardRedemption);
+      const redemption = await redemptionRepo.findOneBy({ code });
+      if (redemption && redemption.status !== 'used') {
+        redemption.status = 'used';
+        await redemptionRepo.save(redemption);
+      }
+    } catch (err) {
+      console.error('Error al marcar cupón como usado:', err);
     }
   }
 }

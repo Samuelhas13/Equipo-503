@@ -10,8 +10,10 @@ import {
   updateBusiness,
   deleteBusiness,
   createAppointment,
+  getMyRedemptions,
+  getAppointments,
 } from "@/lib/api";
-import type { Business } from "@/lib/types";
+import type { Business, RewardRedemption, Booking } from "@/lib/types";
 
 // Tipo enriquecido para la interfaz de usuario
 interface EnrichedBusiness extends Business {
@@ -106,6 +108,20 @@ export default function EmpresasPage() {
   const [bookingService, setBookingService] = useState("");
   const [bookingPersons, setBookingPersons] = useState(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  const [myRedemptions, setMyRedemptions] = useState<RewardRedemption[]>([]);
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+
+  useEffect(() => {
+    if (user?.role === "usuario") {
+      getMyRedemptions()
+        .then(setMyRedemptions)
+        .catch((err) => console.error("Error loading redemptions:", err));
+      getAppointments()
+        .then(setMyBookings)
+        .catch((err) => console.error("Error loading bookings:", err));
+    }
+  }, [user]);
 
   // Textos para multilenguaje
   const texts = {
@@ -363,6 +379,34 @@ export default function EmpresasPage() {
       bookingPersons === 1 ? (language === "en" ? "person" : "persona") : (language === "en" ? "people" : "personas")
     })`;
 
+    // Check for pending coupons for this business
+    const matchingRedemptions = myRedemptions.filter((r) => {
+      if (r.status !== "pending") return false;
+      const alreadyApplied = myBookings.some((b) => b.couponCode === r.code);
+      if (alreadyApplied) return false;
+
+      const rBizId = r.reward && typeof r.reward === "object"
+        ? (r.reward.business && typeof r.reward.business === "object" ? r.reward.business.id : r.reward.business)
+        : undefined;
+      return Number(rBizId) === Number(bookingBusiness.id);
+    });
+
+    let couponCode: string | undefined = undefined;
+    if (matchingRedemptions.length > 0) {
+      const firstRedemption = matchingRedemptions[0];
+      const prizeTitle = firstRedemption.reward && typeof firstRedemption.reward === "object"
+        ? firstRedemption.reward.title
+        : (language === "en" ? "a reward" : "un premio");
+        
+      const msg = language === "en"
+        ? `You have a pending reward coupon for this business: "${prizeTitle}" (${firstRedemption.code}). Do you want to apply it to make this reservation free?`
+        : `Tienes un cupón de premio pendiente para este comercio: "${prizeTitle}" (${firstRedemption.code}). ¿Quieres aplicarlo para que esta reserva sea gratis?`;
+        
+      if (window.confirm(msg)) {
+        couponCode = firstRedemption.code;
+      }
+    }
+
     try {
       await createAppointment({
         date: bookingDate,
@@ -371,6 +415,7 @@ export default function EmpresasPage() {
         customerId: user.customerId || 1, // Fallback en caso de que no tenga customerId asignado
         businessId: bookingBusiness.id,
         serviceName: finalServiceName,
+        couponCode,
       });
 
       setBookingSuccess(true);

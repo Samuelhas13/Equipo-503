@@ -96,6 +96,7 @@ function normalizeBooking(app: any): Booking {
     businessId: app.businessId || (app.business ? app.business.id : 1),
     userId: app.userId || (app.user ? app.user.id : undefined),
     serviceName: app.serviceName || (app.service ? app.service.nombre : ""),
+    couponCode: app.couponCode || undefined,
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
   };
@@ -120,6 +121,7 @@ export async function createAppointment(data: CreateBookingDto): Promise<Booking
   if ((data as any).serviceId) payload.serviceId = (data as any).serviceId;
   // fallback: if service provided as object or name, try to use id property
   if (!payload.serviceId && (data as any).service) payload.serviceId = (data as any).service?.id || undefined;
+  if (data.couponCode) payload.couponCode = data.couponCode;
 
   return apiRequest<Booking>("/appointments", { method: "POST", body: JSON.stringify(payload) });
 }
@@ -178,8 +180,41 @@ export async function deleteCustomer(id: number): Promise<{ message: string }> {
 
 // ── PAYMENTS ────────────────────────────────────────────────────
 
+function normalizePayment(pay: any): Payment {
+  let amount = 0;
+  if (pay.servicio && typeof pay.servicio === "object") {
+    amount = pay.servicio.precio || 0;
+  }
+  
+  let appointmentId = undefined;
+  if (pay.appointment && typeof pay.appointment === "object") {
+    appointmentId = pay.appointment.id;
+  } else if (typeof pay.appointment === "number") {
+    appointmentId = pay.appointment;
+  }
+
+  let status = pay.estado || "pending";
+  if (status === "pagado") status = "paid";
+  else if (status === "por cobrar") status = "pending";
+  else if (status === "cancelado") status = "failed";
+
+  let paymentMethod = pay.metodo_pago || "pending";
+  if (paymentMethod === "tarjeta") paymentMethod = "card";
+  else if (paymentMethod === "efectivo") paymentMethod = "cash";
+
+  return {
+    ...pay,
+    amount,
+    status,
+    paymentMethod,
+    appointmentId,
+    createdAt: pay.hora_pago || pay.createdAt,
+  };
+}
+
 export async function getPayments(): Promise<Payment[]> {
-  return apiRequest<Payment[]>("/payments", { cache: "no-store" });
+  const payments = await apiRequest<any[]>("/payments", { cache: "no-store" });
+  return payments.map(normalizePayment);
 }
 
 export async function createPayment(data: CreatePaymentDto): Promise<Payment> {

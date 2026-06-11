@@ -12,6 +12,7 @@ import type {
   CreateBookingDto,
   UpdateBookingDto,
   Service,
+  RewardRedemption,
 } from "@/lib/types";
 import {
   createAppointment,
@@ -19,6 +20,7 @@ import {
   getCustomerById,
   updateAppointment,
   getServices,
+  getMyRedemptions,
 } from "@/lib/api";
 
 const BUSINESS_NAMES: Record<number, string> = {
@@ -310,6 +312,16 @@ export default function BookingsClient({
     loadServices();
   }, [user]);
 
+  const [myRedemptions, setMyRedemptions] = useState<RewardRedemption[]>([]);
+
+  useEffect(() => {
+    if (user?.role === "usuario") {
+      getMyRedemptions()
+        .then(setMyRedemptions)
+        .catch((err) => console.error("Error loading redemptions:", err));
+    }
+  }, [user]);
+
   const filteredServices = useMemo(() => {
     if (user?.role === "empresa") {
       return services.filter((s) => s.businessId === user.businessId || (s as any).business?.id === user.businessId);
@@ -598,11 +610,40 @@ export default function BookingsClient({
     setSuccessMessage("");
     setErrorMessage("");
 
+    // Check for pending coupons for this business
+    const matchingRedemptions = myRedemptions.filter((r) => {
+      if (r.status !== "pending") return false;
+      const alreadyApplied = bookings.some((b) => b.couponCode === r.code);
+      if (alreadyApplied) return false;
+
+      const rBizId = r.reward && typeof r.reward === "object"
+        ? (r.reward.business && typeof r.reward.business === "object" ? r.reward.business.id : r.reward.business)
+        : undefined;
+      return Number(rBizId) === Number(createForm.businessId);
+    });
+
+    let couponCode: string | undefined = undefined;
+    if (matchingRedemptions.length > 0) {
+      const firstRedemption = matchingRedemptions[0];
+      const prizeTitle = firstRedemption.reward && typeof firstRedemption.reward === "object"
+        ? firstRedemption.reward.title
+        : (language === "en" ? "a reward" : "un premio");
+        
+      const msg = language === "en"
+        ? `You have a pending reward coupon for this business: "${prizeTitle}" (${firstRedemption.code}). Do you want to apply it to make this reservation free?`
+        : `Tienes un cupón de premio pendiente para este comercio: "${prizeTitle}" (${firstRedemption.code}). ¿Quieres aplicarlo para que esta reserva sea gratis?`;
+        
+      if (window.confirm(msg)) {
+        couponCode = firstRedemption.code;
+      }
+    }
+
     try {
       const finalServiceName = `${createForm.serviceName} (${createPersons} ${createPersons === 1 ? 'persona' : 'personas'})`;
       const payload = {
         ...createForm,
         serviceName: finalServiceName,
+        couponCode,
       };
 
       const created = await createAppointment(payload);

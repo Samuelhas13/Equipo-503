@@ -63,4 +63,8 @@ export class Appointment {
   })
   @OneToOne(() => Payment, (payment) => payment.appointment)
   payment: Payment;
+
+  @ApiProperty({ description: 'Código del premio/cupón aplicado a esta reserva', required: false })
+  @Column({ nullable: true })
+  couponCode: string;
 }
