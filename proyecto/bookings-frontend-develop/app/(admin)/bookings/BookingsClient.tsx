@@ -574,6 +574,23 @@ export default function BookingsClient({
       parsedPersons = Number(match[2]);
     }
 
+    let resolvedServiceId: number | undefined = undefined;
+    if (typeof booking.service === "object" && booking.service !== null) {
+      resolvedServiceId = booking.service.id;
+    } else if (typeof booking.service === "number") {
+      resolvedServiceId = booking.service;
+    } else {
+      const bizId = booking.businessId;
+      const matchedService = services.find(
+        (s) =>
+          (s.businessId === bizId || (s as any).business?.id === bizId) &&
+          s.nombre.toLowerCase().trim() === cleanServiceName.toLowerCase().trim()
+      );
+      if (matchedService) {
+        resolvedServiceId = matchedService.id;
+      }
+    }
+
     setEditPersons(parsedPersons);
     setEditForm({
       date: booking.date,
@@ -582,7 +599,7 @@ export default function BookingsClient({
       customerId: booking.customerId,
       businessId: booking.businessId,
       serviceName: cleanServiceName,
-      serviceId: typeof booking.service === "object" ? booking.service?.id : (typeof booking.service === "number" ? booking.service : undefined),
+      serviceId: resolvedServiceId,
     });
 
     setTimeout(() => {
@@ -972,6 +989,14 @@ export default function BookingsClient({
                     </option>
                   ))}
                 </select>
+                {createForm.serviceId && (
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", fontSize: "14px", fontWeight: "bold", padding: "4px 0" }}>
+                    <span>{language === "es" ? "Precio del servicio:" : "Service price:"}</span>
+                    <span style={{ color: "var(--primary-color, #1a73e8)", fontSize: "16px" }}>
+                      {filteredServices.find(s => s.id === Number(createForm.serviceId))?.precio} €
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1161,6 +1186,14 @@ export default function BookingsClient({
             </option>
           ))}
         </select>
+        {editForm.serviceId && (
+          <div style={{ display: "flex", gap: 6, alignItems: "center", fontSize: "14px", fontWeight: "bold", padding: "4px 0" }}>
+            <span>{language === "es" ? "Precio del servicio:" : "Service price:"}</span>
+            <span style={{ color: "var(--primary-color, #1a73e8)", fontSize: "16px" }}>
+              {filteredServicesForEdit.find(s => s.id === Number(editForm.serviceId))?.precio} €
+            </span>
+          </div>
+        )}
       </div>
     </div>
 

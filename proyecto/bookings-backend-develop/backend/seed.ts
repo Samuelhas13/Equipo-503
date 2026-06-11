@@ -6,11 +6,26 @@ import { Customer } from './src/customers/customer.entity';
 import { Service } from './src/services/service.entity';
 import { Appointment } from './src/appointments/appointment.entity';
 import { Payment, PaymentMethod, PaymentStatus } from './src/payments/payment.entity';
+import { Reward } from './src/rewards/reward.entity';
+import { RewardRedemption } from './src/rewards/reward-redemption.entity';
+import { Notification } from './src/notifications/notification.entity';
+import { ContactMessage } from './src/contact/contact.entity';
 
 const AppDataSource = new DataSource({
   type: 'sqlite',
   database: 'data/database.sqlite',
-  entities: [Business, User, Customer, Service, Appointment, Payment],
+  entities: [
+    Business,
+    User,
+    Customer,
+    Service,
+    Appointment,
+    Payment,
+    Reward,
+    RewardRedemption,
+    Notification,
+    ContactMessage,
+  ],
   synchronize: true,
 });
 
@@ -18,12 +33,18 @@ async function seed() {
   await AppDataSource.initialize();
   console.log('✓ Conectado a la base de datos');
 
+  await AppDataSource.query('PRAGMA foreign_keys = OFF;');
   await AppDataSource.query('DELETE FROM "payments"');
   await AppDataSource.query('DELETE FROM "appointments"');
   await AppDataSource.query('DELETE FROM "services"');
   await AppDataSource.query('DELETE FROM "customers"');
   await AppDataSource.query('DELETE FROM "users"');
   await AppDataSource.query('DELETE FROM "business"');
+  await AppDataSource.query('DELETE FROM "rewards"');
+  await AppDataSource.query('DELETE FROM "reward_redemptions"');
+  await AppDataSource.query('DELETE FROM "notifications"');
+  await AppDataSource.query('DELETE FROM "contacts"');
+  await AppDataSource.query('PRAGMA foreign_keys = ON;');
   console.log('✓ Tablas limpiadas');
 
   const businessRepo = AppDataSource.getRepository(Business);
@@ -44,7 +65,7 @@ async function seed() {
 
   // 2. 500 Businesses & 1 Owner per Business & 40 Services per Business
   const TOTAL_BUSINESSES = 500;
-  const SERVICES_PER_BUSINESS = 40;
+  const SERVICES_PER_BUSINESS = 4;
   console.log(`⏳ Generando ${TOTAL_BUSINESSES} empresas y ${TOTAL_BUSINESSES * SERVICES_PER_BUSINESS} servicios...`);
   
   const savedBusinesses: Business[] = [];

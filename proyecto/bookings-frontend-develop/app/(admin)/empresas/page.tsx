@@ -12,8 +12,9 @@ import {
   createAppointment,
   getMyRedemptions,
   getAppointments,
+  getServices,
 } from "@/lib/api";
-import type { Business, RewardRedemption, Booking } from "@/lib/types";
+import type { Business, RewardRedemption, Booking, Service } from "@/lib/types";
 
 // Tipo enriquecido para la interfaz de usuario
 interface EnrichedBusiness extends Business {
@@ -106,9 +107,11 @@ export default function EmpresasPage() {
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("10:00");
   const [bookingService, setBookingService] = useState("");
+  const [bookingServiceId, setBookingServiceId] = useState<number | "">("");
   const [bookingPersons, setBookingPersons] = useState(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  const [services, setServices] = useState<Service[]>([]);
   const [myRedemptions, setMyRedemptions] = useState<RewardRedemption[]>([]);
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
 
@@ -121,7 +124,17 @@ export default function EmpresasPage() {
         .then(setMyBookings)
         .catch((err) => console.error("Error loading bookings:", err));
     }
+    getServices()
+      .then(setServices)
+      .catch((err) => console.error("Error loading services:", err));
   }, [user]);
+
+  const businessServices = useMemo(() => {
+    if (!bookingBusiness) return [];
+    return services.filter(
+      (s) => s.businessId === bookingBusiness.id || (s as any).business?.id === bookingBusiness.id
+    );
+  }, [services, bookingBusiness]);
 
   // Textos para multilenguaje
   const texts = {
@@ -355,7 +368,16 @@ export default function EmpresasPage() {
   // Abrir Modal de Reserva
   const handleOpenBooking = (business: EnrichedBusiness) => {
     setBookingBusiness(business);
-    setBookingService(business.services[0] || "");
+    const bizServices = services.filter(
+      (s) => s.businessId === business.id || (s as any).business?.id === business.id
+    );
+    if (bizServices.length > 0) {
+      setBookingServiceId(bizServices[0].id);
+      setBookingService(bizServices[0].nombre);
+    } else {
+      setBookingServiceId("");
+      setBookingService("");
+    }
     setBookingDate(getTodayString());
     setBookingTime("10:00");
     setBookingPersons(1);
@@ -399,8 +421,8 @@ export default function EmpresasPage() {
         : (language === "en" ? "a reward" : "un premio");
         
       const msg = language === "en"
-        ? `You have a pending reward coupon for this business: "${prizeTitle}" (${firstRedemption.code}). Do you want to apply it to make this reservation free?`
-        : `Tienes un cupón de premio pendiente para este comercio: "${prizeTitle}" (${firstRedemption.code}). ¿Quieres aplicarlo para que esta reserva sea gratis?`;
+         ? `You have a pending reward coupon for this business: "${prizeTitle}" (${firstRedemption.code}). Do you want to apply it to make this reservation free?`
+         : `Tienes un cupón de premio pendiente para este comercio: "${prizeTitle}" (${firstRedemption.code}). ¿Quieres aplicarlo para que esta reserva sea gratis?`;
         
       if (window.confirm(msg)) {
         couponCode = firstRedemption.code;
@@ -414,6 +436,7 @@ export default function EmpresasPage() {
         status: "pending",
         customerId: user.customerId || 1, // Fallback en caso de que no tenga customerId asignado
         businessId: bookingBusiness.id,
+        serviceId: bookingServiceId ? Number(bookingServiceId) : undefined,
         serviceName: finalServiceName,
         couponCode,
       });
@@ -732,18 +755,33 @@ export default function EmpresasPage() {
                     </label>
                     <select
                       className="select"
-                      value={bookingService}
-                      onChange={(e) => setBookingService(e.target.value)}
+                      value={bookingServiceId || ""}
+                      onChange={(e) => {
+                        const sId = Number(e.target.value);
+                        setBookingServiceId(sId);
+                        const selectedService = businessServices.find((s) => s.id === sId);
+                        setBookingService(selectedService ? selectedService.nombre : "");
+                      }}
                       required
                       style={{ padding: "13px 16px" }}
                     >
-                      {bookingBusiness.services.map((srv) => (
-                        <option key={srv} value={srv}>
-                          {srv}
+                      <option value="">{language === "es" ? "Selecciona un servicio" : "Select a service"}</option>
+                      {businessServices.map((srv) => (
+                        <option key={srv.id} value={srv.id}>
+                          {srv.nombre} ({srv.precio} €)
                         </option>
                       ))}
                     </select>
                   </div>
+
+                  {bookingServiceId && (
+                    <div className="input--full" style={{ display: "flex", gap: 6, alignItems: "center", fontSize: "14px", fontWeight: "bold", padding: "4px 0" }}>
+                      <span>{language === "es" ? "Precio del servicio:" : "Service price:"}</span>
+                      <span style={{ color: "var(--primary-color, #1a73e8)", fontSize: "16px" }}>
+                        {businessServices.find(s => s.id === Number(bookingServiceId))?.precio} €
+                      </span>
+                    </div>
+                  )}
 
                   <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>

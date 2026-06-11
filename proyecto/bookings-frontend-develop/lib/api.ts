@@ -99,6 +99,7 @@ function normalizeBooking(app: any): Booking {
     couponCode: app.couponCode || undefined,
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
+    service: app.service,
   };
 }
 

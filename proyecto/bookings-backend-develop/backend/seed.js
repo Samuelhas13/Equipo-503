@@ -84,9 +84,15 @@ async function seed() {
 
     // 6. Insertar Servicios de prueba
     console.log('Insertando servicios...');
+    // Business 1 (Alfa) - Belleza / Estética / Spa
     await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Corte de pelo moderno', 25.0, 1]);
     await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Masaje relajante', 50.0, 1]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Manicura express', 20.0, 1]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Afeitado tradicional', 15.0, 1]);
+    // Business 2 (Beta) - Restaurante / Gastronomía
     await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Cena gourmet', 120.0, 2]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Menú del día', 15.0, 2]);
+    await runQuery('INSERT INTO "services" (nombre, precio, businessId) VALUES (?, ?, ?);', ['Desayuno especial', 10.0, 2]);
 
     console.log('¡Seeding completado con éxito!');
   } catch (error) {
