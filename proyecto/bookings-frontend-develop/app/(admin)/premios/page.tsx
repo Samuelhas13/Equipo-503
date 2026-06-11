@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import type { Reward, RewardRedemption, Customer, Business, CustomerBusinessPoints } from "@/lib/types";
+import type { Reward, RewardRedemption, Customer, Business } from "@/lib/types";
 import {
   getRewards,
   createReward,
@@ -27,9 +27,6 @@ export default function PremiosPage() {
   // States for Business
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
-  const [valCode, setValCode] = useState("");
-  const [valSuccess, setValSuccess] = useState("");
-  const [valError, setValError] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [formTitle, setFormTitle] = useState("");
@@ -44,7 +41,7 @@ export default function PremiosPage() {
   const [myRedemptions, setMyRedemptions] = useState<RewardRedemption[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
   const [businessesList, setBusinessesList] = useState<Business[]>([]);
-  const [myPoints, setMyPoints] = useState<CustomerBusinessPoints[]>([]);
+  const [globalPoints, setGlobalPoints] = useState<number>(0);
   const [successClaim, setSuccessClaim] = useState<string | null>(null);
   const [errorClaim, setErrorClaim] = useState<string | null>(null);
 
@@ -158,13 +155,17 @@ export default function PremiosPage() {
         setRewards(fetchedRewards);
         setRedemptions(fetchedClaims);
       } else if (user?.role === "usuario") {
-        // Fetch client's points desglosados per business
-        const pointsList = await getMyPoints();
-        setMyPoints(pointsList);
+        // Fetch client's global points
+        const pointsData = await getMyPoints();
+        setGlobalPoints(pointsData.points);
 
-        // Pre-select the business with the most points, if any
-        if (pointsList.length > 0) {
-          const defaultBusiness = pointsList[0].business;
+        // Fetch all businesses
+        const businesses = await getBusinesses();
+        setBusinessesList(businesses);
+
+        // Pre-select the first business, if any
+        if (businesses.length > 0) {
+          const defaultBusiness = businesses[0];
           setSelectedBusinessId(defaultBusiness.id);
           const fetchedRewards = await getRewards(defaultBusiness.id);
           setRewards(fetchedRewards);
@@ -205,39 +206,13 @@ export default function PremiosPage() {
       setSuccessClaim(language === "es" ? `¡Premio canjeado! Código: ${result.code}` : `Reward claimed! Code: ${result.code}`);
       
       // Refresh points and redemptions
-      const pointsList = await getMyPoints();
-      setMyPoints(pointsList);
+      const pointsData = await getMyPoints();
+      setGlobalPoints(pointsData.points);
 
       const claims = await getMyRedemptions();
       setMyRedemptions(claims);
     } catch (err: any) {
       setErrorClaim(err.message || "Error al canjear el premio.");
-    }
-  }
-
-  // Validate Code (Business)
-  async function handleValidateCode(e: React.FormEvent) {
-    e.preventDefault();
-    setValSuccess("");
-    setValError("");
-    if (!valCode.trim()) return;
-
-    try {
-      const result = await validateRedemptionCode(valCode.trim());
-      const rwd = result.reward as Reward | undefined;
-      const cust = result.customer as Customer | undefined;
-      setValSuccess(
-        language === "es"
-          ? `¡Código validado con éxito! Premio "${rwd?.title || "desconocido"}" entregado a ${cust?.nombre || "Cliente"} ${cust?.apellido || ""}.`
-          : `Code validated successfully! Reward "${rwd?.title || "unknown"}" delivered to ${cust?.nombre || "Customer"} ${cust?.apellido || ""}.`
-      );
-      setValCode("");
-      
-      // Refresh business claims list
-      const fetchedClaims = await getBusinessRedemptions();
-      setRedemptions(fetchedClaims);
-    } catch (err: any) {
-      setValError(err.message || "Código inválido o ya utilizado.");
     }
   }
 
@@ -333,17 +308,164 @@ export default function PremiosPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-8">
+    <div className="admin-content" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <style>{`
+        .premios-grid-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        @media (min-width: 992px) {
+          .premios-grid-layout {
+            grid-template-columns: 340px 1fr;
+          }
+        }
+        .loyalty-card {
+          padding: 24px;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text);
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          box-shadow: var(--shadow-sm);
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .loyalty-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-md);
+          border-color: var(--border-strong);
+        }
+        .loyalty-card--selected {
+          background: linear-gradient(135deg, var(--purple-600) 0%, var(--purple-900) 100%);
+          color: #ffffff !important;
+          border-color: transparent;
+          transform: translateY(-2px) scale(1.01);
+          box-shadow: var(--shadow-md);
+        }
+        .loyalty-card--selected .text-muted-card {
+          color: var(--purple-100) !important;
+        }
+        .loyalty-card--selected .text-points-label {
+          color: var(--purple-200) !important;
+        }
+        .loyalty-card .text-muted-card {
+          color: var(--muted);
+        }
+        .loyalty-card .text-points-label {
+          color: var(--muted);
+          font-size: 11px;
+          letter-spacing: 0.05em;
+        }
+        .loyalty-card .circle-decor {
+          position: absolute;
+          top: -20px;
+          right: -20px;
+          width: 90px;
+          height: 90px;
+          background: rgba(255, 255, 255, 0.06);
+          border-radius: 50%;
+          pointer-events: none;
+        }
+        .reward-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        @media (min-width: 768px) {
+          .reward-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        .reward-card {
+          padding: 20px;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border);
+          background: var(--surface);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: all 0.25s ease;
+          box-shadow: var(--shadow-sm);
+          position: relative;
+        }
+        .reward-card:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--shadow-md);
+          border-color: var(--accent);
+        }
+        .reward-card--unlocked {
+          border-color: var(--purple-200);
+          background: var(--surface);
+        }
+        .reward-card--locked {
+          opacity: 0.8;
+          background: var(--surface-2);
+        }
+        .progress-bar-container {
+          width: 100%;
+          background: var(--border);
+          height: 6px;
+          border-radius: 999px;
+          overflow: hidden;
+          margin-top: 8px;
+        }
+        .progress-bar-fill {
+          background: var(--accent);
+          height: 100%;
+          transition: width 0.4s ease;
+        }
+        .coupon-card {
+          padding: 20px;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          background: var(--surface);
+          position: relative;
+          overflow: hidden;
+          box-shadow: var(--shadow-sm);
+          transition: all 0.2s ease;
+        }
+        .coupon-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-md);
+        }
+        .coupon-card--used {
+          opacity: 0.65;
+          background: var(--bg);
+        }
+        .ticket-cut-left, .ticket-cut-right {
+          position: absolute;
+          top: 50%;
+          width: 16px;
+          height: 16px;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 50%;
+          margin-top: -8px;
+          z-index: 5;
+        }
+        .ticket-cut-left {
+          left: -9px;
+        }
+        .ticket-cut-right {
+          right: -9px;
+        }
+      `}</style>
+
       {/* HEADER PAGE */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <section className="section-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
         <div>
-          <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+          <h2 className="admin-header__title" style={{ fontSize: "24px" }}>
             {user?.role === "empresa" ? currentTexts.adminTitle : currentTexts.title}
-          </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">{currentTexts.subtitle}</p>
+          </h2>
+          <p className="admin-header__subtitle" style={{ fontSize: "14px", marginTop: "4px" }}>{currentTexts.subtitle}</p>
         </div>
         {user?.role === "empresa" && (
-          <button onClick={openCreateForm} className="primary-btn shadow-md hover:shadow-lg transition-all">
+          <button onClick={openCreateForm} className="primary-btn">
             {currentTexts.createRewardBtn}
           </button>
         )}
@@ -353,30 +475,30 @@ export default function PremiosPage() {
       {/* VISTA DE EMPRESA                                     */}
       {/* ==================================================== */}
       {user?.role === "empresa" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px" }} className="premios-grid-layout">
           {/* Columna Izquierda: Validar y Premios */}
-          <div className="lg:col-span-2 space-y-8">
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Formulario Crear/Editar */}
             {isFormOpen && (
-              <form onSubmit={handleSaveReward} className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-indigo-200 dark:border-indigo-950 shadow-md space-y-4">
-                <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-400">
+              <form onSubmit={handleSaveReward} className="section-card" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <h3 className="panel-title">
                   {editingReward ? currentTexts.editRewardTitle : currentTexts.createRewardBtn}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{currentTexts.titleLabel}</label>
+                <div className="form-grid">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{currentTexts.titleLabel}</label>
                     <input
                       type="text"
-                      className="input w-full"
+                      className="input"
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{currentTexts.typeLabel}</label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{currentTexts.typeLabel}</label>
                     <select
-                      className="select w-full"
+                      className="select"
                       value={formType}
                       onChange={(e) => setFormType(e.target.value as "discount" | "gift")}
                     >
@@ -385,40 +507,41 @@ export default function PremiosPage() {
                     </select>
                   </div>
                   {formType === "discount" && (
-                    <div>
-                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{currentTexts.discountValLabel}</label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{currentTexts.discountValLabel}</label>
                       <input
                         type="number"
                         min={1}
                         max={100}
-                        className="input w-full"
+                        className="input"
                         value={formDiscount}
                         onChange={(e) => setFormDiscount(Number(e.target.value))}
                         required
                       />
                     </div>
                   )}
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{currentTexts.pointsLabel}</label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{currentTexts.pointsLabel}</label>
                     <input
                       type="number"
                       min={10}
-                      className="input w-full"
+                      className="input"
                       value={formPoints}
                       onChange={(e) => setFormPoints(Number(e.target.value))}
                       required
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{currentTexts.descLabel}</label>
+                  <div className="input--full" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{currentTexts.descLabel}</label>
                     <textarea
-                      className="input w-full h-20 py-2"
+                      className="input"
+                      style={{ height: "80px", padding: "10px" }}
                       value={formDesc}
                       onChange={(e) => setFormDesc(e.target.value)}
                     />
                   </div>
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="form-actions">
                   <button type="button" onClick={() => setIsFormOpen(false)} className="secondary-btn">
                     {currentTexts.cancelBtn}
                   </button>
@@ -430,35 +553,35 @@ export default function PremiosPage() {
             )}
 
             {/* Listado de premios activos */}
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{currentTexts.activeRewards}</h2>
+            <div className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <h3 className="panel-title">{currentTexts.activeRewards}</h3>
               {rewards.length === 0 ? (
-                <p className="text-zinc-500">{currentTexts.noRewards}</p>
+                <p style={{ color: "var(--muted)" }}>{currentTexts.noRewards}</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="reward-grid">
                   {rewards.map((reward) => (
-                    <div key={reward.id} className="p-4 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border border-zinc-100 dark:border-zinc-800 flex flex-col justify-between">
+                    <div key={reward.id} className="reward-card">
                       <div>
-                        <div className="flex justify-between items-start">
-                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                          <span className="badge badge--confirmed">
                             {reward.type === "discount" 
                               ? currentTexts.rewardDiscount.replace("{v}", String(reward.discountValue))
                               : currentTexts.rewardGift}
                           </span>
-                          <span className="text-sm font-medium text-zinc-500">
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--accent)" }}>
                             ⭐ {reward.requiredPoints} pts
                           </span>
                         </div>
-                        <h4 className="font-bold text-zinc-900 dark:text-white mt-2">{reward.title}</h4>
+                        <h4 style={{ margin: "12px 0 6px 0", fontSize: "16px", fontWeight: 700 }}>{reward.title}</h4>
                         {reward.description && (
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{reward.description}</p>
+                          <p style={{ fontSize: "12px", color: "var(--muted)", margin: 0 }}>{reward.description}</p>
                         )}
                       </div>
-                      <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
-                        <button onClick={() => openEditForm(reward)} className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
-                          {currentTexts.saveBtn.split(" ")[0]} {/* "Editar/Guardar" */}
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "16px", paddingTop: "12px", borderTop: "1px dashed var(--border)" }}>
+                        <button onClick={() => openEditForm(reward)} className="secondary-btn" style={{ padding: "6px 12px", fontSize: "12px" }}>
+                          {currentTexts.saveBtn.split(" ")[0]}
                         </button>
-                        <button onClick={() => handleDeleteReward(reward.id)} className="text-xs text-red-600 dark:text-red-400 font-semibold hover:underline">
+                        <button onClick={() => handleDeleteReward(reward.id)} className="secondary-btn" style={{ padding: "6px 12px", fontSize: "12px", color: "var(--error)", borderColor: "var(--error)" }}>
                           Eliminar
                         </button>
                       </div>
@@ -469,72 +592,39 @@ export default function PremiosPage() {
             </div>
           </div>
 
-          {/* Columna Derecha: Canjes y Validador */}
-          <div className="space-y-8">
-            {/* Validador de código */}
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{currentTexts.validateCouponTitle}</h2>
-              <form onSubmit={handleValidateCode} className="space-y-3">
-                <input
-                  type="text"
-                  placeholder={currentTexts.couponInputPlaceholder}
-                  className="input w-full text-center font-mono uppercase tracking-wider text-lg"
-                  value={valCode}
-                  onChange={(e) => setValCode(e.target.value)}
-                  required
-                />
-                <button type="submit" className="primary-btn w-full shadow-md">
-                  {currentTexts.validateBtn}
-                </button>
-              </form>
-
-              {valSuccess && (
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm border border-emerald-100 dark:border-emerald-900/40">
-                  {valSuccess}
-                </div>
-              )}
-              {valError && (
-                <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg text-sm border border-red-100 dark:border-red-900/40">
-                  {valError}
-                </div>
-              )}
-            </div>
-
-            {/* Listado de Canjes recibidos */}
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{currentTexts.receivedClaims}</h2>
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+          {/* Columna Derecha: Canjes recibidos */}
+          <div>
+            <div className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <h3 className="panel-title">{currentTexts.receivedClaims}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
                 {redemptions.length === 0 ? (
-                  <p className="text-zinc-500 text-sm">No se han registrado canjes todavía.</p>
+                  <p style={{ color: "var(--muted)", fontSize: "14px" }}>No se han registrado canjes todavía.</p>
                 ) : (
                   redemptions.map((red) => (
-                    <div key={red.id} className="p-3 bg-zinc-50 dark:bg-zinc-800/20 rounded-xl border border-zinc-100 dark:border-zinc-800 flex flex-col justify-between gap-2">
-                      <div className="flex justify-between items-start">
+                    <div key={red.id} className="coupon-card" style={{ padding: "16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                         <div>
-                          <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                          <p style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", margin: 0 }}>
                             {red.customer && typeof red.customer === "object"
                               ? `${(red.customer as Customer).nombre} ${(red.customer as Customer).apellido}`
                               : `Cliente #${red.customer}`}
                           </p>
-                          <h4 className="font-bold text-sm text-zinc-900 dark:text-white">
+                          <h4 style={{ fontSize: "14px", fontWeight: 700, margin: "4px 0" }}>
                             {red.reward && typeof red.reward === "object" ? (red.reward as Reward).title : "Premio"}
                           </h4>
-                          <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded">
+                          <span style={{ fontFamily: "monospace", fontSize: "12px", fontWeight: 700, color: "var(--accent)", background: "var(--surface-2)", padding: "2px 6px", borderRadius: "4px" }}>
                             {red.code}
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                          red.status === "used" 
-                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400" 
-                            : "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300"
-                        }`}>
+                        <span className={`badge ${red.status === 'used' ? 'badge--pending' : 'badge--confirmed'}`} style={{ fontSize: "10px" }}>
                           {red.status === "used" ? currentTexts.statusUsed : currentTexts.statusPending}
                         </span>
                       </div>
                       {red.status === "pending" && (
                         <button
                           onClick={() => handleMarkAsUsed(red.code)}
-                          className="w-full mt-1 py-1 text-xs font-bold bg-white dark:bg-zinc-800 hover:bg-zinc-50 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:shadow-sm transition-all"
+                          className="primary-btn"
+                          style={{ width: "100%", marginTop: "12px", padding: "8px", fontSize: "12px" }}
                         >
                           {currentTexts.markAsUsedBtn}
                         </button>
@@ -551,146 +641,148 @@ export default function PremiosPage() {
       {/* ==================================================== */}
       {/* VISTA DE CLIENTE / USUARIO                           */}
       {/* ==================================================== */}
+      {/* ==================================================== */}
+      {/* VISTA DE CLIENTE / USUARIO                           */}
+      {/* ==================================================== */}
       {user?.role === "usuario" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna Izquierda: Tarjetas de fidelidad por negocio */}
-          <div className="lg:col-span-1 space-y-6">
-            <h3 className="font-bold text-zinc-900 dark:text-white text-xl">Mis Tarjetas de Puntos</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px" }} className="premios-grid-layout">
+          {/* Columna Izquierda: Tarjeta de fidelidad global */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <h3 className="panel-title">{language === "es" ? "Mi Estado de Puntos" : "My Points Status"}</h3>
             
-            {myPoints.length === 0 ? (
-              <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-center space-y-2 shadow-sm">
-                <span className="text-4xl block">🎁</span>
-                <p className="text-zinc-500 text-sm">
-                  {language === "es" 
-                    ? "Aún no tienes puntos en ningún negocio. ¡Realiza pagos de tus reservas para acumular puntos!" 
-                    : "You don't have points in any business yet. Make booking payments to accumulate points!"}
-                </p>
+            <div className="loyalty-card loyalty-card--selected" style={{ cursor: "default" }}>
+              <div className="circle-decor" />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                <div>
+                  <span className="text-points-label">
+                    {language === "es" ? "Tarjeta de Socio Global" : "Global Loyalty Card"}
+                  </span>
+                  <h4 style={{ margin: "4px 0 2px 0", fontSize: "18px", fontWeight: 800 }}>
+                    {user?.name || "Cliente"}
+                  </h4>
+                  <p className="text-muted-card" style={{ fontSize: "12px", margin: 0 }}>
+                    {user?.email}
+                  </p>
+                </div>
+                <span style={{ fontSize: "24px" }}>💳</span>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {myPoints.map((item) => {
-                  const isSelected = selectedBusinessId === item.business.id;
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => handleBusinessChange(item.business.id)}
-                      className={`p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md ${
-                        isSelected
-                          ? "bg-gradient-to-br from-indigo-600 to-indigo-800 text-white border-transparent scale-[1.02]"
-                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
-                      }`}
-                    >
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl -mr-6 -mt-6"></div>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className={`text-[10px] uppercase tracking-widest ${isSelected ? "text-indigo-200" : "text-zinc-400"}`}>
-                            {language === "es" ? "Tarjeta de Socio" : "Loyalty Card"}
-                          </span>
-                          <h4 className="font-extrabold text-lg mt-1">{item.business.nombre}</h4>
-                          <p className={`text-xs mt-0.5 ${isSelected ? "text-indigo-200" : "text-zinc-500"}`}>{item.business.direccion}</p>
-                        </div>
-                        <span className="text-2xl">💳</span>
-                      </div>
-                      <div className="mt-6 flex justify-between items-end">
-                        <div>
-                          <span className={`text-[10px] block ${isSelected ? "text-indigo-200" : "text-zinc-400"}`}>PUNTOS</span>
-                          <span className="text-2xl font-black">{item.points} pts</span>
-                        </div>
-                        {isSelected && (
-                          <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                            {language === "es" ? "Activa" : "Active"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div style={{ marginTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "end" }}>
+                <div>
+                  <span className="text-points-label" style={{ display: "block" }}>
+                    {language === "es" ? "PUNTOS ACUMULADOS" : "ACCUMULATED POINTS"}
+                  </span>
+                  <span style={{ fontSize: "24px", fontWeight: 900 }}>{globalPoints} pts</span>
+                </div>
+                <span style={{
+                  background: "rgba(255,255,255,0.2)",
+                  color: "#ffffff",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  padding: "4px 8px",
+                  borderRadius: "999px",
+                  textTransform: "uppercase"
+                }}>
+                  {language === "es" ? "Miembro Activo" : "Active Member"}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
 
+            {/* Selector de Negocio */}
+            <div className="section-card" style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+              <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
+                {language === "es" ? "Selecciona una empresa para ver sus premios" : "Select a business to view its rewards"}
+              </label>
+              <select
+                className="select"
+                value={selectedBusinessId || ""}
+                onChange={(e) => handleBusinessChange(Number(e.target.value))}
+                style={{ width: "100%", padding: "10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}
+              >
+                <option value="" disabled>
+                  {language === "es" ? "-- Selecciona una empresa --" : "-- Select a business --"}
+                </option>
+                {businessesList.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+ 
           {/* Columna Derecha: Premios y Cupones */}
-          <div className="lg:col-span-2 space-y-8">
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Feedback Banners */}
             {successClaim && (
-              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/40 shadow-sm flex items-center justify-between">
+              <div className="message-success" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: 0 }}>
                 <span>{successClaim}</span>
-                <button onClick={() => setSuccessClaim(null)} className="text-sm font-bold opacity-60 hover:opacity-100">✕</button>
+                <button onClick={() => setSuccessClaim(null)} style={{ background: "none", border: "none", color: "inherit", fontWeight: "bold", cursor: "pointer" }}>✕</button>
               </div>
             )}
             {errorClaim && (
-              <div className="p-4 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/40 shadow-sm flex items-center justify-between">
+              <div className="message-error" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: 0 }}>
                 <span>{errorClaim}</span>
-                <button onClick={() => setErrorClaim(null)} className="text-sm font-bold opacity-60 hover:opacity-100">✕</button>
+                <button onClick={() => setErrorClaim(null)} style={{ background: "none", border: "none", color: "inherit", fontWeight: "bold", cursor: "pointer" }}>✕</button>
               </div>
             )}
-
+ 
             {/* Listado de Premios del Negocio */}
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">
-                Premios de la Empresa
-              </h2>
-
+            <div className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <h3 className="panel-title">Premios de la Empresa</h3>
+ 
               {!selectedBusinessId ? (
-                <p className="text-zinc-500">{currentTexts.selectBusiness}</p>
+                <p style={{ color: "var(--muted)" }}>{currentTexts.selectBusiness}</p>
               ) : rewards.length === 0 ? (
-                <p className="text-zinc-500">{currentTexts.noRewards}</p>
+                <p style={{ color: "var(--muted)" }}>{currentTexts.noRewards}</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="reward-grid">
                   {rewards.map((reward) => {
-                    const currentPoints = myPoints.find((p) => p.business.id === selectedBusinessId)?.points || 0;
+                    const currentPoints = globalPoints;
                     const hasPoints = currentPoints >= reward.requiredPoints;
                     const progressPercent = Math.min(100, (currentPoints / reward.requiredPoints) * 100);
-
+ 
                     return (
                       <div
                         key={reward.id}
-                        className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
-                          hasPoints
-                            ? "bg-white dark:bg-zinc-800/40 border-indigo-200 dark:border-indigo-950 shadow-md hover:shadow-lg"
-                            : "bg-zinc-50/60 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-80"
-                        }`}
+                        className={`reward-card ${hasPoints ? "reward-card--unlocked" : "reward-card--locked"}`}
                       >
                         <div>
-                          <div className="flex justify-between items-start">
-                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                              hasPoints
-                                ? "bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300"
-                                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                            }`}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                            <span className="badge badge--confirmed">
                               {reward.type === "discount" 
                                 ? currentTexts.rewardDiscount.replace("{v}", String(reward.discountValue))
                                 : currentTexts.rewardGift}
                             </span>
-                            <span className="text-xs font-bold text-zinc-500">
+                            <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--muted)" }}>
                               ⭐ {reward.requiredPoints} pts
                             </span>
                           </div>
-                          <h4 className="font-bold text-zinc-900 dark:text-white mt-3 text-lg">{reward.title}</h4>
+                          <h4 style={{ margin: "12px 0 4px 0", fontSize: "16px", fontWeight: 700 }}>{reward.title}</h4>
                           {reward.description && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{reward.description}</p>
+                            <p style={{ fontSize: "12px", color: "var(--muted)", margin: 0 }}>{reward.description}</p>
                           )}
                         </div>
-
+ 
                         {/* Progress or Claim Button */}
-                        <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800/60">
+                        <div style={{ marginTop: "20px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
                           {hasPoints ? (
                             <button
-                              onClick={() => handleClaim(reward.id)}
-                              className="w-full primary-btn justify-center text-sm font-bold shadow hover:shadow-md transition-all cursor-pointer"
+                               onClick={() => handleClaim(reward.id)}
+                              className="primary-btn"
+                              style={{ width: "100%", justifyContent: "center" }}
                             >
                               🎉 {currentTexts.claimButton}
                             </button>
                           ) : (
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between text-[11px] font-semibold text-zinc-500">
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}>
                                 <span>{currentTexts.needPoints.replace("{n}", String(reward.requiredPoints - currentPoints))}</span>
                                 <span>{Math.round(progressPercent)}%</span>
                               </div>
-                              <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                              <div className="progress-bar-container">
                                 <div
-                                  className="bg-zinc-400 dark:bg-zinc-600 h-full transition-all duration-500"
-                                  style={{ width: `${progressPercent}%` }}
+                                  className="progress-bar-fill"
+                                  style={{ width: `${progressPercent}%`, backgroundColor: "var(--muted-2)" }}
                                 ></div>
                               </div>
                             </div>
@@ -704,57 +796,56 @@ export default function PremiosPage() {
             </div>
 
             {/* Historial de Cupones */}
-            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">{currentTexts.myCoupons}</h2>
+            <div className="section-card" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <h3 className="panel-title">{currentTexts.myCoupons}</h3>
               {myRedemptions.length === 0 ? (
-                <p className="text-zinc-500 text-sm">Aún no has canjeado ningún premio.</p>
+                <p style={{ color: "var(--muted)", fontSize: "14px" }}>Aún no has canjeado ningún premio.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="reward-grid">
                   {myRedemptions.map((red) => (
                     <div
                       key={red.id}
-                      className={`p-4 rounded-xl border flex flex-col justify-between ${
-                        red.status === "used"
-                          ? "bg-zinc-50/50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800 opacity-60"
-                          : "bg-gradient-to-r from-indigo-50/50 to-white dark:from-zinc-900 dark:to-zinc-900 border-indigo-100 dark:border-indigo-950 shadow-sm relative overflow-hidden"
-                      }`}
+                      className={`coupon-card ${red.status === "used" ? "coupon-card--used" : ""}`}
                     >
                       {/* Ticket Cut Border for styling */}
                       {red.status !== "used" && (
                         <>
-                          <div className="absolute -left-2 top-1/2 -mt-2 w-4 h-4 bg-white dark:bg-zinc-950 border border-indigo-100 dark:border-indigo-950 rounded-full"></div>
-                          <div className="absolute -right-2 top-1/2 -mt-2 w-4 h-4 bg-white dark:bg-zinc-950 border border-indigo-100 dark:border-indigo-950 rounded-full"></div>
+                          <div className="ticket-cut-left" />
+                          <div className="ticket-cut-right" />
                         </>
                       )}
 
-                      <div className="flex justify-between items-start">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                         <div>
-                          <span className="text-[10px] text-zinc-500 block uppercase font-bold">
+                          <span style={{ fontSize: "10px", color: "var(--muted)", textTransform: "uppercase", fontWeight: 700, display: "block" }}>
                             {red.reward && typeof red.reward === "object" && (red.reward as Reward).business && typeof (red.reward as Reward).business === "object"
                               ? ((red.reward as Reward).business as Business).nombre
                               : "Establecimiento"}
                           </span>
-                          <h4 className="font-bold text-zinc-900 dark:text-white text-sm">
+                          <h4 style={{ fontSize: "14px", fontWeight: 700, margin: "4px 0" }}>
                             {red.reward && typeof red.reward === "object" ? (red.reward as Reward).title : "Premio"}
                           </h4>
-                          <div className="mt-2 flex items-center gap-1.5">
-                            <span className="text-xs text-zinc-500">{currentTexts.codeLabel}:</span>
-                            <span className="font-mono text-sm font-extrabold text-indigo-600 dark:text-indigo-400 select-all">
+                          <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{ fontSize: "12px", color: "var(--muted)" }}>{currentTexts.codeLabel}:</span>
+                            <span style={{ fontFamily: "monospace", fontSize: "14px", fontWeight: 800, color: "var(--accent)", userSelect: "all" }}>
                               {red.code}
                             </span>
                           </div>
                         </div>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                          red.status === "used"
-                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600"
-                            : "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300"
-                        }`}>
+                        <span className={`badge ${red.status === 'used' ? 'badge--pending' : 'badge--confirmed'}`} style={{ fontSize: "10px" }}>
                           {red.status === "used" ? currentTexts.statusUsed : currentTexts.statusPending}
                         </span>
                       </div>
                       
                       {red.status !== "used" && (
-                        <p className="text-[10px] text-zinc-500 mt-4 pt-2 border-t border-dashed border-indigo-100 dark:border-indigo-950/60">
+                        <p style={{
+                          fontSize: "10px",
+                          color: "var(--muted)",
+                          marginTop: "16px",
+                          paddingTop: "8px",
+                          borderTop: "1px dashed var(--border)",
+                          marginBottom: 0
+                        }}>
                           {currentTexts.couponDesc}
                         </p>
                       )}

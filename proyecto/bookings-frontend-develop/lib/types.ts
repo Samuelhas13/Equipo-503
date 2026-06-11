@@ -201,12 +201,5 @@ export interface RewardRedemption {
   code: string;
 }
 
-export interface CustomerBusinessPoints {
-  id: number;
-  customer?: Customer | number;
-  business: Business;
-  points: number;
-}
-
 
 

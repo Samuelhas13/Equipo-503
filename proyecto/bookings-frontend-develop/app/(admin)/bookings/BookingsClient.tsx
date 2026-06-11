@@ -11,12 +11,14 @@ import type {
   BookingStatus,
   CreateBookingDto,
   UpdateBookingDto,
+  Service,
 } from "@/lib/types";
 import {
   createAppointment,
   deleteAppointment,
   getCustomerById,
   updateAppointment,
+  getServices,
 } from "@/lib/api";
 
 const BUSINESS_NAMES: Record<number, string> = {
@@ -294,6 +296,33 @@ export default function BookingsClient({
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [createPersons, setCreatePersons] = useState<number>(1);
   const [editPersons, setEditPersons] = useState<number>(1);
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    async function loadServices() {
+      try {
+        const list = await getServices();
+        setServices(list);
+      } catch (err) {
+        console.error("Error loading services for appointments:", err);
+      }
+    }
+    loadServices();
+  }, [user]);
+
+  const filteredServices = useMemo(() => {
+    if (user?.role === "empresa") {
+      return services.filter((s) => s.businessId === user.businessId || (s as any).business?.id === user.businessId);
+    } else {
+      const selectedBId = createForm.businessId;
+      return services.filter((s) => s.businessId === selectedBId || (s as any).business?.id === selectedBId);
+    }
+  }, [services, user, createForm.businessId]);
+
+  const filteredServicesForEdit = useMemo(() => {
+    const selectedBId = editForm.businessId;
+    return services.filter((s) => s.businessId === selectedBId || (s as any).business?.id === selectedBId);
+  }, [services, editForm.businessId]);
 
   async function findCustomer(id: number) {
     if (!id || isNaN(id)) return;
@@ -541,6 +570,7 @@ export default function BookingsClient({
       customerId: booking.customerId,
       businessId: booking.businessId,
       serviceName: cleanServiceName,
+      serviceId: typeof booking.service === "object" ? booking.service?.id : (typeof booking.service === "number" ? booking.service : undefined),
     });
 
     setTimeout(() => {
@@ -604,6 +634,7 @@ export default function BookingsClient({
         time: editForm.time,
         status: editForm.status,
         serviceName: finalServiceName,
+        serviceId: editForm.serviceId,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -881,14 +912,25 @@ export default function BookingsClient({
 
               <div className="input--full" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>{texts[language].service}</label>
-                <input
-                  className="input"
-                  type="text"
-                  value={createForm.serviceName}
-                  onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                  placeholder="Servicio"
+                <select
+                  className="select"
+                  value={createForm.serviceId || ""}
+                  onChange={(e) => {
+                    const sId = Number(e.target.value);
+                    const selectedService = filteredServices.find((s) => s.id === sId);
+                    updateCreateForm("serviceId", sId);
+                    updateCreateForm("serviceName", selectedService ? selectedService.nombre : "");
+                  }}
                   required
-                />
+                  style={{ padding: "13px 16px" }}
+                >
+                  <option value="">{language === "es" ? "Selecciona un servicio" : "Select a service"}</option>
+                  {filteredServices.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.nombre} ({s.precio} €)
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -1059,14 +1101,25 @@ export default function BookingsClient({
         <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>
           {texts[language].service}
         </label>
-        <input
-          className="input"
-          type="text"
-          value={editForm.serviceName}
-          onChange={(e) => updateEditForm("serviceName", e.target.value)}
-          placeholder={texts[language].service}
+        <select
+          className="select"
+          value={editForm.serviceId || ""}
+          onChange={(e) => {
+            const sId = Number(e.target.value);
+            const selectedService = filteredServicesForEdit.find((s) => s.id === sId);
+            updateEditForm("serviceId", sId);
+            updateEditForm("serviceName", selectedService ? selectedService.nombre : "");
+          }}
           required
-        />
+          style={{ padding: "13px 16px" }}
+        >
+          <option value="">{language === "es" ? "Selecciona un servicio" : "Select a service"}</option>
+          {filteredServicesForEdit.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.nombre} ({s.precio} €)
+            </option>
+          ))}
+        </select>
       </div>
     </div>
 

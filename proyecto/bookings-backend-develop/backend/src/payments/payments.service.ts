@@ -14,7 +14,6 @@ import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UserRole } from '../users/user.entity';
 import { Customer } from '../customers/customer.entity';
 import { Service } from '../services/service.entity';
-import { CustomerBusinessPoints } from '../rewards/customer-business-points.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -27,8 +26,6 @@ export class PaymentsService {
     private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
-    @InjectRepository(CustomerBusinessPoints)
-    private readonly cbPointsRepository: Repository<CustomerBusinessPoints>,
   ) {}
 
   findAll(currentUser?: JwtPayload) {
@@ -244,32 +241,16 @@ export class PaymentsService {
         relations: ['business'],
       });
 
-      if (customer && service && service.business) {
-        const businessId = service.business.id;
+      if (customer && service) {
         const points = Math.floor(Number(service.precio) * 10);
 
-        let cbPoints = await this.cbPointsRepository.findOne({
-          where: {
-            customer: { id: customerId },
-            business: { id: businessId },
-          },
-        });
-
-        if (!cbPoints) {
-          cbPoints = this.cbPointsRepository.create({
-            customer: { id: customerId },
-            business: { id: businessId },
-            points: 0,
-          });
-        }
-
         if (action === 'add') {
-          cbPoints.points += points;
+          customer.puntos += points;
         } else {
-          cbPoints.points = Math.max(0, cbPoints.points - points);
+          customer.puntos = Math.max(0, customer.puntos - points);
         }
 
-        await this.cbPointsRepository.save(cbPoints);
+        await this.customerRepository.save(customer);
       }
     } catch (err) {
       console.error('Error al ajustar puntos del cliente:', err);

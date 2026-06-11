@@ -7,11 +7,10 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { Customer } from '../customers/customer.entity';
 import { Service } from '../services/service.entity';
-import { CustomerBusinessPoints } from '../rewards/customer-business-points.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Payment, Appointment, Customer, Service, CustomerBusinessPoints]),
+    TypeOrmModule.forFeature([Payment, Appointment, Customer, Service]),
     AuthModule, // ← añadir
   ],
   controllers: [PaymentsController],

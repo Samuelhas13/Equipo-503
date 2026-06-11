@@ -20,7 +20,6 @@ import type {
   Service,
   Reward,
   RewardRedemption,
-  CustomerBusinessPoints,
 } from "./types";
 
 export type {
@@ -37,7 +36,6 @@ export type {
   CreatePaymentDto,
   Reward,
   RewardRedemption,
-  CustomerBusinessPoints,
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -397,7 +395,7 @@ export async function validateRedemptionCode(code: string): Promise<RewardRedemp
   });
 }
 
-export async function getMyPoints(): Promise<CustomerBusinessPoints[]> {
-  return apiRequest<CustomerBusinessPoints[]>("/rewards/my-points", { cache: "no-store" });
+export async function getMyPoints(): Promise<{ points: number }> {
+  return apiRequest<{ points: number }>("/rewards/my-points", { cache: "no-store" });
 }
 

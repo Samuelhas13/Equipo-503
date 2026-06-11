@@ -9,6 +9,7 @@ import { Repository, FindManyOptions, FindOptionsWhere } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Appointment } from './appointment.entity';
 import { Customer } from '../customers/customer.entity';
+import { Service } from '../services/service.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
@@ -22,6 +23,8 @@ export class AppointmentsService {
     private readonly appointmentsRepository: Repository<Appointment>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(Service)
+    private readonly serviceRepository: Repository<Service>,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -127,6 +130,10 @@ export class AppointmentsService {
 
     const saved = await this.appointmentsRepository.save(appointment);
 
+    if (saved.status === 'paid' && customerId && serviceId) {
+      await this.adjustCustomerPoints(customerId, serviceId, 'add');
+    }
+
     try {
       const fullApp = await this.appointmentsRepository.findOne({
         where: { id: saved.id },
@@ -173,6 +180,9 @@ export class AppointmentsService {
   ) {
     const appointment = await this.findOne(id, currentUser);
     const oldHora = appointment.hora_reserva;
+    const oldStatus = appointment.status;
+    const oldCustomerId = appointment.customer?.id;
+    const oldServiceId = appointment.service?.id;
 
     if (currentUser?.role === UserRole.BUSINESS) {
       updateAppointmentDto.businessId = currentUser.businessId!;
@@ -192,6 +202,30 @@ export class AppointmentsService {
     });
 
     const saved = await this.appointmentsRepository.save(updatedAppointment);
+
+    // Adjust points based on status transition
+    const newStatus = saved.status;
+    const newCustomerId = customerId || oldCustomerId;
+    const newServiceId = serviceId || oldServiceId;
+
+    if (oldStatus === 'paid' && newStatus !== 'paid') {
+      if (oldCustomerId && oldServiceId) {
+        await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+      }
+    } else if (oldStatus !== 'paid' && newStatus === 'paid') {
+      if (newCustomerId && newServiceId) {
+        await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+      }
+    } else if (oldStatus === 'paid' && newStatus === 'paid') {
+      if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
+        if (oldCustomerId && oldServiceId) {
+          await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+        }
+        if (newCustomerId && newServiceId) {
+          await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
+        }
+      }
+    }
 
     try {
       const fullApp = await this.appointmentsRepository.findOne({
@@ -246,6 +280,10 @@ export class AppointmentsService {
       ? `${appointment.user.nombre} ${appointment.user.apellido}` 
       : 'Cliente';
     const hora = appointment.hora_reserva;
+
+    if (appointment.status === 'paid' && appointment.customer?.id && appointment.service?.id) {
+      await this.adjustCustomerPoints(appointment.customer.id, appointment.service.id, 'subtract');
+    }
 
     await this.appointmentsRepository.remove(appointment);
 
@@ -311,5 +349,33 @@ export class AppointmentsService {
     });
 
     return (await workbook.xlsx.writeBuffer()) as unknown as Buffer;
+  }
+
+  private async adjustCustomerPoints(
+    customerId: number,
+    serviceId: number,
+    action: 'add' | 'subtract',
+  ) {
+    try {
+      const customer = await this.customerRepository.findOneBy({ id: customerId });
+      const service = await this.serviceRepository.findOne({
+        where: { id: serviceId },
+        relations: ['business'],
+      });
+
+      if (customer && service) {
+        const points = Math.floor(Number(service.precio) * 10);
+
+        if (action === 'add') {
+          customer.puntos += points;
+        } else {
+          customer.puntos = Math.max(0, customer.puntos - points);
+        }
+
+        await this.customerRepository.save(customer);
+      }
+    } catch (err) {
+      console.error('Error al ajustar puntos del cliente desde reserva:', err);
+    }
   }
 }

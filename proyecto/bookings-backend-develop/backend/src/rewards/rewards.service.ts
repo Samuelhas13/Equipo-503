@@ -10,7 +10,6 @@ import { Reward } from './reward.entity';
 import { RewardRedemption } from './reward-redemption.entity';
 import { Customer } from '../customers/customer.entity';
 import { Business } from '../business/business.entity';
-import { CustomerBusinessPoints } from './customer-business-points.entity';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { JwtPayload } from '../auth/jwt-payload.interface';
@@ -27,8 +26,6 @@ export class RewardsService {
     private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Business)
     private readonly businessRepository: Repository<Business>,
-    @InjectRepository(CustomerBusinessPoints)
-    private readonly cbPointsRepository: Repository<CustomerBusinessPoints>,
   ) {}
 
   // ==========================================
@@ -114,11 +111,13 @@ export class RewardsService {
   // ==========================================
 
   async getMyPoints(currentUser: JwtPayload) {
-    return this.cbPointsRepository.find({
-      where: { customer: { email: currentUser.email } },
-      relations: ['business'],
-      order: { points: 'DESC' },
+    const customer = await this.customerRepository.findOne({
+      where: { email: currentUser.email },
     });
+    if (!customer) {
+      throw new BadRequestException('El usuario no tiene un perfil de cliente registrado');
+    }
+    return { points: customer.puntos };
   }
 
   async claimReward(rewardId: number, currentUser: JwtPayload) {
@@ -140,28 +139,18 @@ export class RewardsService {
       throw new BadRequestException('El usuario no tiene un perfil de cliente registrado');
     }
 
-    // Buscar puntos en la empresa del premio
-    const cbPoints = await this.cbPointsRepository.findOne({
-      where: {
-        customer: { id: customer.id },
-        business: { id: reward.business?.id },
-      },
-    });
-
-    const currentPoints = cbPoints ? cbPoints.points : 0;
+    const currentPoints = customer.puntos;
 
     // Validar puntos
     if (currentPoints < reward.requiredPoints) {
       throw new BadRequestException(
-        `Puntos insuficientes en este negocio. Tienes ${currentPoints} puntos y requieres ${reward.requiredPoints} para este premio.`,
+        `Puntos insuficientes. Tienes ${currentPoints} puntos y requieres ${reward.requiredPoints} para este premio.`,
       );
     }
 
-    // Restar puntos al cliente en este negocio
-    if (cbPoints) {
-      cbPoints.points -= reward.requiredPoints;
-      await this.cbPointsRepository.save(cbPoints);
-    }
+    // Restar puntos al cliente
+    customer.puntos -= reward.requiredPoints;
+    await this.customerRepository.save(customer);
 
     // Generar código único de validación
     let code = '';
