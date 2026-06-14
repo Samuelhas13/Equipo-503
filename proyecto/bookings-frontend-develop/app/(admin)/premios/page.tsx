@@ -293,15 +293,15 @@ export default function PremiosPage() {
 
   if (loading && rewards.length === 0 && myRedemptions.length === 0) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px" }}>
+        <div className="spinner"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
+      <div style={{ padding: "16px", background: "var(--message-error-bg)", color: "var(--error)", borderRadius: "var(--radius-sm)", border: "1px solid var(--message-error-border)" }}>
         Error al cargar los datos del sistema de fidelización.
       </div>
     );

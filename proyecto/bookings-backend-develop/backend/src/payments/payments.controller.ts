@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -39,8 +40,14 @@ export class PaymentsController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOkResponse({ description: 'Listado completo de cobros', type: [Payment] })
-  findAll(@Request() req: { user: JwtPayload }) {
-    return this.paymentsService.findAll(req.user);
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Request() req?: { user: JwtPayload },
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.paymentsService.findAll(pageNum, limitNum, req?.user);
   }
 
   // admin + empresa + cliente → detalle de un pago

@@ -52,6 +52,13 @@ export class AppointmentsController {
     return this.appointmentsService.findAll(pageNum, limitNum, req?.user);
   }
 
+  @Get('dashboard-stats')
+  @Roles(UserRole.ADMIN, UserRole.BUSINESS)
+  @ApiOkResponse({ description: 'Estadísticas del panel de control' })
+  getDashboardStats(@Request() req?: { user: JwtPayload }) {
+    return this.appointmentsService.getDashboardStats(req?.user);
+  }
+
   @Get('export')
   @Roles(UserRole.ADMIN)
   @ApiOkResponse({ description: 'Reporte exportado a Excel (.xlsx)' })

@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere, DataSource } from 'typeorm';
+import { Repository, FindOptionsWhere, DataSource, FindManyOptions } from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -30,14 +30,15 @@ export class PaymentsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(currentUser?: JwtPayload) {
+  findAll(page?: number, limit?: number, currentUser?: JwtPayload) {
     const where: FindOptionsWhere<Payment> = {};
     if (currentUser?.role === UserRole.BUSINESS) {
       where.appointment = { business: { id: currentUser.businessId } };
     } else if (currentUser?.role === UserRole.CUSTOMER) {
       where.customer = { email: currentUser.email };
     }
-    return this.paymentsRepository.find({
+
+    const options: FindManyOptions<Payment> = {
       where,
       order: { hora_pago: 'ASC' },
       relations: [
@@ -46,7 +47,14 @@ export class PaymentsService {
         'servicio',
         'appointment.business',
       ],
-    });
+    };
+
+    if (page !== undefined && limit !== undefined) {
+      options.skip = (page - 1) * limit;
+      options.take = limit;
+    }
+
+    return this.paymentsRepository.find(options);
   }
 
   async findOne(id: number, currentUser?: JwtPayload) {

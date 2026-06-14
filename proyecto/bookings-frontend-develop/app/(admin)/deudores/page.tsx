@@ -216,8 +216,8 @@ export default function DebtorsPage() {
   if (loading) {
     return (
       <div className="admin-content" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px" }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+          <div className="spinner"></div>
           <p style={{ color: "var(--muted)" }}>{currentTexts.loading}</p>
         </div>
       </div>

@@ -302,8 +302,8 @@ export default function MiPerfilPage() {
     return (
       <div className="page-stack" style={{ padding: "40px 0" }}>
         <div className="animate-pulse space-y-4">
-          <div style={{ height: "40px", background: "var(--border-color)", borderRadius: "8px" }} />
-          <div style={{ height: "300px", background: "var(--border-color)", borderRadius: "12px" }} />
+          <div style={{ height: "40px", background: "var(--border)", borderRadius: "8px" }} />
+          <div style={{ height: "300px", background: "var(--border)", borderRadius: "12px" }} />
         </div>
       </div>
     );
@@ -470,7 +470,7 @@ export default function MiPerfilPage() {
                           <button
                             type="button"
                             className="secondary-btn"
-                            style={{ color: "var(--error-color, #ef4444)", borderColor: "var(--error-color, #ef4444)" }}
+                            style={{ color: "var(--error)", borderColor: "var(--error)" }}
                             onClick={() => handleDeleteService(service.id)}
                           >
                             {t.delete}

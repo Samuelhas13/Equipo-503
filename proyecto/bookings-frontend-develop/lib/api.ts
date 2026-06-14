@@ -105,9 +105,14 @@ function normalizeBooking(app: any): Booking {
   };
 }
 
-export async function getAppointments(): Promise<Booking[]> {
-  const apps = await apiRequest<any[]>("/appointments", { cache: "no-store" });
+export async function getAppointments(page?: number, limit?: number): Promise<Booking[]> {
+  const query = page !== undefined && limit !== undefined ? `?page=${page}&limit=${limit}` : "";
+  const apps = await apiRequest<any[]>(`/appointments${query}`, { cache: "no-store" });
   return apps.map(normalizeBooking);
+}
+
+export async function getDashboardStats(): Promise<any> {
+  return apiRequest<any>("/appointments/dashboard-stats", { cache: "no-store" });
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
@@ -215,8 +220,9 @@ function normalizePayment(pay: any): Payment {
   };
 }
 
-export async function getPayments(): Promise<Payment[]> {
-  const payments = await apiRequest<any[]>("/payments", { cache: "no-store" });
+export async function getPayments(page?: number, limit?: number): Promise<Payment[]> {
+  const query = page !== undefined && limit !== undefined ? `?page=${page}&limit=${limit}` : "";
+  const payments = await apiRequest<any[]>(`/payments${query}`, { cache: "no-store" });
   return payments.map(normalizePayment);
 }
 

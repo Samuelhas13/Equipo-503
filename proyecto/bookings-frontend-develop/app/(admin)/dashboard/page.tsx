@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { getAppointments, getExportReportUrl } from "@/lib/api";
+import { getAppointments, getExportReportUrl, getDashboardStats } from "@/lib/api";
 import type { Booking } from "@/lib/types";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid" | "canceled" | "completed";
@@ -696,10 +696,14 @@ export default function DashboardPage() {
   // 1. Estado para controlar si mostramos todas o solo una vista previa
   const [showAll, setShowAll] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [statsData, setStatsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<"default" | "calendar">("default");
+
+  const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
+  const [loadingCalendar, setLoadingCalendar] = useState(false);
 
   useEffect(() => {
     if (user?.role === "usuario") {
@@ -712,8 +716,12 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAppointments();
-        setBookings(data);
+        const [stats, apps] = await Promise.all([
+          getDashboardStats(),
+          getAppointments(1, 10)
+        ]);
+        setStatsData(stats);
+        setBookings(apps);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
@@ -723,78 +731,62 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  const filteredBookings = useMemo(() => {
-    return bookings.filter((b) => {
-      if (user?.role === "empresa") {
-        return bookingBusinessId(b) === user.businessId;
+  useEffect(() => {
+    if (viewMode === "calendar" && calendarBookings.length === 0) {
+      async function loadCalendar() {
+        try {
+          setLoadingCalendar(true);
+          const data = await getAppointments();
+          setCalendarBookings(data);
+        } catch (err) {
+          console.error("Error loading calendar bookings", err);
+        } finally {
+          setLoadingCalendar(false);
+        }
       }
-      return true;
-    });
-  }, [bookings, user]);
+      loadCalendar();
+    }
+  }, [viewMode, calendarBookings]);
 
   const today = getTodayISO();
-  const todayBookings = filteredBookings.filter((b) => bookingDate(b) === today);
-  const pendingBookings = filteredBookings.filter((b) => bookingStatus(b) === "pending");
-  const paidBookings = filteredBookings.filter((b) => bookingStatus(b) === "paid");
+  const todayBookings = bookings.filter((b) => bookingDate(b) === today);
 
   const revenueData = useMemo(() => {
-    return getRevenueData(filteredBookings);
-  }, [filteredBookings]);
+    return statsData?.revenueData || [];
+  }, [statsData]);
 
   const popularServices = useMemo(() => {
-    return getPopularServices(filteredBookings);
-  }, [filteredBookings]);
+    return statsData?.popularServices || [];
+  }, [statsData]);
 
   const stats = useMemo(() => {
-    const total = filteredBookings.length || 1;
-    const pending = filteredBookings.filter(b => bookingStatus(b) === "pending").length;
-    const confirmed = filteredBookings.filter(b => bookingStatus(b) === "confirmed" || bookingStatus(b) === "completed").length;
-    
-    const paid = filteredBookings.filter(b => {
-      const status = bookingStatus(b);
-      return status === "paid" || b.id % 2 === 0;
-    }).length;
-    
-    const completed = filteredBookings.filter(b => b.id % 5 === 0).length;
-
+    if (statsData?.stats) return statsData.stats;
     return {
-      completedPct: Math.round((completed / total) * 100) || 20,
-      paidPct: Math.round((paid / total) * 100) || 50,
-      confirmedPct: Math.round(((confirmed || (total * 0.75)) / total) * 100),
-      pendingPct: Math.round((pending / total) * 100) || 30,
+      completedPct: 0,
+      paidPct: 0,
+      confirmedPct: 0,
+      pendingPct: 0,
     };
-  }, [filteredBookings]);
+  }, [statsData]);
 
   // Cómputo de ingresos y totalizadores dinámicos para admin y empresa
-  const historicRevenue = useMemo(() => {
-    return filteredBookings.reduce((sum, b) => sum + bookingPrice(b), 0);
-  }, [filteredBookings]);
+  const historicRevenue = statsData?.historicRevenue || 0;
+  const weeklyRevenue = statsData?.weeklyRevenue || 0;
+  const paidRevenue = statsData?.paidRevenue || 0;
+  const pendingRevenue = statsData?.pendingRevenue || 0;
+  const activeBusinessesCount = statsData?.activeBusinesses || 0;
 
-  const weeklyRevenue = useMemo(() => {
-    return revenueData.reduce((sum, d) => sum + d.revenue, 0);
-  }, [revenueData]);
+  const pendingBookingsCount = useMemo(() => {
+    if (!statsData?.totalBookings) return 0;
+    return Math.round((stats.pendingPct / 100) * statsData.totalBookings);
+  }, [statsData, stats.pendingPct]);
 
-  const paidRevenue = useMemo(() => {
-    return filteredBookings
-      .filter((b) => bookingStatus(b) === "paid")
-      .reduce((sum, b) => sum + bookingPrice(b), 0);
-  }, [filteredBookings]);
+  const nextBooking = useMemo(() => {
+    if (bookings.length === 0) return null;
+    return bookings[0];
+  }, [bookings]);
 
-  const pendingRevenue = useMemo(() => {
-    return filteredBookings
-      .filter((b) => bookingStatus(b) === "pending")
-      .reduce((sum, b) => sum + bookingPrice(b), 0);
-  }, [filteredBookings]);
-
-  const activeBusinessesCount = useMemo(() => {
-    return new Set(filteredBookings.map(bookingBusinessId).filter(Boolean)).size;
-  }, [filteredBookings]);
-
-  const nextBooking = [...todayBookings].sort((a, b) =>
-    bookingTime(a).localeCompare(bookingTime(b))
-  )[0];
-
-  const displayedBookings = showAll ? todayBookings : todayBookings.slice(0, 2);
+  const displayedBookings = showAll ? bookings : bookings.slice(0, 5);
 
   const handleExportReport = () => {
     window.location.href = getExportReportUrl();
@@ -845,7 +837,7 @@ export default function DashboardPage() {
             />
             <KpiCard
               title={texts[language].totalBookingsShort}
-              value={filteredBookings.length}
+              value={statsData?.totalBookings || 0}
               trend={language === "es" ? "citas registradas" : "registered slots"}
               color={KPI_COLORS.purple}
               activity={ACTIVITY_DATA.bookings}
@@ -888,7 +880,7 @@ export default function DashboardPage() {
             />
             <KpiCard
               title={texts[language].totalBookingsShort}
-              value={filteredBookings.length}
+              value={statsData?.totalBookings || 0}
               trend={language === "es" ? "reservas de tu negocio" : "your business bookings"}
               color={KPI_COLORS.purple}
               activity={ACTIVITY_DATA.bookings}
@@ -907,12 +899,14 @@ export default function DashboardPage() {
             <div className="panel-title-row" style={{ marginBottom: "16px" }}>
               <h3 className="panel-title">{texts[language].monthlyCalendar}</h3>
             </div>
-            {loading ? (
-              <p className="table-feedback">{texts[language].loadingAgenda}</p>
+            {loadingCalendar ? (
+              <div style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
+                <div className="spinner" />
+              </div>
             ) : error ? (
               <p className="table-feedback table-feedback--error">{error}</p>
             ) : (
-              <BusinessCalendar bookings={filteredBookings} />
+              <BusinessCalendar bookings={calendarBookings} />
             )}
           </section>
         ) : (
@@ -930,13 +924,17 @@ export default function DashboardPage() {
               </div>
 
               <div className="table-responsive">
-                {loading && <p className="table-feedback">{texts[language].loadingBookings}</p>}
+                {loading && (
+                  <div style={{ display: "flex", justifyContent: "center", padding: "2rem" }}>
+                    <div className="spinner" />
+                  </div>
+                )}
                 {!loading && error && <p className="table-feedback table-feedback--error">{error}</p>}
-                {!loading && !error && todayBookings.length === 0 && (
-                  <p className="table-feedback">{texts[language].noBookingsToday}</p>
+                {!loading && !error && bookings.length === 0 && (
+                  <p className="table-feedback">{language === "es" ? "No hay próximas reservas." : "No upcoming bookings."}</p>
                 )}
 
-                {!loading && !error && todayBookings.length > 0 && (
+                {!loading && !error && bookings.length > 0 && (
                   <table className="data-table">
                     <thead>
                       <tr>
@@ -999,7 +997,7 @@ export default function DashboardPage() {
               <div className="info-box">
                 <p className="info-box__eyebrow">{texts[language].reminders}</p>
                 <p className="info-box__title">
-                  {pendingBookings.length} {texts[language].pendingConfirmations}
+                  {pendingBookingsCount} {texts[language].pendingConfirmations}
                 </p>
                 <p className="info-box__text">{texts[language].recommendedReview}</p>
               </div>

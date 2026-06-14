@@ -401,4 +401,142 @@ export class AppointmentsService {
       console.error('Error al marcar cupón como usado:', err);
     }
   }
+
+  async getDashboardStats(currentUser?: JwtPayload) {
+    const isBusiness = currentUser?.role === UserRole.BUSINESS;
+    const bizId = currentUser?.businessId;
+
+    const totalCountQuery = this.appointmentsRepository.createQueryBuilder('a')
+      .leftJoin('a.business', 'b');
+    if (isBusiness) {
+      totalCountQuery.where('b.id = :bizId', { bizId });
+    }
+    const totalBookings = await totalCountQuery.getCount();
+
+    const historicRevenueQuery = this.appointmentsRepository.createQueryBuilder('a')
+      .leftJoin('a.service', 's')
+      .leftJoin('a.business', 'b')
+      .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total');
+    if (isBusiness) {
+      historicRevenueQuery.where('b.id = :bizId', { bizId });
+    }
+    const rawHistoric = await historicRevenueQuery.getRawOne();
+    const historicRevenue = Number(rawHistoric?.total) || 0;
+
+    const statusQuery = this.appointmentsRepository.createQueryBuilder('a')
+      .leftJoin('a.business', 'b')
+      .select('a.status', 'status')
+      .addSelect('COUNT(a.id)', 'count');
+    if (isBusiness) {
+      statusQuery.where('b.id = :bizId', { bizId });
+    }
+    const rawStatus = await statusQuery.groupBy('a.status').getRawMany();
+    
+    const statusMap = { pending: 0, confirmed: 0, completed: 0, paid: 0, canceled: 0 };
+    rawStatus.forEach((row) => {
+      if (row.status in statusMap) {
+        statusMap[row.status as keyof typeof statusMap] = Number(row.count) || 0;
+      }
+    });
+
+    const total = totalBookings || 1;
+    const pending = statusMap.pending;
+    const confirmed = statusMap.confirmed + statusMap.completed;
+    const paid = statusMap.paid;
+    const completed = statusMap.completed;
+
+    const stats = {
+      completedPct: Math.round((completed / total) * 100) || 0,
+      paidPct: Math.round((paid / total) * 100) || 0,
+      confirmedPct: Math.round((confirmed / total) * 100) || 0,
+      pendingPct: Math.round((pending / total) * 100) || 0,
+    };
+
+    const dailyQuery = this.appointmentsRepository.createQueryBuilder('a')
+      .leftJoin('a.service', 's')
+      .leftJoin('a.business', 'b')
+      .select('a.id % 7', 'dayIndex')
+      .addSelect('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'revenue')
+      .addSelect('COUNT(a.id)', 'count');
+    if (isBusiness) {
+      dailyQuery.where('b.id = :bizId', { bizId });
+    }
+    const rawDaily = await dailyQuery.groupBy('dayIndex').getRawMany();
+
+    const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const dailyMap = new Array(7).fill(null).map((_, i) => ({
+      day: daysOfWeek[i],
+      revenue: 0,
+      count: 0
+    }));
+
+    rawDaily.forEach((row) => {
+      const idx = Number(row.dayIndex);
+      if (idx >= 0 && idx < 7) {
+        dailyMap[idx].revenue = Number(row.revenue) || 0;
+        dailyMap[idx].count = Number(row.count) || 0;
+      }
+    });
+
+    const weeklyRevenue = dailyMap.reduce((sum, d) => sum + d.revenue, 0);
+
+    const servicesQuery = this.appointmentsRepository.createQueryBuilder('a')
+      .leftJoin('a.service', 's')
+      .leftJoin('a.business', 'b')
+      .select('COALESCE(a.serviceName, s.nombre)', 'name')
+      .addSelect('COUNT(a.id)', 'count');
+    if (isBusiness) {
+      servicesQuery.where('b.id = :bizId', { bizId });
+    }
+    const rawPopular = await servicesQuery
+      .groupBy('name')
+      .orderBy('count', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    const popularServices = rawPopular.map((row) => ({
+      name: row.name || "Servicio General",
+      count: Number(row.count) || 0,
+    }));
+
+    let activeBusinesses = 0;
+    if (!isBusiness) {
+      const activeBizRes = await this.appointmentsRepository.createQueryBuilder('a')
+        .select('COUNT(DISTINCT a.businessId)', 'count')
+        .getRawOne();
+      activeBusinesses = Number(activeBizRes?.count) || 0;
+    }
+
+    let paidRevenue = 0;
+    let pendingRevenue = 0;
+    if (isBusiness) {
+      const paidQuery = this.appointmentsRepository.createQueryBuilder('a')
+        .leftJoin('a.service', 's')
+        .leftJoin('a.business', 'b')
+        .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total')
+        .where('b.id = :bizId AND a.status = :status', { bizId, status: 'paid' });
+      const rawPaid = await paidQuery.getRawOne();
+      paidRevenue = Number(rawPaid?.total) || 0;
+
+      const pendingQuery = this.appointmentsRepository.createQueryBuilder('a')
+        .leftJoin('a.service', 's')
+        .leftJoin('a.business', 'b')
+        .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total')
+        .where('b.id = :bizId AND a.status = :status', { bizId, status: 'pending' });
+      const rawPending = await pendingQuery.getRawOne();
+      pendingRevenue = Number(rawPending?.total) || 0;
+    }
+
+    return {
+      historicRevenue,
+      weeklyRevenue,
+      totalBookings,
+      activeBusinesses,
+      paidRevenue,
+      pendingRevenue,
+      stats,
+      revenueData: dailyMap,
+      popularServices,
+    };
+  }
 }
