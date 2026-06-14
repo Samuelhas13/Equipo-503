@@ -473,6 +473,7 @@ textarea {
 /* En cabeceras con transparencia y blur, revisar contraste si aparece sobre fondos oscuros o imágenes. */
 .admin-header {
   position: relative;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2619,7 +2620,9 @@ html.dark .logo-dark {
   right: 0;
   width: 320px;
   max-height: 400px;
-  background: var(--surface);
+  background: var(--surface-translucent, var(--surface));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
@@ -2669,6 +2672,24 @@ html.dark .logo-dark {
   overflow-y: auto;
   flex: 1;
   max-height: 340px;
+}
+
+/* Scrollbar personalizado premium para la lista de notificaciones */
+.notification-dropdown__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-dropdown__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notification-dropdown__list::-webkit-scrollbar-thumb {
+  background: var(--border-strong, var(--border));
+  border-radius: 99px;
+}
+
+.notification-dropdown__list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 .notification-dropdown__empty {
@@ -2721,8 +2742,7 @@ html.dark .logo-dark {
   content: '';
   position: absolute;
   left: 6px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 18px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -2971,6 +2991,24 @@ html.dark .logo-dark {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* Scrollbar personalizado premium para la lista de mensajes */
+.inbox-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.inbox-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.inbox-list::-webkit-scrollbar-thumb {
+  background: var(--border-strong, var(--border));
+  border-radius: 99px;
+}
+
+.inbox-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 /* Item de la lista */

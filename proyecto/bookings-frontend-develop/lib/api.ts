@@ -11,6 +11,7 @@ import type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  UpdatePaymentDto,
   Business,
   CreateBusinessDto,
   UpdateBusinessDto,
@@ -34,6 +35,7 @@ export type {
   PaymentMethod,
   PaymentStatus,
   CreatePaymentDto,
+  UpdatePaymentDto,
   Reward,
   RewardRedemption,
 };
@@ -242,6 +244,35 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
   payload.appointmentId = (data as any).appointmentId || (data as any).appointment || (data as any).appointmentId;
 
   return apiRequest<Payment>("/payments", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updatePayment(id: number, data: UpdatePaymentDto): Promise<Payment> {
+  const payload: any = {};
+  if (data.customerId) payload.customerId = data.customerId;
+  if (data.appointmentId) payload.appointmentId = data.appointmentId;
+  if (data.servicioId) payload.servicioId = data.servicioId;
+  if (data.hora_pago) payload.hora_pago = data.hora_pago;
+
+  const method = (data as any).metodo_pago || (data as any).paymentMethod;
+  if (method) {
+    if (method === 'card' || method === 'tarjeta') payload.metodo_pago = 'tarjeta';
+    else if (method === 'cash' || method === 'efectivo') payload.metodo_pago = 'efectivo';
+    else payload.metodo_pago = method;
+  }
+
+  const estado = (data as any).estado || (data as any).status;
+  if (estado) {
+    if (estado === 'paid' || estado === 'pagado') payload.estado = 'pagado';
+    else if (estado === 'pending' || estado === 'por cobrar') payload.estado = 'por cobrar';
+    else if (estado === 'failed' || estado === 'cancelado') payload.estado = 'cancelado';
+    else payload.estado = estado;
+  }
+
+  const res = await apiRequest<any>(`/payments/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return normalizePayment(res);
 }
 
 export function getExportReportUrl(): string {
