@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { useRouter } from "next/navigation";
+
 import {
   getBusinesses,
   updateBusiness,
@@ -19,7 +19,6 @@ import type { Business, Service } from "@/lib/types";
 export default function MiPerfilPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
-  const router = useRouter();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<"business" | "services" | "personal">("business");
@@ -157,6 +156,7 @@ export default function MiPerfilPage() {
   useEffect(() => {
     if (user) {
       if (user.role === "usuario") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveTab("personal");
       }
       fetchProfileData();
@@ -205,7 +205,13 @@ export default function MiPerfilPage() {
     setSuccessMsg(null);
 
     try {
-      const payload: any = {
+      const payload: {
+        nombre: string;
+        apellido: string;
+        email: string;
+        numero: string;
+        password?: string;
+      } = {
         nombre: personalData.nombre,
         apellido: personalData.apellido,
         email: personalData.email,

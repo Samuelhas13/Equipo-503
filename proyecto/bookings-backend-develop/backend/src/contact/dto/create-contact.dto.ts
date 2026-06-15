@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 import { ContactSubject } from '../contact.entity';
 
 export class CreateContactDto {
@@ -14,9 +20,11 @@ export class CreateContactDto {
   @ApiProperty({
     example: 'juan.perez@example.com',
     description: 'Correo electrónico del remitente',
+    required: false,
   })
   @IsEmail()
-  email: string;
+  @IsOptional()
+  email?: string;
 
   @ApiProperty({
     enum: ContactSubject,

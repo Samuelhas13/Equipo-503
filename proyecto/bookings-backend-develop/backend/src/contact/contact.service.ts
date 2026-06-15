@@ -4,18 +4,46 @@ import { Repository } from 'typeorm';
 import { ContactMessage } from './contact.entity';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { Customer } from '../customers/customer.entity';
+import { JwtPayload } from '../auth/jwt-payload.interface';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class ContactService {
   constructor(
     @InjectRepository(ContactMessage)
     private readonly contactRepository: Repository<ContactMessage>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async create(createContactDto: CreateContactDto): Promise<ContactMessage> {
+  async create(
+    createContactDto: CreateContactDto,
+    currentUser?: JwtPayload,
+  ): Promise<ContactMessage> {
+    let customerId: number | undefined;
+    let businessId: number | undefined;
+    const email = currentUser?.email || createContactDto.email || '';
+
+    if (currentUser) {
+      if (currentUser.role === UserRole.BUSINESS) {
+        businessId = currentUser.businessId;
+      } else if (currentUser.role === UserRole.CUSTOMER) {
+        const customer = await this.customerRepository.findOneBy({
+          email: currentUser.email,
+        });
+        if (customer) {
+          customerId = customer.id;
+        }
+      }
+    }
+
     const message = this.contactRepository.create({
       ...createContactDto,
+      email,
+      customerId,
+      businessId,
       isRead: false,
     });
     return this.contactRepository.save(message);
@@ -72,9 +100,7 @@ export class ContactService {
       await this.notificationsService.createNotificationByEmail(
         message.email,
         'Respuesta de soporte',
-        `El administrador ha respondido a tu consulta sobre "${
-          message.subject.toUpperCase()
-        }":\n\n"${replyMessage}"`,
+        `El administrador ha respondido a tu consulta sobre "${message.subject.toUpperCase()}":\n\n"${replyMessage}"`,
       );
     } catch (err) {
       console.error('Error enviando notificación de respuesta:', err);

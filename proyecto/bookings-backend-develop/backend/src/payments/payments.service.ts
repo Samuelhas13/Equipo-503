@@ -5,7 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere, DataSource, FindManyOptions } from 'typeorm';
+import {
+  Repository,
+  FindOptionsWhere,
+  DataSource,
+  FindManyOptions,
+} from 'typeorm';
 import { Appointment } from '../appointments/appointment.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -218,11 +223,21 @@ export class PaymentsService {
     });
     const hasCoupon = app && app.couponCode;
 
-    if (oldEstado === PaymentStatus.PAGADO && newEstado !== PaymentStatus.PAGADO) {
+    if (
+      oldEstado === PaymentStatus.PAGADO &&
+      newEstado !== PaymentStatus.PAGADO
+    ) {
       if (oldCustomerId && oldServiceId && !hasCoupon) {
-        await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+        await this.adjustCustomerPoints(
+          oldCustomerId,
+          oldServiceId,
+          'subtract',
+        );
       }
-    } else if (oldEstado !== PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
+    } else if (
+      oldEstado !== PaymentStatus.PAGADO &&
+      newEstado === PaymentStatus.PAGADO
+    ) {
       if (newCustomerId && newServiceId) {
         if (hasCoupon) {
           await this.markCouponAsUsed(app.couponCode);
@@ -230,10 +245,17 @@ export class PaymentsService {
           await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
         }
       }
-    } else if (oldEstado === PaymentStatus.PAGADO && newEstado === PaymentStatus.PAGADO) {
+    } else if (
+      oldEstado === PaymentStatus.PAGADO &&
+      newEstado === PaymentStatus.PAGADO
+    ) {
       if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
         if (oldCustomerId && oldServiceId && !hasCoupon) {
-          await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+          await this.adjustCustomerPoints(
+            oldCustomerId,
+            oldServiceId,
+            'subtract',
+          );
         }
         if (newCustomerId && newServiceId && !hasCoupon) {
           await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
@@ -247,8 +269,16 @@ export class PaymentsService {
   async remove(id: number, currentUser?: JwtPayload) {
     const payment = await this.findOne(id, currentUser);
 
-    if (payment.estado === PaymentStatus.PAGADO && payment.customer?.id && payment.servicio?.id) {
-      await this.adjustCustomerPoints(payment.customer.id, payment.servicio.id, 'subtract');
+    if (
+      payment.estado === PaymentStatus.PAGADO &&
+      payment.customer?.id &&
+      payment.servicio?.id
+    ) {
+      await this.adjustCustomerPoints(
+        payment.customer.id,
+        payment.servicio.id,
+        'subtract',
+      );
     }
 
     await this.paymentsRepository.remove(payment);
@@ -261,7 +291,9 @@ export class PaymentsService {
     action: 'add' | 'subtract',
   ) {
     try {
-      const customer = await this.customerRepository.findOneBy({ id: customerId });
+      const customer = await this.customerRepository.findOneBy({
+        id: customerId,
+      });
       const service = await this.serviceRepository.findOne({
         where: { id: serviceId },
         relations: ['business'],

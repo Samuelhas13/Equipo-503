@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../users/user.entity';
 
@@ -16,7 +22,10 @@ export class Notification {
   @Column({ type: 'text' })
   message: string;
 
-  @ApiProperty({ description: 'Indica si la notificación fue leída', default: false })
+  @ApiProperty({
+    description: 'Indica si la notificación fue leída',
+    default: false,
+  })
   @Column({ default: false })
   isRead: boolean;
 
@@ -24,7 +33,10 @@ export class Notification {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ApiProperty({ type: () => User, description: 'Usuario que recibe la notificación' })
+  @ApiProperty({
+    type: () => User,
+    description: 'Usuario que recibe la notificación',
+  })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 }

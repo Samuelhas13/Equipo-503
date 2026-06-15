@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Business } from '../business/business.entity';
 import { RewardRedemption } from './reward-redemption.entity';
@@ -25,7 +31,10 @@ export class Reward {
   @Column()
   type: string; // 'discount' | 'gift'
 
-  @ApiProperty({ description: 'Porcentaje de descuento si aplica', required: false })
+  @ApiProperty({
+    description: 'Porcentaje de descuento si aplica',
+    required: false,
+  })
   @Column('decimal', { nullable: true })
   discountValue: number;
 

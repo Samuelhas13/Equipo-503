@@ -43,6 +43,7 @@ export default function NotificationCenter() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
 
     // Polling cada 30 segundos

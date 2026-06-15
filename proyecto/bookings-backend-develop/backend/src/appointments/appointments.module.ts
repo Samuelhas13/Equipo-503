@@ -10,11 +10,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Appointment,
-      Customer,
-      Service,
-    ]),
+    TypeOrmModule.forFeature([Appointment, Customer, Service]),
     AuthModule,
     NotificationsModule,
   ],

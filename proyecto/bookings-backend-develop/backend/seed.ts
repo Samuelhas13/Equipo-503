@@ -9,7 +9,7 @@ import { Payment, PaymentMethod, PaymentStatus } from './src/payments/payment.en
 import { Reward } from './src/rewards/reward.entity';
 import { RewardRedemption } from './src/rewards/reward-redemption.entity';
 import { Notification } from './src/notifications/notification.entity';
-import { ContactMessage } from './src/contact/contact.entity';
+import { ContactMessage, ContactSubject } from './src/contact/contact.entity';
 
 const AppDataSource = new DataSource({
   type: 'sqlite',
@@ -53,6 +53,7 @@ async function seed() {
   const customerRepo = AppDataSource.getRepository(Customer);
   const appointmentRepo = AppDataSource.getRepository(Appointment);
   const paymentRepo = AppDataSource.getRepository(Payment);
+  const contactRepo = AppDataSource.getRepository(ContactMessage);
 
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
@@ -110,6 +111,37 @@ async function seed() {
   }
   console.log(`\n✓ ${TOTAL_BUSINESSES} empresas, ${TOTAL_BUSINESSES} dueños, y ${TOTAL_BUSINESSES * SERVICES_PER_BUSINESS} servicios creados`);
 
+  // 2b. Premios de Empresas (Rewards)
+  console.log('⏳ Generando premios de empresas...');
+  const rewardRepo = AppDataSource.getRepository(Reward);
+  const rewardRedemptionRepo = AppDataSource.getRepository(RewardRedemption);
+  const savedRewards: Reward[] = [];
+
+  for (let i = 0; i < savedBusinesses.length; i++) {
+    const biz = savedBusinesses[i];
+    savedRewards.push(
+      rewardRepo.create({
+        business: biz,
+        title: '10% Descuento',
+        description: 'Obtén un 10% de descuento en tu próximo servicio.',
+        type: 'discount',
+        discountValue: 10,
+        requiredPoints: 100,
+        isActive: true,
+      }),
+      rewardRepo.create({
+        business: biz,
+        title: 'Servicio Básico Gratis',
+        description: 'Canjea por un servicio gratis.',
+        type: 'gift',
+        requiredPoints: 200,
+        isActive: true,
+      })
+    );
+  }
+  const allRewards = await rewardRepo.save(savedRewards);
+  console.log(`✓ ${allRewards.length} premios creados`);
+
   // 3. 10,000 Customers + Users, Appointments, Payments
   console.log('⏳ Generando 10,000 clientes, reservas y pagos...');
   const TOTAL_EXTRA = 10000;
@@ -139,6 +171,52 @@ async function seed() {
 
     const savedUsers = await userRepo.save(userChunk);
     const savedCustomers = await customerRepo.save(customerChunk);
+
+    // Seed customer points and redemptions
+    const redemptionChunk: RewardRedemption[] = [];
+    const updatedCustomers: Customer[] = [];
+
+    for (let j = 0; j < CHUNK_SIZE; j++) {
+      const customer = savedCustomers[j];
+      const idx = i + j + 1;
+
+      // Assign random points
+      const points = (idx % 4) * 100; // 0, 100, 200, 300 points
+      if (points > 0) {
+        customer.puntos = points;
+        updatedCustomers.push(customer);
+      }
+
+      // If client has enough points, claim a reward
+      if (points >= 100 && idx % 3 === 0) {
+        const bIndex = idx % TOTAL_BUSINESSES;
+        const bizRewards = allRewards.filter(
+          (r) => r.business.id === savedBusinesses[bIndex].id,
+        );
+        if (bizRewards.length > 0) {
+          const reward =
+            points >= 200 && bizRewards.length > 1
+              ? bizRewards[1]
+              : bizRewards[0];
+          redemptionChunk.push(
+            rewardRedemptionRepo.create({
+              customer,
+              reward,
+              status: idx % 2 === 0 ? 'pending' : 'used',
+              code: `CANJE-${idx}`,
+              redeemedAt: new Date(),
+            }),
+          );
+        }
+      }
+    }
+
+    if (updatedCustomers.length > 0) {
+      await customerRepo.save(updatedCustomers);
+    }
+    if (redemptionChunk.length > 0) {
+      await rewardRedemptionRepo.save(redemptionChunk);
+    }
 
     const appointmentChunk: any[] = [];
     const baseDate = new Date('2026-06-09T12:00:00');
@@ -237,6 +315,38 @@ async function seed() {
     
     process.stdout.write(`  Procesados: ${i + CHUNK_SIZE} / ${TOTAL_EXTRA}\r`);
   }
+
+  // 4. Mensajes de contacto (ContactMessage)
+  console.log('⏳ Generando mensajes de contacto de prueba...');
+  const testContacts = [
+    contactRepo.create({
+      name: 'Cliente1 Masivo',
+      email: 'cliente1@masivo.com',
+      subject: ContactSubject.SUPPORT,
+      message: 'Hola, tengo una pregunta sobre mis puntos acumulados.',
+      customerId: 1,
+      isRead: false,
+    }),
+    contactRepo.create({
+      name: 'Dueño1 Empresa',
+      email: 'business1@empresa.com',
+      subject: ContactSubject.BILLING,
+      message: 'Hola, tengo un problema con la facturación de este mes.',
+      businessId: 1,
+      isRead: true,
+      replyMessage: 'Hemos revisado su factura y todo está correcto. Saludos.',
+    }),
+    contactRepo.create({
+      name: 'Cliente2 Masivo',
+      email: 'cliente2@masivo.com',
+      subject: ContactSubject.OTHER,
+      message: 'Sugerencia: sería genial tener un tema oscuro en el móvil.',
+      customerId: 2,
+      isRead: false,
+    }),
+  ];
+  await contactRepo.save(testContacts);
+  console.log('✓ Mensajes de contacto creados');
 
   console.log('\n\n🎉 Seed masivo completado con éxito');
   console.log('─────────────────────────────');

@@ -12,7 +12,7 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async register(registerDto: any) {
+  async register(registerDto: Record<string, any>) {
     return this.usersService.registerCustomer(registerDto);
   }
 

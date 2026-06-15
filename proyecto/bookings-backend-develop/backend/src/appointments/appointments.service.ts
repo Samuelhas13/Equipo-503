@@ -5,7 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOptionsWhere, DataSource } from 'typeorm';
+import {
+  Repository,
+  FindManyOptions,
+  FindOptionsWhere,
+  DataSource,
+} from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Appointment } from './appointment.entity';
 import { Customer } from '../customers/customer.entity';
@@ -147,8 +152,12 @@ export class AppointmentsService {
       });
 
       if (fullApp) {
-        const serviceName = fullApp.serviceName || (fullApp.service ? fullApp.service.nombre : 'Servicio');
-        const businessName = fullApp.business ? fullApp.business.nombre : 'Negocio';
+        const serviceName =
+          fullApp.serviceName ||
+          (fullApp.service ? fullApp.service.nombre : 'Servicio');
+        const businessName = fullApp.business
+          ? fullApp.business.nombre
+          : 'Negocio';
 
         if (fullApp.user?.id) {
           await this.notificationsService.createNotification(
@@ -162,8 +171,8 @@ export class AppointmentsService {
           const clientName = fullApp.customer
             ? `${fullApp.customer.nombre} ${fullApp.customer.apellido}`
             : fullApp.user
-            ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
-            : 'Cliente';
+              ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
+              : 'Cliente';
 
           await this.notificationsService.notifyBusiness(
             fullApp.business.id,
@@ -173,7 +182,10 @@ export class AppointmentsService {
         }
       }
     } catch (err) {
-      console.error('Error enviando notificaciones de creación de reserva:', err);
+      console.error(
+        'Error enviando notificaciones de creación de reserva:',
+        err,
+      );
     }
 
     return saved;
@@ -216,7 +228,11 @@ export class AppointmentsService {
 
     if (oldStatus === 'paid' && newStatus !== 'paid') {
       if (oldCustomerId && oldServiceId && !saved.couponCode) {
-        await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+        await this.adjustCustomerPoints(
+          oldCustomerId,
+          oldServiceId,
+          'subtract',
+        );
       }
     } else if (oldStatus !== 'paid' && newStatus === 'paid') {
       if (newCustomerId && newServiceId) {
@@ -229,7 +245,11 @@ export class AppointmentsService {
     } else if (oldStatus === 'paid' && newStatus === 'paid') {
       if (oldCustomerId !== newCustomerId || oldServiceId !== newServiceId) {
         if (oldCustomerId && oldServiceId && !saved.couponCode) {
-          await this.adjustCustomerPoints(oldCustomerId, oldServiceId, 'subtract');
+          await this.adjustCustomerPoints(
+            oldCustomerId,
+            oldServiceId,
+            'subtract',
+          );
         }
         if (newCustomerId && newServiceId && !saved.couponCode) {
           await this.adjustCustomerPoints(newCustomerId, newServiceId, 'add');
@@ -244,8 +264,12 @@ export class AppointmentsService {
       });
 
       if (fullApp) {
-        const serviceName = fullApp.serviceName || (fullApp.service ? fullApp.service.nombre : 'Servicio');
-        const businessName = fullApp.business ? fullApp.business.nombre : 'Negocio';
+        const serviceName =
+          fullApp.serviceName ||
+          (fullApp.service ? fullApp.service.nombre : 'Servicio');
+        const businessName = fullApp.business
+          ? fullApp.business.nombre
+          : 'Negocio';
         const newHora = fullApp.hora_reserva;
 
         if (fullApp.user?.id) {
@@ -260,8 +284,8 @@ export class AppointmentsService {
           const clientName = fullApp.customer
             ? `${fullApp.customer.nombre} ${fullApp.customer.apellido}`
             : fullApp.user
-            ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
-            : 'Cliente';
+              ? `${fullApp.user.nombre} ${fullApp.user.apellido}`
+              : 'Cliente';
 
           await this.notificationsService.notifyBusiness(
             fullApp.business.id,
@@ -271,7 +295,10 @@ export class AppointmentsService {
         }
       }
     } catch (err) {
-      console.error('Error enviando notificaciones de modificación de reserva:', err);
+      console.error(
+        'Error enviando notificaciones de modificación de reserva:',
+        err,
+      );
     }
 
     return saved;
@@ -279,20 +306,32 @@ export class AppointmentsService {
 
   async remove(id: number, currentUser?: JwtPayload) {
     const appointment = await this.findOne(id, currentUser);
-    
-    const serviceName = appointment.serviceName || (appointment.service ? appointment.service.nombre : 'Servicio');
-    const businessName = appointment.business ? appointment.business.nombre : 'Negocio';
+
+    const serviceName =
+      appointment.serviceName ||
+      (appointment.service ? appointment.service.nombre : 'Servicio');
+    const businessName = appointment.business
+      ? appointment.business.nombre
+      : 'Negocio';
     const businessId = appointment.business?.id;
     const customerUserId = appointment.user?.id;
-    const customerName = appointment.customer 
-      ? `${appointment.customer.nombre} ${appointment.customer.apellido}` 
-      : appointment.user 
-      ? `${appointment.user.nombre} ${appointment.user.apellido}` 
-      : 'Cliente';
+    const customerName = appointment.customer
+      ? `${appointment.customer.nombre} ${appointment.customer.apellido}`
+      : appointment.user
+        ? `${appointment.user.nombre} ${appointment.user.apellido}`
+        : 'Cliente';
     const hora = appointment.hora_reserva;
 
-    if (appointment.status === 'paid' && appointment.customer?.id && appointment.service?.id) {
-      await this.adjustCustomerPoints(appointment.customer.id, appointment.service.id, 'subtract');
+    if (
+      appointment.status === 'paid' &&
+      appointment.customer?.id &&
+      appointment.service?.id
+    ) {
+      await this.adjustCustomerPoints(
+        appointment.customer.id,
+        appointment.service.id,
+        'subtract',
+      );
     }
 
     await this.appointmentsRepository.remove(appointment);
@@ -314,7 +353,10 @@ export class AppointmentsService {
         );
       }
     } catch (err) {
-      console.error('Error enviando notificaciones de cancelación de reserva:', err);
+      console.error(
+        'Error enviando notificaciones de cancelación de reserva:',
+        err,
+      );
     }
 
     return { message: `Reserva ${id} eliminada correctamente` };
@@ -367,7 +409,9 @@ export class AppointmentsService {
     action: 'add' | 'subtract',
   ) {
     try {
-      const customer = await this.customerRepository.findOneBy({ id: customerId });
+      const customer = await this.customerRepository.findOneBy({
+        id: customerId,
+      });
       const service = await this.serviceRepository.findOne({
         where: { id: serviceId },
         relations: ['business'],
@@ -406,24 +450,32 @@ export class AppointmentsService {
     const isBusiness = currentUser?.role === UserRole.BUSINESS;
     const bizId = currentUser?.businessId;
 
-    const totalCountQuery = this.appointmentsRepository.createQueryBuilder('a')
+    const totalCountQuery = this.appointmentsRepository
+      .createQueryBuilder('a')
       .leftJoin('a.business', 'b');
     if (isBusiness) {
       totalCountQuery.where('b.id = :bizId', { bizId });
     }
     const totalBookings = await totalCountQuery.getCount();
 
-    const historicRevenueQuery = this.appointmentsRepository.createQueryBuilder('a')
+    const historicRevenueQuery = this.appointmentsRepository
+      .createQueryBuilder('a')
       .leftJoin('a.service', 's')
       .leftJoin('a.business', 'b')
-      .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total');
+      .select(
+        'SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)',
+        'total',
+      );
     if (isBusiness) {
       historicRevenueQuery.where('b.id = :bizId', { bizId });
     }
-    const rawHistoric = await historicRevenueQuery.getRawOne();
+    const rawHistoric = (await historicRevenueQuery.getRawOne()) as {
+      total: string | number;
+    } | null;
     const historicRevenue = Number(rawHistoric?.total) || 0;
 
-    const statusQuery = this.appointmentsRepository.createQueryBuilder('a')
+    const statusQuery = this.appointmentsRepository
+      .createQueryBuilder('a')
       .leftJoin('a.business', 'b')
       .select('a.status', 'status')
       .addSelect('COUNT(a.id)', 'count');
@@ -431,13 +483,22 @@ export class AppointmentsService {
       statusQuery.where('b.id = :bizId', { bizId });
     }
     const rawStatus = await statusQuery.groupBy('a.status').getRawMany();
-    
-    const statusMap = { pending: 0, confirmed: 0, completed: 0, paid: 0, canceled: 0 };
-    rawStatus.forEach((row) => {
-      if (row.status in statusMap) {
-        statusMap[row.status as keyof typeof statusMap] = Number(row.count) || 0;
-      }
-    });
+
+    const statusMap = {
+      pending: 0,
+      confirmed: 0,
+      completed: 0,
+      paid: 0,
+      canceled: 0,
+    };
+    (rawStatus as Array<{ status: string; count: string | number }>).forEach(
+      (row: { status: string; count: string | number }) => {
+        if (row.status in statusMap) {
+          statusMap[row.status as keyof typeof statusMap] =
+            Number(row.count) || 0;
+        }
+      },
+    );
 
     const total = totalBookings || 1;
     const pending = statusMap.pending;
@@ -452,35 +513,60 @@ export class AppointmentsService {
       pendingPct: Math.round((pending / total) * 100) || 0,
     };
 
-    const dailyQuery = this.appointmentsRepository.createQueryBuilder('a')
+    const dailyQuery = this.appointmentsRepository
+      .createQueryBuilder('a')
       .leftJoin('a.service', 's')
       .leftJoin('a.business', 'b')
       .select('a.id % 7', 'dayIndex')
-      .addSelect('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'revenue')
+      .addSelect(
+        'SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)',
+        'revenue',
+      )
       .addSelect('COUNT(a.id)', 'count');
     if (isBusiness) {
       dailyQuery.where('b.id = :bizId', { bizId });
     }
     const rawDaily = await dailyQuery.groupBy('dayIndex').getRawMany();
 
-    const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const daysOfWeek = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo',
+    ];
     const dailyMap = new Array(7).fill(null).map((_, i) => ({
       day: daysOfWeek[i],
       revenue: 0,
-      count: 0
+      count: 0,
     }));
 
-    rawDaily.forEach((row) => {
-      const idx = Number(row.dayIndex);
-      if (idx >= 0 && idx < 7) {
-        dailyMap[idx].revenue = Number(row.revenue) || 0;
-        dailyMap[idx].count = Number(row.count) || 0;
-      }
-    });
+    (
+      rawDaily as Array<{
+        dayIndex: string | number;
+        revenue: string | number;
+        count: string | number;
+      }>
+    ).forEach(
+      (row: {
+        dayIndex: string | number;
+        revenue: string | number;
+        count: string | number;
+      }) => {
+        const idx = Number(row.dayIndex);
+        if (idx >= 0 && idx < 7) {
+          dailyMap[idx].revenue = Number(row.revenue) || 0;
+          dailyMap[idx].count = Number(row.count) || 0;
+        }
+      },
+    );
 
     const weeklyRevenue = dailyMap.reduce((sum, d) => sum + d.revenue, 0);
 
-    const servicesQuery = this.appointmentsRepository.createQueryBuilder('a')
+    const servicesQuery = this.appointmentsRepository
+      .createQueryBuilder('a')
       .leftJoin('a.service', 's')
       .leftJoin('a.business', 'b')
       .select('COALESCE(a.serviceName, s.nombre)', 'name')
@@ -494,36 +580,57 @@ export class AppointmentsService {
       .limit(5)
       .getRawMany();
 
-    const popularServices = rawPopular.map((row) => ({
-      name: row.name || "Servicio General",
+    const popularServices = (
+      rawPopular as Array<{ name: string; count: string | number }>
+    ).map((row: { name: string; count: string | number }) => ({
+      name: row.name || 'Servicio General',
       count: Number(row.count) || 0,
     }));
 
     let activeBusinesses = 0;
     if (!isBusiness) {
-      const activeBizRes = await this.appointmentsRepository.createQueryBuilder('a')
+      const activeBizRes = (await this.appointmentsRepository
+        .createQueryBuilder('a')
         .select('COUNT(DISTINCT a.businessId)', 'count')
-        .getRawOne();
+        .getRawOne()) as { count: string | number } | null;
       activeBusinesses = Number(activeBizRes?.count) || 0;
     }
 
     let paidRevenue = 0;
     let pendingRevenue = 0;
     if (isBusiness) {
-      const paidQuery = this.appointmentsRepository.createQueryBuilder('a')
+      const paidQuery = this.appointmentsRepository
+        .createQueryBuilder('a')
         .leftJoin('a.service', 's')
         .leftJoin('a.business', 'b')
-        .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total')
-        .where('b.id = :bizId AND a.status = :status', { bizId, status: 'paid' });
-      const rawPaid = await paidQuery.getRawOne();
+        .select(
+          'SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)',
+          'total',
+        )
+        .where('b.id = :bizId AND a.status = :status', {
+          bizId,
+          status: 'paid',
+        });
+      const rawPaid = (await paidQuery.getRawOne()) as {
+        total: string | number;
+      } | null;
       paidRevenue = Number(rawPaid?.total) || 0;
 
-      const pendingQuery = this.appointmentsRepository.createQueryBuilder('a')
+      const pendingQuery = this.appointmentsRepository
+        .createQueryBuilder('a')
         .leftJoin('a.service', 's')
         .leftJoin('a.business', 'b')
-        .select('SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)', 'total')
-        .where('b.id = :bizId AND a.status = :status', { bizId, status: 'pending' });
-      const rawPending = await pendingQuery.getRawOne();
+        .select(
+          'SUM(CASE WHEN a.couponCode IS NULL THEN s.precio ELSE 0 END)',
+          'total',
+        )
+        .where('b.id = :bizId AND a.status = :status', {
+          bizId,
+          status: 'pending',
+        });
+      const rawPending = (await pendingQuery.getRawOne()) as {
+        total: string | number;
+      } | null;
       pendingRevenue = Number(rawPending?.total) || 0;
     }
 

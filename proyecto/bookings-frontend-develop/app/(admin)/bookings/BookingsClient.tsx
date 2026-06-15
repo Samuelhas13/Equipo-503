@@ -327,16 +327,16 @@ export default function BookingsClient({
 
   const filteredServices = useMemo(() => {
     if (user?.role === "empresa") {
-      return services.filter((s) => s.businessId === user.businessId || (s as any).business?.id === user.businessId);
+      return services.filter((s) => s.businessId === user.businessId || s.business?.id === user.businessId);
     } else {
       const selectedBId = createForm.businessId;
-      return services.filter((s) => s.businessId === selectedBId || (s as any).business?.id === selectedBId);
+      return services.filter((s) => s.businessId === selectedBId || s.business?.id === selectedBId);
     }
   }, [services, user, createForm.businessId]);
 
   const filteredServicesForEdit = useMemo(() => {
     const selectedBId = editForm.businessId;
-    return services.filter((s) => s.businessId === selectedBId || (s as any).business?.id === selectedBId);
+    return services.filter((s) => s.businessId === selectedBId || s.business?.id === selectedBId);
   }, [services, editForm.businessId]);
 
   async function findCustomer(id: number) {
@@ -586,7 +586,7 @@ export default function BookingsClient({
       const bizId = booking.businessId;
       const matchedService = services.find(
         (s) =>
-          (s.businessId === bizId || (s as any).business?.id === bizId) &&
+          (s.businessId === bizId || s.business?.id === bizId) &&
           s.nombre.toLowerCase().trim() === cleanServiceName.toLowerCase().trim()
       );
       if (matchedService) {

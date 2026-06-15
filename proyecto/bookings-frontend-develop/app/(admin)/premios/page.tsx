@@ -13,7 +13,6 @@ import {
   getMyRedemptions,
   getBusinessRedemptions,
   validateRedemptionCode,
-  getCustomerById,
   getBusinesses,
   getMyPoints,
 } from "@/lib/api";
@@ -37,7 +36,6 @@ export default function PremiosPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   // States for Customer
-  const [customerProfile, setCustomerProfile] = useState<Customer | null>(null);
   const [myRedemptions, setMyRedemptions] = useState<RewardRedemption[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
   const [businessesList, setBusinessesList] = useState<Business[]>([]);
@@ -141,47 +139,46 @@ export default function PremiosPage() {
   const currentTexts = texts[language === "es" ? "es" : "en"];
 
   useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(false);
+      try {
+        if (user?.role === "empresa") {
+          // Fetch rewards and claims for this business
+          const fetchedRewards = await getRewards();
+          const fetchedClaims = await getBusinessRedemptions();
+          setRewards(fetchedRewards);
+          setRedemptions(fetchedClaims);
+        } else if (user?.role === "usuario") {
+          // Fetch client's global points
+          const pointsData = await getMyPoints();
+          setGlobalPoints(pointsData.points);
+
+          // Fetch all businesses
+          const businesses = await getBusinesses();
+          setBusinessesList(businesses);
+
+          // Pre-select the first business, if any
+          if (businesses.length > 0) {
+            const defaultBusiness = businesses[0];
+            setSelectedBusinessId(defaultBusiness.id);
+            const fetchedRewards = await getRewards(defaultBusiness.id);
+            setRewards(fetchedRewards);
+          }
+
+          // Fetch redemptions
+          const claims = await getMyRedemptions();
+          setMyRedemptions(claims);
+        }
+      } catch (err) {
+        console.error("Error fetching rewards data:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchData();
   }, [user]);
-
-  async function fetchData() {
-    setLoading(true);
-    setError(false);
-    try {
-      if (user?.role === "empresa") {
-        // Fetch rewards and claims for this business
-        const fetchedRewards = await getRewards();
-        const fetchedClaims = await getBusinessRedemptions();
-        setRewards(fetchedRewards);
-        setRedemptions(fetchedClaims);
-      } else if (user?.role === "usuario") {
-        // Fetch client's global points
-        const pointsData = await getMyPoints();
-        setGlobalPoints(pointsData.points);
-
-        // Fetch all businesses
-        const businesses = await getBusinesses();
-        setBusinessesList(businesses);
-
-        // Pre-select the first business, if any
-        if (businesses.length > 0) {
-          const defaultBusiness = businesses[0];
-          setSelectedBusinessId(defaultBusiness.id);
-          const fetchedRewards = await getRewards(defaultBusiness.id);
-          setRewards(fetchedRewards);
-        }
-
-        // Fetch redemptions
-        const claims = await getMyRedemptions();
-        setMyRedemptions(claims);
-      }
-    } catch (err) {
-      console.error("Error fetching rewards data:", err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   // Handle selected business change for customer
   async function handleBusinessChange(bId: number) {
@@ -211,8 +208,9 @@ export default function PremiosPage() {
 
       const claims = await getMyRedemptions();
       setMyRedemptions(claims);
-    } catch (err: any) {
-      setErrorClaim(err.message || "Error al canjear el premio.");
+    } catch (err) {
+      const error = err as Error;
+      setErrorClaim(error.message || "Error al canjear el premio.");
     }
   }
 
@@ -222,8 +220,9 @@ export default function PremiosPage() {
       await validateRedemptionCode(code);
       const fetchedClaims = await getBusinessRedemptions();
       setRedemptions(fetchedClaims);
-    } catch (err: any) {
-      alert(err.message || "Error al validar el canje.");
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || "Error al validar el canje.");
     }
   }
 
@@ -273,8 +272,9 @@ export default function PremiosPage() {
       // Refresh list
       const fetchedRewards = await getRewards();
       setRewards(fetchedRewards);
-    } catch (err: any) {
-      alert(err.message || "Error al guardar el premio.");
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || "Error al guardar el premio.");
     } finally {
       setActionLoading(false);
     }
@@ -286,8 +286,9 @@ export default function PremiosPage() {
     try {
       await deleteReward(id);
       setRewards(rewards.filter((r) => r.id !== id));
-    } catch (err: any) {
-      alert(err.message || "Error al eliminar el premio.");
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || "Error al eliminar el premio.");
     }
   }
 

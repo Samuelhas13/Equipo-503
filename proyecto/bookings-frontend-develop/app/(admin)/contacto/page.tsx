@@ -72,12 +72,10 @@ export default function ContactoPage() {
 
   const [formData, setFormData] = useState<{
     name: string;
-    email: string;
     subject: "support" | "billing" | "sales" | "other";
     message: string;
   }>({
     name: "",
-    email: "",
     subject: "support",
     message: "",
   });
@@ -86,7 +84,7 @@ export default function ContactoPage() {
   const [submitError, setSubmitError] = useState(false);
 
   const handleInputChange = (
-    field: "name" | "email" | "subject" | "message",
+    field: "name" | "subject" | "message",
     value: string
   ) => {
     setFormData((prev) => ({
@@ -104,7 +102,6 @@ export default function ContactoPage() {
     try {
       await submitContactMessage({
         name: formData.name,
-        email: formData.email,
         subject: formData.subject,
         message: formData.message,
       });
@@ -112,7 +109,6 @@ export default function ContactoPage() {
       setSubmitSuccess(true);
       setFormData({
         name: "",
-        email: "",
         subject: "support",
         message: "",
       });
@@ -189,18 +185,6 @@ export default function ContactoPage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 placeholder={texts[language].fullNamePlaceholder}
-                required
-              />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "14px", fontWeight: 600 }}>{texts[language].email}</label>
-              <input
-                type="email"
-                className="input"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder={texts[language].emailPlaceholder}
                 required
               />
             </div>

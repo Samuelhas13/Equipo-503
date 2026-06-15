@@ -11,7 +11,12 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { RewardsService } from './rewards.service';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
@@ -42,7 +47,12 @@ export class RewardsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BUSINESS, UserRole.CUSTOMER)
   @ApiOperation({ summary: 'Listar premios' })
-  @ApiQuery({ name: 'businessId', required: false, type: Number, description: 'Filtrar premios por ID de empresa (Requerido para clientes)' })
+  @ApiQuery({
+    name: 'businessId',
+    required: false,
+    type: Number,
+    description: 'Filtrar premios por ID de empresa (Requerido para clientes)',
+  })
   findAll(
     @Request() req: { user: JwtPayload },
     @Query('businessId') businessId?: string,
@@ -70,7 +80,9 @@ export class RewardsController {
   @Get('business-redemptions')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS)
-  @ApiOperation({ summary: 'Ver canjes recibidos por la empresa (sólo empresas)' })
+  @ApiOperation({
+    summary: 'Ver canjes recibidos por la empresa (sólo empresas)',
+  })
   findBusinessRedemptions(@Request() req: { user: JwtPayload }) {
     return this.rewardsService.findBusinessRedemptions(req.user);
   }
@@ -123,7 +135,10 @@ export class RewardsController {
   @Post('validate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS)
-  @ApiOperation({ summary: 'Validar un código de cupón de premio para marcarlo como utilizado' })
+  @ApiOperation({
+    summary:
+      'Validar un código de cupón de premio para marcarlo como utilizado',
+  })
   validateCode(
     @Body('code') code: string,
     @Request() req: { user: JwtPayload },

@@ -36,7 +36,8 @@ export class AuthController {
 
   @Post('register')
   @ApiCreatedResponse({
-    description: 'Registro de cliente exitoso. Devuelve los datos del usuario creado.',
+    description:
+      'Registro de cliente exitoso. Devuelve los datos del usuario creado.',
   })
   @ApiConflictResponse({ description: 'El email ya está en uso' })
   async register(@Body() registerDto: RegisterDto) {

@@ -13,6 +13,8 @@ type RawUser = {
   role: string;
   businessId?: number;
   customerId?: number;
+  business?: { id: number };
+  customer?: { id: number };
 };
 
 export interface User {
@@ -42,8 +44,8 @@ function mapUser(user: RawUser): User {
     name: fullName || user.email || "Usuario",
     email: user.email,
     role: normalizeRole(user.role),
-    businessId: user.businessId || (user as any).business?.id,
-    customerId: user.customerId || (user as any).customer?.id,
+    businessId: user.businessId || user.business?.id,
+    customerId: user.customerId || user.customer?.id,
   };
 }
 

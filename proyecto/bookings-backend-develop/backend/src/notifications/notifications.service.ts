@@ -74,10 +74,7 @@ export class NotificationsService {
     if (user.role === UserRole.CUSTOMER) {
       // Recordatorios para clientes
       const appointments = await this.appointmentsRepository.find({
-        where: [
-          { user: { id: userId } },
-          { customer: { email: user.email } },
-        ],
+        where: [{ user: { id: userId } }, { customer: { email: user.email } }],
         relations: ['service', 'business'],
       });
 
@@ -101,7 +98,11 @@ export class NotificationsService {
           });
 
           if (!alreadyExists) {
-            await this.createNotification(userId, 'Recordatorio de Reserva', message);
+            await this.createNotification(
+              userId,
+              'Recordatorio de Reserva',
+              message,
+            );
           }
         }
       }
@@ -120,8 +121,8 @@ export class NotificationsService {
           const clientName = app.customer
             ? `${app.customer.nombre} ${app.customer.apellido}`
             : app.user
-            ? `${app.user.nombre} ${app.user.apellido}`
-            : 'Cliente';
+              ? `${app.user.nombre} ${app.user.apellido}`
+              : 'Cliente';
 
           const message = `Recordatorio de Negocio: Tienes una reserva programada con el cliente ${clientName} para el servicio "${
             app.serviceName || (app.service ? app.service.nombre : 'Servicio')

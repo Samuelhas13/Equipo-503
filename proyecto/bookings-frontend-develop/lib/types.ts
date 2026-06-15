@@ -20,6 +20,7 @@ export interface Service {
   serviceName?: string;
   createdAt?: string;
   updatedAt?: string;
+  business?: { id: number };
 }
 
 // Minimal Business type
@@ -171,7 +172,7 @@ export interface ContactMessage {
 
 export interface CreateContactDto {
   name: string;
-  email: string;
+  email?: string;
   subject: "support" | "billing" | "sales" | "other";
   message: string;
 }

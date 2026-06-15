@@ -42,7 +42,9 @@ export class RewardsService {
     });
 
     if (!business) {
-      throw new NotFoundException(`No existe la empresa con id ${createRewardDto.businessId}`);
+      throw new NotFoundException(
+        `No existe la empresa con id ${createRewardDto.businessId}`,
+      );
     }
 
     const reward = this.rewardsRepository.create({
@@ -83,13 +85,19 @@ export class RewardsService {
       currentUser?.role === UserRole.BUSINESS &&
       reward.business?.id !== currentUser.businessId
     ) {
-      throw new ForbiddenException('Solo puedes acceder a los premios de tu empresa');
+      throw new ForbiddenException(
+        'Solo puedes acceder a los premios de tu empresa',
+      );
     }
 
     return reward;
   }
 
-  async update(id: number, updateRewardDto: UpdateRewardDto, currentUser: JwtPayload) {
+  async update(
+    id: number,
+    updateRewardDto: UpdateRewardDto,
+    currentUser: JwtPayload,
+  ) {
     const reward = await this.findOne(id, currentUser);
 
     if (currentUser.role === UserRole.BUSINESS) {
@@ -115,7 +123,9 @@ export class RewardsService {
       where: { email: currentUser.email },
     });
     if (!customer) {
-      throw new BadRequestException('El usuario no tiene un perfil de cliente registrado');
+      throw new BadRequestException(
+        'El usuario no tiene un perfil de cliente registrado',
+      );
     }
     return { points: customer.puntos };
   }
@@ -127,7 +137,9 @@ export class RewardsService {
     });
 
     if (!reward) {
-      throw new NotFoundException(`Premio activo con id ${rewardId} no encontrado`);
+      throw new NotFoundException(
+        `Premio activo con id ${rewardId} no encontrado`,
+      );
     }
 
     // Buscamos el cliente por su email
@@ -136,7 +148,9 @@ export class RewardsService {
     });
 
     if (!customer) {
-      throw new BadRequestException('El usuario no tiene un perfil de cliente registrado');
+      throw new BadRequestException(
+        'El usuario no tiene un perfil de cliente registrado',
+      );
     }
 
     const currentPoints = customer.puntos;
@@ -176,7 +190,9 @@ export class RewardsService {
 
   async validateRedemptionCode(code: string, currentUser: JwtPayload) {
     if (currentUser.role !== UserRole.BUSINESS) {
-      throw new ForbiddenException('Solo las empresas pueden validar códigos de premios');
+      throw new ForbiddenException(
+        'Solo las empresas pueden validar códigos de premios',
+      );
     }
 
     const redemption = await this.redemptionsRepository.findOne({
@@ -185,7 +201,9 @@ export class RewardsService {
     });
 
     if (!redemption) {
-      throw new NotFoundException(`No se encontró ningún canje con el código ${code}`);
+      throw new NotFoundException(
+        `No se encontró ningún canje con el código ${code}`,
+      );
     }
 
     if (redemption.reward?.business?.id !== currentUser.businessId) {
@@ -193,7 +211,9 @@ export class RewardsService {
     }
 
     if (redemption.status === 'used') {
-      throw new BadRequestException('Este premio ya ha sido utilizado previamente');
+      throw new BadRequestException(
+        'Este premio ya ha sido utilizado previamente',
+      );
     }
 
     redemption.status = 'used';
@@ -210,7 +230,9 @@ export class RewardsService {
 
   async findBusinessRedemptions(currentUser: JwtPayload) {
     if (currentUser.role !== UserRole.BUSINESS) {
-      throw new ForbiddenException('Solo las empresas pueden ver los canjes recibidos');
+      throw new ForbiddenException(
+        'Solo las empresas pueden ver los canjes recibidos',
+      );
     }
 
     return this.redemptionsRepository.find({

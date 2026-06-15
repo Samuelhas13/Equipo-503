@@ -109,8 +109,10 @@ export default function DebtorsPage() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadPayments();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Transform and group unpaid payments by customer

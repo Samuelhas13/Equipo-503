@@ -75,12 +75,22 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async registerCustomer(registerDto: any) {
-    const { nombre, apellido, email, numero, password } = registerDto;
+  async registerCustomer(registerDto: Record<string, any>) {
+    const { nombre, apellido, email, numero, password } = registerDto as {
+      nombre: string;
+      apellido: string;
+      email: string;
+      numero: string;
+      password?: string;
+    };
 
     const existingUser = await this.userRepository.findOneBy({ email });
     if (existingUser) {
       throw new ConflictException('Ya existe una cuenta con este email');
+    }
+
+    if (!password) {
+      throw new BadRequestException('La contraseña es obligatoria');
     }
 
     const saltOrRounds = 10;

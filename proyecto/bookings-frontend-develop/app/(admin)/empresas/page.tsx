@@ -132,7 +132,7 @@ export default function EmpresasPage() {
   const businessServices = useMemo(() => {
     if (!bookingBusiness) return [];
     return services.filter(
-      (s) => s.businessId === bookingBusiness.id || (s as any).business?.id === bookingBusiness.id
+      (s) => s.businessId === bookingBusiness.id || s.business?.id === bookingBusiness.id
     );
   }, [services, bookingBusiness]);
 
@@ -369,7 +369,7 @@ export default function EmpresasPage() {
   const handleOpenBooking = (business: EnrichedBusiness) => {
     setBookingBusiness(business);
     const bizServices = services.filter(
-      (s) => s.businessId === business.id || (s as any).business?.id === business.id
+      (s) => s.businessId === business.id || s.business?.id === business.id
     );
     if (bizServices.length > 0) {
       setBookingServiceId(bizServices[0].id);

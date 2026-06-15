@@ -52,7 +52,10 @@ export class Customer {
   @Column({ default: 0 })
   puntos: number;
 
-  @ApiProperty({ type: () => [RewardRedemption], description: 'Canjes del cliente' })
+  @ApiProperty({
+    type: () => [RewardRedemption],
+    description: 'Canjes del cliente',
+  })
   @OneToMany(() => RewardRedemption, (redemption) => redemption.customer)
   redemptions: RewardRedemption[];
 }

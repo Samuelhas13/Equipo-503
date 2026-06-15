@@ -49,6 +49,20 @@ export class ContactMessage {
   @Column({ type: 'text', nullable: true })
   replyMessage?: string;
 
+  @ApiProperty({
+    description: 'ID del cliente si el remitente es un cliente',
+    required: false,
+  })
+  @Column({ nullable: true })
+  customerId?: number;
+
+  @ApiProperty({
+    description: 'ID de la empresa si el remitente es un comercio/negocio',
+    required: false,
+  })
+  @Column({ nullable: true })
+  businessId?: number;
+
   @ApiProperty({ description: 'Fecha de creación del registro' })
   @CreateDateColumn()
   createdAt: Date;
