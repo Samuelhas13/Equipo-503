@@ -27,7 +27,7 @@ interface DebtorCustomer {
 export default function DebtorsPage() {
   const { language } = useLanguage();
   const { user } = useAuth();
-  
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +118,7 @@ export default function DebtorsPage() {
   // Transform and group unpaid payments by customer
   const debtors: DebtorCustomer[] = useMemo(() => {
     const customerMap: Record<number, DebtorCustomer> = {};
+    const now = new Date();
 
     payments.forEach((pay) => {
       // We only target payments that are pending ("por cobrar" / "pending")
@@ -128,17 +129,23 @@ export default function DebtorsPage() {
 
       const customerId = customerObj.id;
       const amount = pay.amount ?? 0;
-      
+
       const appObj = typeof pay.appointment === "object" ? pay.appointment : null;
-      const hora = pay.appointment && typeof pay.appointment === "object" 
-        ? pay.appointment.hora_reserva 
+      const hora = pay.appointment && typeof pay.appointment === "object"
+        ? pay.appointment.hora_reserva
         : pay.hora_pago || "";
-      
+
+      // Only show if the appointment/payment date has already passed
+      if (hora) {
+        const eventDate = new Date(hora.replace(" ", "T"));
+        if (eventDate > now) return; // Skip future pending payments
+      }
+
       const parts = hora.split(" ");
       const date = parts[0] || "—";
       const time = parts[1] || "—";
-      const serviceName = pay.servicio && typeof pay.servicio === "object" 
-        ? pay.servicio.nombre 
+      const serviceName = pay.servicio && typeof pay.servicio === "object"
+        ? pay.servicio.nombre
         : "Servicio";
 
       const unpaidBooking: UnpaidBooking = {
@@ -196,7 +203,7 @@ export default function DebtorsPage() {
     try {
       await updatePayment(paymentId, { status: "paid" });
       setSuccessMessage(currentTexts.successMark);
-      
+
       // Auto dismiss success banner after 4s
       setTimeout(() => setSuccessMessage(null), 4000);
 
@@ -384,7 +391,7 @@ export default function DebtorsPage() {
           <p className="kpi-card__label">{currentTexts.totalDebtors}</p>
           <p className="kpi-card__value" style={{ color: "var(--error)" }}>{metrics.totalDebtors}</p>
         </div>
-        
+
         <div className="kpi-card kpi-card--variant-d">
           <div className="kpi-card__accent" style={{ background: "var(--purple-400)" }} />
           <p className="kpi-card__label">{currentTexts.totalUnpaidAmount}</p>

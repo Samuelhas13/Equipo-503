@@ -5,15 +5,18 @@ import { useLanguage } from "@/context/LanguageContext";
 import {
   getPayments,
   createPayment,
+  getAppointments,
   PaymentMethod,
   PaymentStatus,
 } from "@/lib/api";
-import type { Payment } from "@/lib/types";
+import type { Payment, Booking } from "@/lib/types";
 
 type PaymentForm = {
   client: string;
   business: string;
   appointmentId: string;
+  serviceId: string;
+  customerId: string;
   amount: string;
   method: PaymentMethod;
   date: string;
@@ -24,6 +27,8 @@ const initialPaymentForm: PaymentForm = {
   client: "",
   business: "",
   appointmentId: "",
+  serviceId: "",
+  customerId: "",
   amount: "",
   method: "card",
   date: "",
@@ -296,6 +301,7 @@ export default function PaymentsPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [appointments, setAppointments] = useState<Booking[]>([]);
   const [paymentForm, setPaymentForm] =
     useState<PaymentForm>(initialPaymentForm);
   const [formError, setFormError] = useState("");
@@ -316,6 +322,14 @@ export default function PaymentsPage() {
       setSortDirection("asc");
     }
   };
+
+  const appointmentsWithPayments = useMemo(() => {
+    return new Set(
+      payments
+        .map((p) => p.appointmentId)
+        .filter((id): id is number => id !== undefined && id !== null)
+    );
+  }, [payments]);
 
   const filteredPayments = useMemo(() => {
     if (!search.trim()) return payments;
@@ -430,14 +444,18 @@ export default function PaymentsPage() {
   };
 
   const amountRegex = /^[0-9]+$/;
-  const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
+  const nameRegex = /^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s'#-]+$/;
 
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
-        const data = await getPayments();
-        setPayments(data);
+        const [payData, appData] = await Promise.all([
+          getPayments(),
+          getAppointments()
+        ]);
+        setPayments(payData);
+        setAppointments(appData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
@@ -519,6 +537,34 @@ export default function PaymentsPage() {
     setPaymentForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleAppointmentChange = (appIdStr: string) => {
+    if (!appIdStr) {
+      setPaymentForm(initialPaymentForm);
+      return;
+    }
+    const app = appointments.find((a) => String(a.id) === appIdStr);
+    if (app) {
+      const price = app.service && typeof app.service === "object" ? String(app.service.precio || "") : "";
+      const sId = app.service && typeof app.service === "object" ? String(app.service.id) : String(app.service || "");
+      const cId = app.customerId || (app.customer && typeof app.customer === "object" ? app.customer.id : 1);
+      const cName = app.customer && typeof app.customer === "object"
+        ? `${app.customer.nombre} ${app.customer.apellido}`
+        : "Cliente #" + cId;
+      const bName = app.business && typeof app.business === "object" ? app.business.nombre : "Comercio #" + app.businessId;
+
+      setPaymentForm((prev) => ({
+        ...prev,
+        appointmentId: appIdStr,
+        serviceId: sId,
+        customerId: String(cId),
+        client: cName,
+        business: bName,
+        amount: price,
+        date: app.date || prev.date,
+      }));
+    }
+  };
+
   const handleSavePayment = async () => {
     if (!validatePaymentForm()) return;
 
@@ -528,8 +574,9 @@ export default function PaymentsPage() {
         date: paymentForm.date,
         status: paymentForm.status,
         paymentMethod: paymentForm.method,
-        customerId: 1,
+        customerId: Number(paymentForm.customerId) || 1,
         appointmentId: Number(paymentForm.appointmentId) || 1,
+        servicioId: Number(paymentForm.serviceId) || 1,
       });
 
       setPayments((prev) => [newPayment, ...prev]);
@@ -572,6 +619,35 @@ export default function PaymentsPage() {
               handleSavePayment();
             }}
           >
+            <label className="form-field" style={{ gridColumn: "1 / -1" }}>
+              Reserva asociada (Obligatoria para vincular el cobro)
+              <select
+                className="input"
+                value={paymentForm.appointmentId}
+                onChange={(e) => handleAppointmentChange(e.target.value)}
+                required
+              >
+                <option value="">-- Selecciona una Reserva --</option>
+                {appointments
+                  .filter((app) => {
+                    const isPendingOrConfirmed = app.status === "pending" || app.status === "confirmed";
+                    const hasNoPayment = !appointmentsWithPayments.has(app.id);
+                    return isPendingOrConfirmed && hasNoPayment;
+                  })
+                  .map((app) => {
+                    const clientLabel = app.customer && typeof app.customer === "object"
+                      ? `${app.customer.nombre} ${app.customer.apellido}`
+                      : `Cliente #${app.customerId}`;
+                    const statusLabel = app.status === "pending" ? "Pendiente" : "Confirmada";
+                    return (
+                      <option key={app.id} value={app.id}>
+                        Reserva #{app.id} [{statusLabel}] - {clientLabel} - {app.serviceName} ({app.date} {app.time})
+                      </option>
+                    );
+                  })}
+              </select>
+            </label>
+
             <label className="form-field">
               {texts[language].client}
               <input
@@ -581,7 +657,7 @@ export default function PaymentsPage() {
                 onChange={(event) =>
                   handleInputChange("client", event.target.value)
                 }
-                pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
+                pattern="[A-Za-z0-9ÁÉÍÓÚÑáéíóúñüÜ\s'#-]+"
                 title={texts[language].onlyLetters}
                 required
               />
@@ -596,7 +672,7 @@ export default function PaymentsPage() {
                 onChange={(event) =>
                   handleInputChange("business", event.target.value)
                 }
-                pattern="[A-Za-zÁÉÍÓÚÑáéíóúñüÜ ]+"
+                pattern="[A-Za-z0-9ÁÉÍÓÚÑáéíóúñüÜ\s'#-]+"
                 title={texts[language].onlyLetters}
                 required
               />

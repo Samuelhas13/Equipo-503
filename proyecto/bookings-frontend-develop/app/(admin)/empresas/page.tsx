@@ -324,6 +324,7 @@ export default function EmpresasPage() {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setSelectedBusiness(null);
+    setError(null);
   };
 
   // Guardar (Crear o Editar)
@@ -387,6 +388,7 @@ export default function EmpresasPage() {
 
   const handleCloseBooking = () => {
     setBookingBusiness(null);
+    setError(null);
   };
 
   // Confirmar Reserva
@@ -677,6 +679,12 @@ export default function EmpresasPage() {
                 />
               </div>
 
+              {error && (
+                <div className="message-error" style={{ margin: "10px 0" }}>
+                  {error}
+                </div>
+              )}
+
               <div className="modal-actions" style={{ marginTop: "12px" }}>
                 <button
                   type="button"
@@ -817,6 +825,12 @@ export default function EmpresasPage() {
                     </div>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="message-error" style={{ margin: "10px 0" }}>
+                    {error}
+                  </div>
+                )}
 
                 <div className="modal-actions" style={{ marginTop: "12px" }}>
                   <button
