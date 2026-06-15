@@ -1039,6 +1039,10 @@ textarea {
   --status-confirmed-text: #15803d;
   --status-paid-bg: #e0e7ff;
   --status-paid-text: #433bff;
+  --status-completed-bg: #f3e8ff;
+  --status-completed-text: #6b21a8;
+  --status-canceled-bg: #fee2e2;
+  --status-canceled-text: #991b1b;
 }
 
 /* Variables cuando el Sidebar activa el MODO OSCURO (.dark) en el HTML */
@@ -1064,6 +1068,10 @@ html.dark .business-calendar,
   --status-confirmed-text: #14532d;
   --status-paid-bg: #7f77dd;
   --status-paid-text: #ffffff;
+  --status-completed-bg: #c084fc;
+  --status-completed-text: #3b0764;
+  --status-canceled-bg: #f87171;
+  --status-canceled-text: #450a0a;
 }
 
 /* ─── ESTRUCTURA DEL CALENDARIO (Usa las variables automáticamente) ─── */
@@ -1107,7 +1115,7 @@ html.dark .business-calendar,
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1121,7 +1129,7 @@ html.dark .business-calendar,
 }
 
 .calendar-cell {
-  min-height: 100px;
+  height: 125px;
   background: var(--cal-cell-bg);
   border: 1px solid var(--cal-cell-border);
   border-radius: 8px;
@@ -1129,6 +1137,7 @@ html.dark .business-calendar,
   display: flex;
   flex-direction: column;
   transition: background 0.2s, border-color 0.2s;
+  overflow: hidden;
 }
 
 .calendar-cell--empty {
@@ -1153,8 +1162,8 @@ html.dark .business-calendar,
   display: flex;
   flex-direction: column;
   gap: 4px;
-  overflow-y: auto;
-  max-height: 80px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .calendar-event-pill {
@@ -1167,6 +1176,25 @@ html.dark .business-calendar,
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.3s, color 0.3s;
+  width: 100%;
+}
+
+.calendar-more-events {
+  font-size: 0.72rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--cal-text-muted);
+  background-color: var(--cal-btn-bg);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+  width: 100%;
+}
+
+.calendar-more-events:hover {
+  background-color: var(--cal-btn-hover);
+  color: var(--cal-text-title);
 }
 
 .event-status--pending {
@@ -1182,6 +1210,131 @@ html.dark .business-calendar,
 .event-status--paid {
   background-color: var(--status-paid-bg);
   color: var(--status-paid-text);
+}
+
+.event-status--completed {
+  background-color: var(--status-completed-bg);
+  color: var(--status-completed-text);
+}
+
+.event-status--canceled {
+  background-color: var(--status-canceled-bg);
+  color: var(--status-canceled-text);
+}
+
+/* ─── MODAL DE RESERVAS DEL DÍA ─── */
+.calendar-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-backdrop-bg, rgba(38, 33, 92, 0.5));
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.calendar-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 18px);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.calendar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.calendar-modal-header h4 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calendar-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.calendar-modal-close-btn:hover {
+  color: var(--text);
+}
+
+.calendar-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.calendar-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calendar-modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 12px);
+  background: var(--surface-2);
+  transition: transform 0.15s;
+}
+
+.calendar-modal-item:hover {
+  transform: translateY(-2px);
+}
+
+.calendar-modal-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-modal-item-time {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.calendar-modal-item-service {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* ─── RESPONSIVE: OPTIMIZACIÓN PARA MÓVILES ─── */
@@ -1205,6 +1358,7 @@ html.dark .business-calendar,
 
   .calendar-cell {
     min-height: 55px; /* Altura más baja para que quepa todo el mes en pantalla */
+    height: 55px;
     padding: 4px;
     justify-content: space-between;
     position: relative;
@@ -1237,6 +1391,18 @@ html.dark .business-calendar,
     height: 6px;
     padding: 0;
     border-radius: 50%;
+    text-indent: -9999px; /* Esconde el texto */
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  /* En móvil, el indicador de más eventos se convierte en un punto de color neutro */
+  .calendar-more-events {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: var(--cal-text-muted);
     text-indent: -9999px; /* Esconde el texto */
     overflow: hidden;
     display: inline-block;

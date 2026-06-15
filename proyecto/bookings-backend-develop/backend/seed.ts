@@ -224,12 +224,15 @@ async function seed() {
     for (let j = 0; j < CHUNK_SIZE; j++) {
       const idx = i + j + 1;
       const bIndex = idx % TOTAL_BUSINESSES;
-      const serviceIdx = (bIndex * SERVICES_PER_BUSINESS); 
       
-      // Calculate realistic date and time (spread across 60 days)
-      const dayOffset = (idx % 60) - 30; // -30 to +29 days
-      const hour = 8 + (idx % 12); // Hours from 8:00 to 19:00
-      const minutes = (idx % 4) * 15; // 00, 15, 30, 45 minutes
+      // Select a varied service for the business (randomly among the 4 available services)
+      const serviceOffset = Math.floor(Math.random() * SERVICES_PER_BUSINESS);
+      const serviceIdx = (bIndex * SERVICES_PER_BUSINESS) + serviceOffset; 
+      
+      // Calculate realistic date and time (spread across 60 days using random offset for uniform distribution)
+      const dayOffset = Math.floor(Math.random() * 60) - 30; // -30 to +29 days
+      const hour = 8 + Math.floor(Math.random() * 11); // Hours from 8:00 to 18:00
+      const minutes = Math.floor(Math.random() * 4) * 15; // 00, 15, 30, 45 minutes
       
       const appDate = new Date(baseDate);
       appDate.setDate(baseDate.getDate() + dayOffset);
@@ -242,20 +245,22 @@ async function seed() {
       
       const hora_reserva = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
       
-      // Calculate realistic status based on timeframe
+      // Calculate realistic status based on timeframe with randomized weights
       let status = 'pending';
       if (dayOffset < 0) {
-        if (idx % 10 < 7) {
+        const rand = Math.random();
+        if (rand < 0.7) {
           status = 'completed';
-        } else if (idx % 10 < 9) {
+        } else if (rand < 0.9) {
           status = 'paid';
         } else {
           status = 'canceled';
         }
       } else {
-        if (idx % 10 < 5) {
+        const rand = Math.random();
+        if (rand < 0.5) {
           status = 'pending';
-        } else if (idx % 10 < 9) {
+        } else if (rand < 0.9) {
           status = 'confirmed';
         } else {
           status = 'canceled';
@@ -276,8 +281,6 @@ async function seed() {
     const paymentChunk: any[] = [];
     for (let j = 0; j < CHUNK_SIZE; j++) {
       const idx = i + j + 1;
-      const bIndex = idx % TOTAL_BUSINESSES;
-      const serviceIdx = (bIndex * SERVICES_PER_BUSINESS); 
       const appointment = savedAppointments[j];
       
       // Set payment status based on reservation status
@@ -306,7 +309,7 @@ async function seed() {
         customer: savedCustomers[j],
         metodo_pago: idx % 2 === 0 ? PaymentMethod.TARJETA : PaymentMethod.EFECTIVO,
         estado,
-        servicio: savedServices[serviceIdx],
+        servicio: appointment.service,
         hora_pago,
         appointment,
       }));

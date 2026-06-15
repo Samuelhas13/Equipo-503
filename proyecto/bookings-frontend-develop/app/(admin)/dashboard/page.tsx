@@ -146,6 +146,9 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
   */
   const [selectedDateISO, setSelectedDateISO] = useState<string>(getTodayISO());
 
+  // Estado para controlar el modal de reservas de un día (desktop/responsive)
+  const [modalDateISO, setModalDateISO] = useState<string | null>(null);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -195,6 +198,23 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
     return `${parseInt(dStr, 10)} de ${monthNames[month]}`;
   }, [selectedDateISO, month]);
 
+  // Lista de citas para el modal del día seleccionado
+  const modalBookings = useMemo(() => {
+    if (!modalDateISO) return [];
+    const dayList = bookingsByDateMap[modalDateISO] || [];
+    return [...dayList].sort((a, b) => bookingTime(a).localeCompare(bookingTime(b)));
+  }, [bookingsByDateMap, modalDateISO]);
+
+  // Formateador del título del modal
+  const formattedModalDate = useMemo(() => {
+    if (!modalDateISO) return "";
+    const parts = modalDateISO.split("-");
+    if (parts.length !== 3) return "";
+    const [yStr, mStr, dStr] = parts;
+    const mIdx = parseInt(mStr, 10) - 1;
+    return `${parseInt(dStr, 10)} de ${monthNames[mIdx]} de ${yStr}`;
+  }, [modalDateISO]);
+
   return (
     <div className="business-calendar">
       <div className="calendar-header">
@@ -226,6 +246,12 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
           /* CAMBIO RESPONSIVE: Validamos si este día coincide con el seleccionado por el usuario */
           const isSelected = isoKey === selectedDateISO;
 
+          // Limit displayed events on calendar grid to prevent overlap/collapsing (max 3 lines)
+          const sortedBookings = [...dayBookings].sort((a, b) => bookingTime(a).localeCompare(bookingTime(b)));
+          const maxVisible = 3;
+          const displayBookings = sortedBookings.length > maxVisible ? sortedBookings.slice(0, 2) : sortedBookings;
+          const remainingCount = sortedBookings.length - displayBookings.length;
+
           return (
             <div 
               key={isoKey} 
@@ -236,7 +262,7 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
             >
               <span className="calendar-date-number">{day}</span>
               <div className="calendar-events-container">
-                {dayBookings.sort((a, b) => bookingTime(a).localeCompare(bookingTime(b))).map((b) => (
+                {displayBookings.map((b) => (
                   <div 
                     key={b.id} 
                     className={`calendar-event-pill event-status--${bookingStatus(b)}`}
@@ -245,6 +271,18 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
                     {bookingTime(b)} - {bookingServiceName(b)}
                   </div>
                 ))}
+                {remainingCount > 0 && (
+                  <div 
+                    className="calendar-more-events"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalDateISO(isoKey);
+                    }}
+                    title={sortedBookings.slice(2).map(b => `[${bookingTime(b)}] ${bookingServiceName(b)}`).join('\n')}
+                  >
+                    +{remainingCount} más
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -272,6 +310,43 @@ function BusinessCalendar({ bookings }: BusinessCalendarProps) {
           </div>
         )}
       </div>
+
+      {/* Modal para mostrar todas las reservas del día seleccionado (Desktop) */}
+      {modalDateISO && (
+        <div className="calendar-modal-backdrop" onClick={() => setModalDateISO(null)}>
+          <div className="calendar-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="calendar-modal-header">
+              <h4>Reservas para el {formattedModalDate}</h4>
+              <button 
+                type="button" 
+                className="calendar-modal-close-btn" 
+                onClick={() => setModalDateISO(null)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="calendar-modal-body">
+              {modalBookings.length === 0 ? (
+                <p style={{ color: "var(--muted)", textAlign: "center", margin: "20px 0" }}>
+                  No hay reservas para este día.
+                </p>
+              ) : (
+                <div className="calendar-modal-list">
+                  {modalBookings.map((b) => (
+                    <div key={b.id} className="calendar-modal-item">
+                      <div className="calendar-modal-item-left">
+                        <span className="calendar-modal-item-time">{bookingTime(b)}</span>
+                        <span className="calendar-modal-item-service">{bookingServiceName(b)}</span>
+                      </div>
+                      <Badge status={bookingStatus(b) as DashboardBookingStatus} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
